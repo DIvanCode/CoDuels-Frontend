@@ -33,7 +33,19 @@ export default defineConfig([
                         ["parent", "sibling", "index"],
                         ["type"],
                     ],
+                    "pathGroups": [
+                        {
+                            pattern: "**/*.{css,scss,sass,less}",
+                            group: "index",
+                            position: "after",
+                        },
+                    ],
+                    "pathGroupsExcludedImportTypes": [],
                     "newlines-between": "always",
+                    "alphabetize": {
+                        order: "asc",
+                        caseInsensitive: true,
+                    },
                 },
             ],
             "import/first": "error",

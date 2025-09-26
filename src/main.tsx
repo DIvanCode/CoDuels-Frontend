@@ -1,7 +1,8 @@
+import App from "app/App";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "app/App";
+
+import "./index.scss";
 
 const container = document.querySelector("#root") as HTMLElement;
 const root = createRoot(container);
