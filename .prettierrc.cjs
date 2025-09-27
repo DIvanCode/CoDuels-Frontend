@@ -9,4 +9,4 @@ const config = {
     arrowParens: "always",
 };
 
-export default config;
+module.exports = config;
