@@ -1,12 +1,16 @@
+import { UserBriefInfo } from "entities/user";
 import { Link } from "react-router-dom";
 import Favicon from "shared/assets/icons/favicon.svg?react";
-import UserIcon from "shared/assets/icons/user.svg?react";
 import { AppRoutes } from "shared/config";
-import { IconButton } from "shared/ui/IconButton";
+import { IconButton } from "shared/ui";
 
 import styles from "./Header.module.scss";
 
 export const Header = () => {
+    const testUser = {
+        username: "username",
+        rating: 0,
+    };
     return (
         <header className={styles.header}>
             <Link to={AppRoutes.INDEX}>
@@ -15,9 +19,7 @@ export const Header = () => {
                 </IconButton>
             </Link>
 
-            <IconButton>
-                <UserIcon className={styles.userIcon} />
-            </IconButton>
+            <UserBriefInfo user={testUser} onUserIconClick={() => console.log("TODO")} />
         </header>
     );
 };

@@ -4,9 +4,7 @@ import { LoginPage } from "pages/loginPage";
 import { Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { AppRoutes } from "shared/config";
-import { Fallback } from "shared/ui/Fallback";
-import { Loader } from "shared/ui/Loader";
-import { ProtectedRoute } from "shared/ui/ProtectedRoute";
+import { Fallback, Loader, ProtectedRoute } from "shared/ui";
 
 const isAuthenticated = true; // TODO: mock
 
