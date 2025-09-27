@@ -1,0 +1,9 @@
+@use "themes";
+@use "breakpoints";
+
+.app {
+    height: 100%;
+
+    background: var(--background);
+    color: var(--text-primary);
+}

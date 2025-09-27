@@ -89,6 +89,9 @@ importers:
             vite:
                 specifier: ^7.1.7
                 version: 7.1.7(sass@1.93.2)(yaml@2.8.1)
+            vite-plugin-svgr:
+                specifier: ^4.5.0
+                version: 4.5.0(rollup@4.52.2)(typescript@5.9.2)(vite@7.1.7(sass@1.93.2)(yaml@2.8.1))
 
 packages:
     "@babel/code-frame@7.27.1":
@@ -844,6 +847,18 @@ packages:
                 integrity: sha512-slYrCpoxJUqzFDDNlvrOYRazQUNRvWPjXA17dAOISY3rDMxX6k8K4cj2H+hEYMHF81HO3uNd5rHVigAWRM5dSg==,
             }
 
+    "@rollup/pluginutils@5.3.0":
+        resolution:
+            {
+                integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==,
+            }
+        engines: { node: ">=14.0.0" }
+        peerDependencies:
+            rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+        peerDependenciesMeta:
+            rollup:
+                optional: true
+
     "@rollup/rollup-android-arm-eabi@4.52.2":
         resolution:
             {
@@ -1032,6 +1047,110 @@ packages:
                 integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==,
             }
         engines: { node: ">=18" }
+
+    "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
+        resolution:
+            {
+                integrity: sha512-b9MIk7yhdS1pMCZM8VeNfUlSKVRhsHZNMl5O9SfaX0l0t5wjdgu4IDzGB8bpnGBBOjGST3rRFVsaaEtI4W6f7g==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-remove-jsx-attribute@8.0.0":
+        resolution:
+            {
+                integrity: sha512-BcCkm/STipKvbCl6b7QFrMh/vx00vIP63k2eM66MfHJzPr6O2U0jYEViXkHJWqXqQYjdeA9cuCl5KWmlwjDvbA==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-remove-jsx-empty-expression@8.0.0":
+        resolution:
+            {
+                integrity: sha512-5BcGCBfBxB5+XSDSWnhTThfI9jcO5f0Ai2V24gZpG+wXF14BzwxxdDb4g6trdOux0rhibGs385BeFMSmxtS3uA==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-replace-jsx-attribute-value@8.0.0":
+        resolution:
+            {
+                integrity: sha512-KVQ+PtIjb1BuYT3ht8M5KbzWBhdAjjUPdlMtpuw/VjT8coTrItWX6Qafl9+ji831JaJcu6PJNKCV0bp01lBNzQ==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-svg-dynamic-title@8.0.0":
+        resolution:
+            {
+                integrity: sha512-omNiKqwjNmOQJ2v6ge4SErBbkooV2aAWwaPFs2vUY7p7GhVkzRkJ00kILXQvRhA6miHnNpXv7MRnnSjdRjK8og==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-svg-em-dimensions@8.0.0":
+        resolution:
+            {
+                integrity: sha512-mURHYnu6Iw3UBTbhGwE/vsngtCIbHE43xCRK7kCw4t01xyGqb2Pd+WXekRRoFOBIY29ZoOhUCTEweDMdrjfi9g==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-transform-react-native-svg@8.1.0":
+        resolution:
+            {
+                integrity: sha512-Tx8T58CHo+7nwJ+EhUwx3LfdNSG9R2OKfaIXXs5soiy5HtgoAEkDay9LIimLOcG8dJQH1wPZp/cnAv6S9CrR1Q==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-plugin-transform-svg-component@8.0.0":
+        resolution:
+            {
+                integrity: sha512-DFx8xa3cZXTdb/k3kfPeaixecQLgKh5NVBMwD0AQxOzcZawK4oo1Jh9LbrcACUivsCA7TLG8eeWgrDXjTMhRmw==,
+            }
+        engines: { node: ">=12" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/babel-preset@8.1.0":
+        resolution:
+            {
+                integrity: sha512-7EYDbHE7MxHpv4sxvnVPngw5fuR6pw79SkcrILHJ/iMpuKySNCl5W1qcwPEpU+LgyRXOaAFgH0KhwD18wwg6ug==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@babel/core": ^7.0.0-0
+
+    "@svgr/core@8.1.0":
+        resolution:
+            {
+                integrity: sha512-8QqtOQT5ACVlmsvKOJNEaWmRPmcojMOzCz4Hs2BGG/toAp/K38LcsMRyLp349glq5AzJbCEeimEoxaX6v/fLrA==,
+            }
+        engines: { node: ">=14" }
+
+    "@svgr/hast-util-to-babel-ast@8.0.0":
+        resolution:
+            {
+                integrity: sha512-EbDKwO9GpfWP4jN9sGdYwPBU0kdomaPIL2Eu4YwmgP+sJeXT+L7bMwJUBnhzfH8Q2qMBqZ4fJwpCyYsAN3mt2Q==,
+            }
+        engines: { node: ">=14" }
+
+    "@svgr/plugin-jsx@8.1.0":
+        resolution:
+            {
+                integrity: sha512-0xiIyBsLlr8quN+WyuxooNW9RJ0Dpr8uOnH/xrCVO8GLUcwHISwj1AG0k+LFzteTkAA0GbX0kj9q6Dk70PTiPA==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            "@svgr/core": "*"
 
     "@tybys/wasm-util@0.10.1":
         resolution:
@@ -1575,6 +1694,13 @@ packages:
             }
         engines: { node: ">=6" }
 
+    camelcase@6.3.0:
+        resolution:
+            {
+                integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==,
+            }
+        engines: { node: ">=10" }
+
     caniuse-lite@1.0.30001745:
         resolution:
             {
@@ -1673,6 +1799,18 @@ packages:
                 integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==,
             }
         engines: { node: ">=18" }
+
+    cosmiconfig@8.3.6:
+        resolution:
+            {
+                integrity: sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==,
+            }
+        engines: { node: ">=14" }
+        peerDependencies:
+            typescript: ">=4.9.5"
+        peerDependenciesMeta:
+            typescript:
+                optional: true
 
     cosmiconfig@9.0.0:
         resolution:
@@ -1847,6 +1985,12 @@ packages:
                 integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==,
             }
         engines: { node: ">=0.10.0" }
+
+    dot-case@3.0.4:
+        resolution:
+            {
+                integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==,
+            }
 
     dunder-proto@1.0.1:
         resolution:
@@ -2885,6 +3029,12 @@ packages:
             }
         engines: { node: ">=18" }
 
+    lower-case@2.0.2:
+        resolution:
+            {
+                integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==,
+            }
+
     lru-cache@5.1.1:
         resolution:
             {
@@ -2985,6 +3135,12 @@ packages:
         resolution:
             {
                 integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==,
+            }
+
+    no-case@3.0.4:
+        resolution:
+            {
+                integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==,
             }
 
     node-addon-api@7.1.1:
@@ -3116,6 +3272,13 @@ packages:
             {
                 integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==,
             }
+
+    path-type@4.0.0:
+        resolution:
+            {
+                integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==,
+            }
+        engines: { node: ">=8" }
 
     path-type@6.0.0:
         resolution:
@@ -3521,6 +3684,12 @@ packages:
             }
         engines: { node: ">=18" }
 
+    snake-case@3.0.4:
+        resolution:
+            {
+                integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==,
+            }
+
     source-map-js@1.2.1:
         resolution:
             {
@@ -3652,6 +3821,12 @@ packages:
                 integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==,
             }
         engines: { node: ">= 0.4" }
+
+    svg-parser@2.0.4:
+        resolution:
+            {
+                integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==,
+            }
 
     tinyglobby@0.2.15:
         resolution:
@@ -3802,6 +3977,14 @@ packages:
             {
                 integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==,
             }
+
+    vite-plugin-svgr@4.5.0:
+        resolution:
+            {
+                integrity: sha512-W+uoSpmVkSmNOGPSsDCWVW/DDAyv+9fap9AZXBvWiQqrboJ08j2vh0tFxTD/LjwqwAd3yYSVJgm54S/1GhbdnA==,
+            }
+        peerDependencies:
+            vite: ">=2.6.0"
 
     vite@7.1.7:
         resolution:
@@ -4434,6 +4617,14 @@ snapshots:
 
     "@rolldown/pluginutils@1.0.0-beta.35": {}
 
+    "@rollup/pluginutils@5.3.0(rollup@4.52.2)":
+        dependencies:
+            "@types/estree": 1.0.8
+            estree-walker: 2.0.2
+            picomatch: 4.0.3
+        optionalDependencies:
+            rollup: 4.52.2
+
     "@rollup/rollup-android-arm-eabi@4.52.2":
         optional: true
 
@@ -4503,6 +4694,76 @@ snapshots:
     "@rtsao/scc@1.1.0": {}
 
     "@sindresorhus/merge-streams@2.3.0": {}
+
+    "@svgr/babel-plugin-add-jsx-attribute@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-remove-jsx-attribute@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-remove-jsx-empty-expression@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-replace-jsx-attribute-value@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-svg-dynamic-title@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-svg-em-dimensions@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-transform-react-native-svg@8.1.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-plugin-transform-svg-component@8.0.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+
+    "@svgr/babel-preset@8.1.0(@babel/core@7.28.4)":
+        dependencies:
+            "@babel/core": 7.28.4
+            "@svgr/babel-plugin-add-jsx-attribute": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-remove-jsx-attribute": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-remove-jsx-empty-expression": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-replace-jsx-attribute-value": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-svg-dynamic-title": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-svg-em-dimensions": 8.0.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-transform-react-native-svg": 8.1.0(@babel/core@7.28.4)
+            "@svgr/babel-plugin-transform-svg-component": 8.0.0(@babel/core@7.28.4)
+
+    "@svgr/core@8.1.0(typescript@5.9.2)":
+        dependencies:
+            "@babel/core": 7.28.4
+            "@svgr/babel-preset": 8.1.0(@babel/core@7.28.4)
+            camelcase: 6.3.0
+            cosmiconfig: 8.3.6(typescript@5.9.2)
+            snake-case: 3.0.4
+        transitivePeerDependencies:
+            - supports-color
+            - typescript
+
+    "@svgr/hast-util-to-babel-ast@8.0.0":
+        dependencies:
+            "@babel/types": 7.28.4
+            entities: 4.5.0
+
+    "@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(typescript@5.9.2))":
+        dependencies:
+            "@babel/core": 7.28.4
+            "@svgr/babel-preset": 8.1.0(@babel/core@7.28.4)
+            "@svgr/core": 8.1.0(typescript@5.9.2)
+            "@svgr/hast-util-to-babel-ast": 8.0.0
+            svg-parser: 2.0.4
+        transitivePeerDependencies:
+            - supports-color
 
     "@tybys/wasm-util@0.10.1":
         dependencies:
@@ -4873,6 +5134,8 @@ snapshots:
 
     callsites@3.1.0: {}
 
+    camelcase@6.3.0: {}
+
     caniuse-lite@1.0.30001745: {}
 
     chalk@4.1.2:
@@ -4918,6 +5181,15 @@ snapshots:
     convert-source-map@2.0.0: {}
 
     cookie@1.0.2: {}
+
+    cosmiconfig@8.3.6(typescript@5.9.2):
+        dependencies:
+            import-fresh: 3.3.1
+            js-yaml: 4.1.0
+            parse-json: 5.2.0
+            path-type: 4.0.0
+        optionalDependencies:
+            typescript: 5.9.2
 
     cosmiconfig@9.0.0(typescript@5.9.2):
         dependencies:
@@ -5038,6 +5310,11 @@ snapshots:
     doctrine@2.1.0:
         dependencies:
             esutils: 2.0.3
+
+    dot-case@3.0.4:
+        dependencies:
+            no-case: 3.0.4
+            tslib: 2.8.1
 
     dunder-proto@1.0.1:
         dependencies:
@@ -5767,6 +6044,10 @@ snapshots:
             strip-ansi: 7.1.2
             wrap-ansi: 9.0.2
 
+    lower-case@2.0.2:
+        dependencies:
+            tslib: 2.8.1
+
     lru-cache@5.1.1:
         dependencies:
             yallist: 3.1.1
@@ -5810,6 +6091,11 @@ snapshots:
     napi-postinstall@0.3.3: {}
 
     natural-compare@1.4.0: {}
+
+    no-case@3.0.4:
+        dependencies:
+            lower-case: 2.0.2
+            tslib: 2.8.1
 
     node-addon-api@7.1.1:
         optional: true
@@ -5896,6 +6182,8 @@ snapshots:
     path-key@3.1.1: {}
 
     path-parse@1.0.7: {}
+
+    path-type@4.0.0: {}
 
     path-type@6.0.0: {}
 
@@ -6165,6 +6453,11 @@ snapshots:
             ansi-styles: 6.2.3
             is-fullwidth-code-point: 5.1.0
 
+    snake-case@3.0.4:
+        dependencies:
+            dot-case: 3.0.4
+            tslib: 2.8.1
+
     source-map-js@1.2.1: {}
 
     source-map@0.6.1:
@@ -6262,6 +6555,8 @@ snapshots:
 
     supports-preserve-symlinks-flag@1.0.0: {}
 
+    svg-parser@2.0.4: {}
+
     tinyglobby@0.2.15:
         dependencies:
             fdir: 6.5.0(picomatch@4.0.3)
@@ -6293,8 +6588,7 @@ snapshots:
             minimist: 1.2.8
             strip-bom: 3.0.0
 
-    tslib@2.8.1:
-        optional: true
+    tslib@2.8.1: {}
 
     type-check@0.4.0:
         dependencies:
@@ -6388,6 +6682,17 @@ snapshots:
     uri-js@4.4.1:
         dependencies:
             punycode: 2.3.1
+
+    vite-plugin-svgr@4.5.0(rollup@4.52.2)(typescript@5.9.2)(vite@7.1.7(sass@1.93.2)(yaml@2.8.1)):
+        dependencies:
+            "@rollup/pluginutils": 5.3.0(rollup@4.52.2)
+            "@svgr/core": 8.1.0(typescript@5.9.2)
+            "@svgr/plugin-jsx": 8.1.0(@svgr/core@8.1.0(typescript@5.9.2))
+            vite: 7.1.7(sass@1.93.2)(yaml@2.8.1)
+        transitivePeerDependencies:
+            - rollup
+            - supports-color
+            - typescript
 
     vite@7.1.7(sass@1.93.2)(yaml@2.8.1):
         dependencies:

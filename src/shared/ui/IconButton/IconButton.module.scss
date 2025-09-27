@@ -1,0 +1,28 @@
+.iconButton {
+    display: block;
+    line-height: 0;
+
+    border: none;
+
+    background-color: transparent;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &[data-size] {
+        width: var(--size);
+        height: var(--size);
+    }
+
+    &[data-size="small"] {
+        --size: 24px;
+    }
+
+    &[data-size="medium"] {
+        --size: 39px;
+    }
+
+    &[data-size="large"] {
+        --size: 52px;
+    }
+}

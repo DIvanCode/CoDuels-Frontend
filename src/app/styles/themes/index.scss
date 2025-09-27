@@ -1,0 +1,12 @@
+@use "dark";
+@use "light";
+
+.app {
+    --accent-primary: #6064cf;
+    --accent-secondary: #9fa1e7;
+
+    --error: #b3261e;
+    --on-error: #852221;
+
+    --positive: #14ae5c;
+}
