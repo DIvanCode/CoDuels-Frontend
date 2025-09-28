@@ -2,7 +2,9 @@ import { ComponentPropsWithoutRef } from "react";
 
 import styles from "./IconButton.module.scss";
 
-type Props = ComponentPropsWithoutRef<"button"> & { size?: "small" | "medium" | "large" };
+interface Props extends ComponentPropsWithoutRef<"button"> {
+    size?: "small" | "medium" | "large";
+}
 
 export const IconButton = (props: Props) => {
     return (
