@@ -14,3 +14,8 @@ declare module "*.svg?react" {
     const SVG: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
     export default SVG;
 }
+
+declare type AppStore = import("./src/app/store").AppStore;
+
+declare type RootState = import("./src/app/store").RootState;
+declare type AppDispatch = import("./src/app/store").AppDispatch;
