@@ -16,6 +16,6 @@ Scripts to run the project:
 - `lint`: runs eslint on the project
 - `lint:fix`: fixes linting errors in the project
 - `preview`: runs the project with vite in preview mode
-- `fsd-lint`: runs the Feature-Sliced Design linter on the project
+- `fsd:lint`: runs the Feature-Sliced Design linter on the project
 - `prettier:fix`: fixes prettier formatting errors in the project
 - `prepare`: prepares the project with husky
