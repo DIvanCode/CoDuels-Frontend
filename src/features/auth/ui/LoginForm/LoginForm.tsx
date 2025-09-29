@@ -59,5 +59,3 @@ export const LoginForm = () => {
         </form>
     );
 };
-
-// TODO: юзать zod для валации
