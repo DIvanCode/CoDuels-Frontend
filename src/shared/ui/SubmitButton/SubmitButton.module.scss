@@ -1,0 +1,31 @@
+.submitButton {
+    --btn-bg-color: var(--accent-primary);
+    --btn-text-color: var(--text-primary);
+
+    padding: 0.75em 1em;
+    border-radius: 0.5em;
+
+    background-color: var(--btn-bg-color);
+    color: var(--btn-text-color);
+
+    font-size: 1rem;
+    font-weight: 500;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: color-mix(in srgb, var(--btn-bg-color) 85%, white);
+    }
+
+    &:active {
+        background-color: color-mix(in srgb, var(--btn-bg-color) 75%, black);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        background-color: var(--card-secondary);
+    }
+}

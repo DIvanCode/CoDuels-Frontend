@@ -1,12 +1,19 @@
 import { UserData } from "entities/user";
 import { apiSlice } from "shared/api";
 
-import { AuthCredentials } from "../model/types";
+import { LoginCredentials, RegistrationCredentials } from "../model/types";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<{ user: UserData; token: string }, AuthCredentials>({
-            query: (credentials: AuthCredentials) => ({
+        register: builder.mutation<{ user: UserData; token: string }, RegistrationCredentials>({
+            query: (credentials: RegistrationCredentials) => ({
+                url: "/register",
+                method: "POST",
+                body: { ...credentials },
+            }),
+        }),
+        login: builder.mutation<{ user: UserData; token: string }, LoginCredentials>({
+            query: (credentials: LoginCredentials) => ({
                 url: "/login",
                 method: "POST",
                 body: { ...credentials },
@@ -21,4 +28,4 @@ export const authApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useLoginMutation, useLogoutMutation } = authApiSlice;
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation } = authApiSlice;

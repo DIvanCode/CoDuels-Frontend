@@ -4,8 +4,6 @@ import { nanoid } from "@reduxjs/toolkit";
 import { http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
 
-const NUM_USERS = 3;
-
 // Add an extra delay to all endpoints, so loading spinners show up.
 const ARTIFICIAL_DELAY_MS = 1000;
 
@@ -36,15 +34,6 @@ if (useSeededRNG) {
     faker.seed(seedDate.getTime());
 }
 
-function getRandomInt(min: number, max: number) {
-    return faker.number.int({ min, max });
-}
-
-const randomFromArray = <T>(array: T[]) => {
-    const index = getRandomInt(0, array.length - 1);
-    return array[index];
-};
-
 /* MSW Data Model Setup */
 
 // TODO: добавить инфу про дуэли
@@ -56,39 +45,40 @@ export const db = factory({
     },
 });
 
-type ModelDB = typeof db;
-
-type UserData = ReturnType<typeof createUserData>;
-type User = ReturnType<typeof db.user.create>;
-
-const createUserData = () => {
-    const username = faker.person.firstName();
-    const rating = faker.number.int({ min: 300, max: 2000 });
-
+const createUserData = (
+    username = faker.person.firstName(),
+    rating = faker.number.int({ min: 300, max: 2000 }),
+) => {
     return {
         username,
         rating,
     };
 };
 
-// Create an initial set of users
-for (let i = 0; i < NUM_USERS; i++) {
-    db.user.create(createUserData());
-}
-
 /* MSW REST API Handlers */
 
-let currentUser: UserData | null = null;
-
 export const handlers = [
+    http.post("/fakeApi/register", async function ({ request }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const body = (await request.json()) as { email: string; password: string };
+
+        const user = db.user.create(createUserData(body.email.split("@")[0]));
+
+        return HttpResponse.json({ success: true, user });
+    }),
     http.post("/fakeApi/login", async function ({ request }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
-        currentUser = randomFromArray(db.user.getAll());
+        const body = (await request.json()) as { username: string; password: string };
+        const currentUser = db.user.findFirst({
+            where: {
+                username: { equals: body.username },
+            },
+        });
         return HttpResponse.json({ success: true, user: currentUser });
     }),
     http.post("/fakeApi/logout", async function () {
-        currentUser = null;
         return HttpResponse.json({ success: true });
     }),
 ];

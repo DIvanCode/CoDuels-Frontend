@@ -125,3 +125,13 @@ legend {
 input[type="file"] {
     max-width: 100%;
 }
+
+input:-webkit-autofill {
+    &,
+    &:hover,
+    &:focus,
+    &:active {
+        transition-delay: 9999s;
+        transition-property: background-color, color;
+    }
+}

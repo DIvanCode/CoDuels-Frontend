@@ -1,12 +1,12 @@
 import { Layout } from "app/layout/Layout";
+import { AuthPage } from "pages/authPage";
 import { HomePage } from "pages/homePage";
-import { LoginPage } from "pages/loginPage";
 import { Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { AppRoutes } from "shared/config";
-import { Fallback, Loader, ProtectedRoute } from "shared/ui";
+import { Fallback, Loader } from "shared/ui";
 
-const isAuthenticated = true; // TODO: mock
+import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
     {
@@ -14,17 +14,17 @@ export const router = createBrowserRouter([
         element: <Layout />,
         children: [
             {
-                path: AppRoutes.LOGIN,
+                path: AppRoutes.AUTH,
                 element: (
                     <Suspense fallback={<Loader />}>
-                        <LoginPage />
+                        <AuthPage />
                     </Suspense>
                 ),
             },
             {
                 index: true,
                 element: (
-                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                    <ProtectedRoute>
                         <Suspense fallback={<Loader />}>
                             <HomePage />
                         </Suspense>

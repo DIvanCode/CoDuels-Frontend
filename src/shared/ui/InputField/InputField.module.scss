@@ -1,0 +1,45 @@
+.inputField {
+    display: flex;
+    flex-direction: column-reverse;
+
+    color: var(--text-primary);
+}
+
+.inputLabel {
+    margin-bottom: 0.25em;
+
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.input[required] + .inputLabel::after {
+    content: "*";
+    color: #ff5656;
+    margin-left: 0.15em;
+    font-size: 1rem;
+    vertical-align: top;
+}
+
+.input {
+    width: 100%;
+
+    padding: 0.75em 1em;
+    border-radius: 0.5em;
+
+    font-size: 1rem;
+
+    background-color: var(--card-secondary);
+    transition: background-color linear 0.2s;
+
+    &:hover {
+        background-color: color-mix(in srgb, var(--card-secondary) 95%, black);
+    }
+
+    &:focus {
+        background-color: color-mix(in srgb, var(--card-secondary) 95%, white);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}

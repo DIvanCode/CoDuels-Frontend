@@ -1,4 +1,4 @@
 export enum AppRoutes {
     INDEX = "/",
-    LOGIN = "/login",
+    AUTH = "/auth",
 }

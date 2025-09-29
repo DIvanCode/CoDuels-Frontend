@@ -17,7 +17,7 @@ export const DropdownMenu = ({ trigger, items }: Props) => {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const handleItemOnClick = (onItemClick: DropdownItem["onClick"]) => {
+    const handleItemOnClick = ({ onClick: onItemClick }: DropdownItem) => {
         onItemClick();
         setOpen(false);
     };
@@ -46,7 +46,7 @@ export const DropdownMenu = ({ trigger, items }: Props) => {
                         <li
                             className={styles.dropdownItem}
                             key={item.label}
-                            onClick={() => handleItemOnClick(item.onClick)}
+                            onClick={() => handleItemOnClick(item)}
                         >
                             {item.icon}
                             {item.label}

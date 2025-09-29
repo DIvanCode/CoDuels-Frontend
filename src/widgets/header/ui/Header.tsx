@@ -1,9 +1,11 @@
-import { UserCard } from "entities/user";
+import { selectCurrentUser, UserCard } from "entities/user";
+import { useLogoutMutation } from "features/auth";
 import { Link } from "react-router-dom";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
 import { AppRoutes } from "shared/config";
+import { useAppSelector } from "shared/lib/storeHooks";
 import { IconButton, DropdownMenu } from "shared/ui";
 
 import styles from "./Header.module.scss";
@@ -11,10 +13,9 @@ import styles from "./Header.module.scss";
 import type { DropdownItem } from "shared/ui";
 
 export const Header = () => {
-    const testUser = {
-        username: "username",
-        rating: 0,
-    }; // TODO: mocked
+    const user = useAppSelector(selectCurrentUser);
+
+    const [logout] = useLogoutMutation();
 
     const menuItems: DropdownItem[] = [
         {
@@ -25,7 +26,7 @@ export const Header = () => {
         {
             icon: <ExitIcon />,
             label: "Выйти",
-            onClick: () => {},
+            onClick: logout,
         },
     ];
 
@@ -36,8 +37,7 @@ export const Header = () => {
                     <Favicon />
                 </IconButton>
             </Link>
-
-            <DropdownMenu trigger={<UserCard user={testUser} />} items={menuItems} />
+            {user && <DropdownMenu trigger={<UserCard user={user} />} items={menuItems} />}
         </header>
     );
 };
