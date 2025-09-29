@@ -21,7 +21,6 @@ export const RegisterForm = () => {
 
         const registrationData = { email, password, confirmPassword };
 
-        // NOTE: меня напрягает чуток этот повторяющийся код
         const result = registrationSchema.safeParse(registrationData);
         if (!result.success) {
             alert(result.error.issues.map((e) => e.message).join("\n"));
@@ -52,6 +51,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
             />
             <InputField
                 id="confirm-password"
@@ -62,6 +62,7 @@ export const RegisterForm = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
             />
             <SubmitButton className={styles.registerButton} disabled={isLoading}>
                 Регистрация

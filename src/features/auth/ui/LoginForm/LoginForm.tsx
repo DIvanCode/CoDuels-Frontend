@@ -19,15 +19,12 @@ export const LoginForm = () => {
         e.preventDefault();
 
         const loginData = { username, password };
-        console.log(loginData);
 
-        // NOTE: меня напрягает чуток этот повторяющийся код
         const result = loginSchema.safeParse(loginData);
         if (!result.success) {
             alert(result.error.issues.map((e) => e.message).join("\n"));
         } else {
             await login(loginData);
-
             navigate(AppRoutes.INDEX);
         }
     };
@@ -43,6 +40,7 @@ export const LoginForm = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="on"
             />
             <InputField
                 id="password"
@@ -53,6 +51,7 @@ export const LoginForm = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="current-password"
             />
             <SubmitButton disabled={isLoading} className={styles.loginButton}>
                 Войти
