@@ -8,10 +8,11 @@ export const apiSlice = createApi({
         //   // By default, if we have a token in the store, let's use that for authenticated requests
         //   const token = (getState() as RootState)
         //   if (token) {
-        //     headers.set('authorization', `Bearer ${token}`)
+        //     headers.set("authorization", `Bearer ${token}`)
         //   }
         //   return headers
         // },
     }),
+    tagTypes: ["Duel"],
     endpoints: () => ({}),
 });

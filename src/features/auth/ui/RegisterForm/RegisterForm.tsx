@@ -64,9 +64,7 @@ export const RegisterForm = () => {
                 disabled={isLoading}
                 autoComplete="new-password"
             />
-            <SubmitButton className={styles.registerButton} disabled={isLoading}>
-                Регистрация
-            </SubmitButton>
+            <SubmitButton disabled={isLoading}>Регистрация</SubmitButton>
         </form>
     );
 };

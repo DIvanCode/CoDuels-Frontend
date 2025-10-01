@@ -1,0 +1,21 @@
+.homeCard {
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 3em;
+    text-align: center;
+
+    font-weight: 600;
+}
+
+.cardHeading {
+    font-size: 1.75rem;
+}
+
+.cardDescription {
+    font-size: 1.75rem;
+}
+
+.username {
+    color: var(--accent-primary);
+}

@@ -10,5 +10,6 @@ export { MainCard } from "./MainCard/MainCard";
 
 export { Fallback } from "./Fallback/Fallback";
 export { Loader } from "./Loader/Loader";
+export { SearchLoader } from "./SearchLoader/SearchLoader";
 
 export type { DropdownItem } from "./DropdownMenu/DropdownMenu";

@@ -1,0 +1,41 @@
+.searchContainer {
+    position: relative;
+}
+
+.mapIcon {
+    position: relative;
+    width: 10em;
+}
+
+.searchIcon {
+    position: absolute;
+    width: 5em;
+
+    left: -5%;
+    top: 5%;
+
+    animation: moveAround 5s infinite ease-in-out;
+}
+
+@keyframes moveAround {
+    0% {
+        left: -5%;
+        top: 5%;
+    }
+    25% {
+        left: 50%;
+        top: 12%;
+    }
+    50% {
+        left: 35%;
+        top: 50%;
+    }
+    75% {
+        left: 5%;
+        top: 40%;
+    }
+    100% {
+        left: -5%;
+        top: 5%;
+    }
+}

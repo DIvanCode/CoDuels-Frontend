@@ -53,9 +53,7 @@ export const LoginForm = () => {
                 disabled={isLoading}
                 autoComplete="current-password"
             />
-            <SubmitButton disabled={isLoading} className={styles.loginButton}>
-                Войти
-            </SubmitButton>
+            <SubmitButton disabled={isLoading}>Войти</SubmitButton>
         </form>
     );
 };

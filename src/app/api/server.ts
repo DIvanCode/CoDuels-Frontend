@@ -36,7 +36,6 @@ if (useSeededRNG) {
 
 /* MSW Data Model Setup */
 
-// TODO: добавить инфу про дуэли
 export const db = factory({
     user: {
         id: primaryKey(nanoid),
@@ -55,7 +54,20 @@ const createUserData = (
     };
 };
 
-/* MSW REST API Handlers */
+/* In-memory duels store */
+const duels = new Map<
+    string,
+    {
+        id: string;
+        opponent_user_id: string;
+        status: "in_progress" | "finished" | "pending";
+        task_id: string;
+        starts_at: string;
+        deadline_at: string;
+    }
+>();
+
+/* MSW REST / SSE API Handlers */
 
 export const handlers = [
     http.post("/fakeApi/register", async function ({ request }) {
@@ -67,6 +79,7 @@ export const handlers = [
 
         return HttpResponse.json({ success: true, user });
     }),
+
     http.post("/fakeApi/login", async function ({ request }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
@@ -78,8 +91,114 @@ export const handlers = [
         });
         return HttpResponse.json({ success: true, user: currentUser });
     }),
+
     http.post("/fakeApi/logout", async function () {
         return HttpResponse.json({ success: true });
+    }),
+
+    // SSE endpoint: subscribe to duel events
+    http.get("/fakeApi/duels/events", function ({ request }) {
+        console.log("New SSE connection");
+
+        // Вообще мы как-то должны матчить двух подписчиков, бла-бла,
+        // но это же мок, поэтому мы не будем учитывать userId, просто считаем для приличия
+        const url = new URL(request.url);
+        const userId = url.searchParams.get("user_id");
+
+        const duelId = nanoid();
+
+        const encoder = new TextEncoder();
+
+        const stream = new ReadableStream({
+            start(controller) {
+                const push = (str: string) => controller.enqueue(encoder.encode(str));
+
+                // simulate matchmaking after 2 seconds
+                const matchTimeout = setTimeout(() => {
+                    // Creating random user that will win
+                    const opponent = db.user.create(createUserData());
+
+                    const startsAt = new Date().toISOString();
+                    const deadlineAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+                    const duel = {
+                        id: duelId,
+                        opponent_user_id: opponent.id,
+                        status: "in_progress" as const,
+                        task_id: nanoid(),
+                        starts_at: startsAt,
+                        deadline_at: deadlineAt,
+                    };
+
+                    duels.set(duelId, duel);
+
+                    push(`event: duel_started\n`);
+                    push(`data: ${JSON.stringify({ duel_id: duelId })}\n\n`);
+                }, 2000);
+
+                // simulate winner after 5 seconds
+                const winnerInterval = setTimeout(() => {
+                    const duel = duels.get(duelId)!;
+                    const winnerUserId = duel.opponent_user_id;
+
+                    duel.status = "finished";
+                    duels.set(duelId, duel);
+                    push(`event: duel_finished\n`);
+
+                    console.log("Send winner");
+
+                    push(
+                        `data: ${JSON.stringify({ duel_id: duelId, winner_user_id: winnerUserId })}\n\n`,
+                    );
+                }, 5000);
+
+                // close stream on abort
+                const abortHandler = () => {
+                    clearTimeout(matchTimeout);
+                    clearInterval(winnerInterval);
+                    try {
+                        controller.close();
+                    } catch {
+                        // no-op
+                    }
+                };
+
+                // request.signal exists in Service Worker fetch handler
+                if (request.signal) {
+                    request.signal.addEventListener("abort", abortHandler);
+                }
+            },
+            cancel() {
+                // stream closed by client
+            },
+        });
+
+        return new Response(stream, {
+            headers: {
+                "Content-Type": "text/event-stream; charset=utf-8",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+            status: 200,
+        });
+    }),
+
+    http.get("/fakeApi/duels/:duelId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const duelId = params.duelId as string;
+        const duel = duels.get(duelId);
+
+        if (!duel) {
+            return new Response(JSON.stringify({ error: "Duel not found" }), {
+                status: 404,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        return new Response(JSON.stringify(duel), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
     }),
 ];
 
