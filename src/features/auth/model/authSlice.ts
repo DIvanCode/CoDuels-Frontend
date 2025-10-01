@@ -1,16 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { UserData } from "entities/user";
 
+import { AuthState } from "./types";
 import { authApiSlice } from "../api/authApi";
 
-type AuthState = {
-    user: UserData | null;
-    token: string | null;
+const initialState: AuthState = {
+    user: null,
+    token: null,
 };
 
 const slice = createSlice({
     name: "auth",
-    initialState: { user: null, token: null } as AuthState,
+    initialState: initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder

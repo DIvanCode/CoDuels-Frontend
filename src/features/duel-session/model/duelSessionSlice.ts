@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { DuelSessionState, DuelSessionPhase } from "./types";
 
-export const initialState: DuelSessionState = {
+const initialState: DuelSessionState = {
     activeDuelId: null,
     phase: "idle",
 };

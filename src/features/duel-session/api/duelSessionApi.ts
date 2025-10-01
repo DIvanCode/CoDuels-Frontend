@@ -19,7 +19,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                     await cacheDataLoaded;
 
                     const duelStartedListener = (event: MessageEvent) => {
-                        const duelMessage = JSON.parse(event.data) as DuelMessage;
+                        const duelMessage = JSON.parse(event.data) satisfies DuelMessage;
 
                         dispatch(setActiveDuelId(duelMessage.duel_id));
 
@@ -35,7 +35,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                     };
 
                     const duelFinishedListener = (event: MessageEvent) => {
-                        const duelMessage = JSON.parse(event.data) as DuelMessage;
+                        const duelMessage = JSON.parse(event.data) satisfies DuelMessage;
 
                         dispatch(setPhase("idle"));
 

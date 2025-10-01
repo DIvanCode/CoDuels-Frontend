@@ -8,8 +8,7 @@ import "./index.css";
 async function start() {
     await worker.start({ onUnhandledRequest: "bypass" });
 
-    const container = document.querySelector("#root") as HTMLElement;
-    const root = createRoot(container);
+    const root = createRoot(document.querySelector("#root")!);
 
     root.render(
         <StrictMode>

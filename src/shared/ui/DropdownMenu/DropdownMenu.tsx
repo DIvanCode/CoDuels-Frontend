@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { assertIsNode } from "shared/lib/typeAssertions";
 
 import styles from "./DropdownMenu.module.scss";
 
@@ -22,13 +23,12 @@ export const DropdownMenu = ({ trigger, items }: Props) => {
         setOpen(false);
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
+    const handleClickOutside = ({ target }: MouseEvent) => {
+        assertIsNode(target);
+        if (menuRef.current && !menuRef.current.contains(target)) setOpen(false);
+    };
 
+    useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
