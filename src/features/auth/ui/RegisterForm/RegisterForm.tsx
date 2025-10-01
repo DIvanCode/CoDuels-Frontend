@@ -4,6 +4,7 @@ import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { InputField, SubmitButton } from "shared/ui";
+import { validate } from "superstruct";
 
 import styles from "./RegisterForm.module.scss";
 
@@ -21,11 +22,12 @@ export const RegisterForm = () => {
 
         const registrationData = { email, password, confirmPassword };
 
-        const result = registrationSchema.safeParse(registrationData);
-        if (!result.success) {
-            alert(result.error.issues.map((e) => e.message).join("\n"));
+        const [error, result] = validate(registrationData, registrationSchema);
+
+        if (error) {
+            alert(error.message);
         } else {
-            await register(registrationData);
+            await register(result);
             navigate(AppRoutes.INDEX);
         }
     };

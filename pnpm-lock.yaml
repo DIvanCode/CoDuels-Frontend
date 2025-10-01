@@ -37,9 +37,9 @@ importers:
             react-router-dom:
                 specifier: ^7.9.3
                 version: 7.9.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-            zod:
-                specifier: ^4.1.11
-                version: 4.1.11
+            superstruct:
+                specifier: ^2.0.2
+                version: 2.0.2
         devDependencies:
             "@eslint/js":
                 specifier: ^9.36.0
@@ -4160,6 +4160,13 @@ packages:
             }
         engines: { node: ">=8" }
 
+    superstruct@2.0.2:
+        resolution:
+            {
+                integrity: sha512-uV+TFRZdXsqXTL2pRvujROjdZQ4RAlBUS5BTh9IGm+jTqQntYThciG/qu57Gs69yjnVUSqdxF9YLmSnpupBW9A==,
+            }
+        engines: { node: ">=14.0.0" }
+
     supports-color@7.2.0:
         resolution:
             {
@@ -7149,6 +7156,8 @@ snapshots:
     strip-bom@3.0.0: {}
 
     strip-json-comments@3.1.1: {}
+
+    superstruct@2.0.2: {}
 
     supports-color@7.2.0:
         dependencies:

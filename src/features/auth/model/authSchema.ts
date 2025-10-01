@@ -1,17 +1,24 @@
-import { z } from "zod";
+import { object, string, refine, size } from "superstruct";
 
-export const registrationSchema = z
-    .object({
-        email: z.email(),
-        password: z.string().min(6),
-        confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirm-password"],
-    });
+const Username = size(string(), 2, 30);
+const Password = size(string(), 6, 30);
 
-export const loginSchema = z.object({
-    username: z.string().min(2),
-    password: z.string().min(6),
+export const registrationSchema = refine(
+    object({
+        email: string(),
+        password: Password,
+        confirmPassword: Password,
+    }),
+    "MatchPassword",
+    (value) => {
+        if (value.password === value.confirmPassword) {
+            return true;
+        }
+        return "Passwords do not match";
+    },
+);
+
+export const loginSchema = object({
+    username: Username,
+    password: Password,
 });

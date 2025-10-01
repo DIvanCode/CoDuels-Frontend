@@ -4,6 +4,7 @@ import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { InputField, SubmitButton } from "shared/ui";
+import { validate } from "superstruct";
 
 import styles from "./LoginForm.module.scss";
 
@@ -20,11 +21,12 @@ export const LoginForm = () => {
 
         const loginData = { username, password };
 
-        const result = loginSchema.safeParse(loginData);
-        if (!result.success) {
-            alert(result.error.issues.map((e) => e.message).join("\n"));
+        const [error, result] = validate(loginData, loginSchema);
+
+        if (error) {
+            alert(error.message);
         } else {
-            await login(loginData);
+            await login(result);
             navigate(AppRoutes.INDEX);
         }
     };
