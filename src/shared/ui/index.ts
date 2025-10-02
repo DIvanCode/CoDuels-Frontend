@@ -13,3 +13,6 @@ export { Loader } from "./Loader/Loader";
 export { SearchLoader } from "./SearchLoader/SearchLoader";
 
 export type { DropdownItem } from "./DropdownMenu/DropdownMenu";
+
+export { Select } from "./Select/Select";
+export type { SelectOption } from "./Select/Select";
