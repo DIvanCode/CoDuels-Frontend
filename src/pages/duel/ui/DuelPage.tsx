@@ -1,38 +1,23 @@
-import { useGetDuelQuery } from "entities/duel";
-import { useNavigate, useParams } from "react-router-dom";
-import { AppRoutes } from "shared/config";
-import { SubmitButton } from "shared/ui";
+import { TaskDescription, useGetTaskFileQuery, useGetTaskQuery } from "entities/task";
 
 const DuelPage = () => {
-    const { duelId = "" } = useParams();
+    const { data: taskData, isLoading: isTaskLoading } = useGetTaskQuery("124");
 
-    const { data: duel, isLoading } = useGetDuelQuery(duelId);
+    const {
+        data: content,
+        isLoading,
+        error,
+    } = useGetTaskFileQuery({ taskId: "1", filename: "statement.md" });
 
-    const navigate = useNavigate();
+    if (isLoading || isTaskLoading) return <p>Loading content...</p>;
 
-    const onNewDuelClick = () => {
-        navigate(AppRoutes.INDEX);
-    };
-
-    if (isLoading) {
-        return <div>Загружаем данные дуэли...</div>;
-    }
-
-    if (!duel) {
-        return <div>Ошибка: дуэль не найдена</div>;
+    if (error || !taskData) {
+        return <div>error</div>;
     }
 
     return (
         <div>
-            <h2>Дуэль #{duel.id}</h2>
-            <p>Статус: {duel.status}</p>
-            <p>Противник: {duel.opponent_user_id}</p>
-            {duel.status === "finished" && (
-                <div>
-                    <p>Победитель: {duel.winner_user_id ?? "ничья"}</p>
-                    <SubmitButton onClick={onNewDuelClick}>Новая дуэль</SubmitButton>
-                </div>
-            )}
+            <TaskDescription task={taskData} taskDescription={content || ""} />
         </div>
     );
 };

@@ -200,6 +200,54 @@ export const handlers = [
             headers: { "Content-Type": "application/json" },
         });
     }),
+
+    http.get("/fakeApi/task/:taskId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        // Опять же забиваем на taskId, этож мок
+        const { taskId } = params;
+
+        return HttpResponse.json({
+            id: "4cf94aac-ae47-459b-bb6a-459784fecc66",
+            name: "A + B",
+            level: 1,
+            statement: "statement.md",
+            tl: 1000,
+            ml: 256,
+            tests: [
+                {
+                    order: 1,
+                    input: "tests/01.in",
+                    output: "tests/01.out",
+                },
+            ],
+        });
+    }),
+
+    http.get("/fakeApi/task/:taskId/:filename", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        // NOTE: на параметры забили, т.к. это мок
+        const { taskId, filename } = params;
+
+        const res = await fetch(`/${filename}`);
+
+        console.log(res);
+        if (!res.ok) {
+            return new Response("File not found", {
+                status: 404,
+                headers: { "Content-Type": "text/plain" },
+            });
+        }
+
+        const blob = await res.blob();
+        return new Response(blob, {
+            status: 200,
+            headers: {
+                "Content-Type": res.headers.get("Content-Type") ?? "application/octet-stream",
+            },
+        });
+    }),
 ];
 
 export const worker = setupWorker(...handlers);
