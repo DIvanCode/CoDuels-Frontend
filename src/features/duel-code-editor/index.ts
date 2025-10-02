@@ -23,3 +23,4 @@ export {
 } from "./model/code-editor/selectors";
 
 export { FileLoader } from "./ui/FileLoader/FileLoader";
+export { SubmitCodeButton } from "./ui/SubmitCodeButton/SubmitCodeButton";

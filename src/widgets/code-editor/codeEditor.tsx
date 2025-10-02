@@ -1,4 +1,4 @@
-import { CodeEditor, FileLoader } from "features/duel-code-editor";
+import { CodeEditor, FileLoader, SubmitCodeButton } from "features/duel-code-editor";
 import { LanguageSelector } from "features/duel-code-editor/ui/LanguageSelector/LanguageSelector";
 
 function Editor() {
@@ -6,6 +6,7 @@ function Editor() {
         <div>
             <LanguageSelector />
             <FileLoader />
+            <SubmitCodeButton />
             <CodeEditor />
         </div>
     );
