@@ -1,10 +1,11 @@
-import { CodeEditor } from "features/duel-code-editor";
+import { CodeEditor, FileLoader } from "features/duel-code-editor";
 import { LanguageSelector } from "features/duel-code-editor/ui/LanguageSelector/LanguageSelector";
 
 function Editor() {
     return (
         <div>
             <LanguageSelector />
+            <FileLoader />
             <CodeEditor />
         </div>
     );

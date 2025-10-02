@@ -21,3 +21,5 @@ export {
     selectWordWrap,
     selectMinimap,
 } from "./model/code-editor/selectors";
+
+export { FileLoader } from "./ui/FileLoader/FileLoader";
