@@ -2,7 +2,7 @@ import { useGetDuelQuery } from "entities/duel";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { SubmitButton } from "shared/ui";
-import CodeEditor from "widgets/code-editor/codeEditor";
+import Editor from "widgets/code-editor/codeEditor";
 
 const DuelPage = () => {
     const { duelId = "" } = useParams();
@@ -35,7 +35,7 @@ const DuelPage = () => {
                 </div>
             )}
 
-            <CodeEditor />
+            <Editor />
         </div>
     );
 };

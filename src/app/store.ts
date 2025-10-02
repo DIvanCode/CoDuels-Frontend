@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { authReducer } from "features/auth";
-import { languageSelectorReducer } from "features/duel-code-editor";
+import { codeEditorReducer, languageSelectorReducer } from "features/duel-code-editor";
 import { duelSessionReducer } from "features/duel-session";
 import { apiSlice } from "shared/api";
 
@@ -10,6 +10,7 @@ const store = configureStore({
         auth: authReducer,
         duelSession: duelSessionReducer,
         languageSelector: languageSelectorReducer,
+        codeEditor: codeEditorReducer,
     },
     middleware: (getDefaultMiddleWare) => getDefaultMiddleWare().concat(apiSlice.middleware),
 });
