@@ -1,0 +1,22 @@
+.testDataCard {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5em;
+
+    width: 50%;
+    padding: 1em 1em;
+
+    border-radius: 0.5em;
+
+    background-color: var(--card-primary);
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    pre {
+        font-size: 1.25em;
+    }
+}

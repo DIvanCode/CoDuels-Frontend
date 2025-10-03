@@ -1,5 +1,5 @@
 import { useRegisterMutation } from "features/auth/api/authApi";
-import { registrationSchema } from "features/auth/model/authSchema";
+import { registrationStruct } from "features/auth/model/authStruct";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -22,7 +22,7 @@ export const RegisterForm = () => {
 
         const registrationData = { email, password, confirmPassword };
 
-        const [error, result] = validate(registrationData, registrationSchema);
+        const [error, result] = validate(registrationData, registrationStruct);
 
         if (error) {
             alert(error.message);

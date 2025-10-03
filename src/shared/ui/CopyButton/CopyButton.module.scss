@@ -1,0 +1,13 @@
+.copyButton {
+    padding: 0.175em;
+    border-radius: 0.25em;
+
+    &:hover {
+        background-color: color-mix(in srgb, var(--card-primary) 85%, white 15%);
+        transition: background-color 0.1s ease;
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}

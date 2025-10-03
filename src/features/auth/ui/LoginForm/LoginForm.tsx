@@ -1,5 +1,5 @@
 import { useLoginMutation } from "features/auth/api/authApi";
-import { loginSchema } from "features/auth/model/authSchema";
+import { loginStruct } from "features/auth/model/authStruct";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -21,7 +21,7 @@ export const LoginForm = () => {
 
         const loginData = { username, password };
 
-        const [error, result] = validate(loginData, loginSchema);
+        const [error, result] = validate(loginData, loginStruct);
 
         if (error) {
             alert(error.message);

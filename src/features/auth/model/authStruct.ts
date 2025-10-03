@@ -3,7 +3,7 @@ import { object, string, refine, size } from "superstruct";
 const Username = size(string(), 2, 30);
 const Password = size(string(), 6, 30);
 
-export const registrationSchema = refine(
+export const registrationStruct = refine(
     object({
         email: string(),
         password: Password,
@@ -18,7 +18,7 @@ export const registrationSchema = refine(
     },
 );
 
-export const loginSchema = object({
+export const loginStruct = object({
     username: Username,
     password: Password,
 });

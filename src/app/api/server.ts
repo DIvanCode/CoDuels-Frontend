@@ -217,8 +217,13 @@ export const handlers = [
             tests: [
                 {
                     order: 1,
-                    input: "tests/01.in",
-                    output: "tests/01.out",
+                    inputFile: "01.in",
+                    outputFile: "01.out",
+                },
+                {
+                    order: 2,
+                    inputFile: "02.in",
+                    outputFile: "02.out",
                 },
             ],
         });
@@ -232,7 +237,6 @@ export const handlers = [
 
         const res = await fetch(`/${filename}`);
 
-        console.log(res);
         if (!res.ok) {
             return new Response("File not found", {
                 status: 404,

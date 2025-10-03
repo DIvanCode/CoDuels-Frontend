@@ -1,3 +1,5 @@
+import { Infer, number, object, string } from "superstruct";
+
 export interface Task {
     id: string;
     name: string;
@@ -7,7 +9,15 @@ export interface Task {
     ml: number;
     tests: Array<{
         order: number;
-        input: string;
-        output: string;
+        inputFile: string;
+        outputFile: string;
     }>;
 }
+
+export const TestCaseStruct = object({
+    order: number(),
+    input: string(),
+    output: string(),
+});
+
+export type TestCase = Infer<typeof TestCaseStruct>;

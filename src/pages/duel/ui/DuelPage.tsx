@@ -1,25 +1,25 @@
-import { TaskDescription, useGetTaskFileQuery, useGetTaskQuery } from "entities/task";
+import {
+    TaskDescription,
+    useGetTaskFileQuery,
+    useGetTaskQuery,
+    useGetTaskTestsQuery,
+} from "entities/task";
 
 const DuelPage = () => {
-    const { data: taskData, isLoading: isTaskLoading } = useGetTaskQuery("124");
+    const taskId = "1";
 
-    const {
-        data: content,
-        isLoading,
-        error,
-    } = useGetTaskFileQuery({ taskId: "1", filename: "statement.md" });
+    const { data: task, isLoading: isTaskLoading } = useGetTaskQuery(taskId);
+    const { data: statement, isLoading } = useGetTaskFileQuery({
+        taskId: taskId,
+        filename: "statement.md",
+    });
+    const { data: testCases, isLoading: isTestCasesLoading } = useGetTaskTestsQuery(task!, {
+        skip: !task,
+    });
+    // TODO: обрати внимание на воскл знаки. Сейчас это заглушка
 
-    if (isLoading || isTaskLoading) return <p>Loading content...</p>;
-
-    if (error || !taskData) {
-        return <div>error</div>;
-    }
-
-    return (
-        <div>
-            <TaskDescription task={taskData} taskDescription={content || ""} />
-        </div>
-    );
+    if (isLoading || isTaskLoading || isTestCasesLoading) return <p>Loading content...</p>;
+    return <TaskDescription task={task!} testCases={testCases!} taskDescription={statement!} />;
 };
 
 export default DuelPage;
