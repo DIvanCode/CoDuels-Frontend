@@ -5,14 +5,14 @@ import { useSelector } from "react-redux";
 import { IconButton } from "shared/ui";
 import Submitcodeicon from "shared/assets/icons/submitCode.svg?react";
 
+import styles from "./SubmitCodeButton.module.scss";
+
 interface SubmitCodeButtonProps {
-    className?: string;
     onSubmissionStart?: () => void;
     onSubmissionComplete?: () => void;
 }
 
 export const SubmitCodeButton = ({
-    className = "",
     onSubmissionStart,
     onSubmissionComplete,
 }: SubmitCodeButtonProps) => {
@@ -48,24 +48,15 @@ export const SubmitCodeButton = ({
     const isCodeEmpty = !code || code.trim().length === 0;
 
     return (
-        <div className={`submit-button ${className}`}>
+        <div>
             <IconButton
+                className={styles.submitCodeButton}
                 onClick={handleSubmit}
                 disabled={isCodeEmpty}
-                className="submit-button__btn"
                 title={isCodeEmpty ? "Please write some code first" : "Submit code for checking"}
             >
                 <Submitcodeicon /> Отправить
             </IconButton>
-
-            <div className="submit-button__info">
-                <small>
-                    Language: <strong>{LANGUAGE_TO_LABELS[language]}</strong>
-                </small>
-                <small>
-                    Code length: <strong>{code.length}</strong> chars
-                </small>
-            </div>
         </div>
     );
 };

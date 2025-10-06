@@ -183,9 +183,9 @@ export const languageConfigs = {
 
 export const defaultEditorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     automaticLayout: true,
-    fontSize: 14,
-    fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
-    lineHeight: 1.5,
+    fontSize: 20,
+    fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+    lineHeight: 2,
 
     minimap: {
         enabled: true,

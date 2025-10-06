@@ -18,7 +18,7 @@ interface CodeEditorProps {
     className?: string;
 }
 
-export const CodeEditor = ({ height = "500px", className = "" }: CodeEditorProps) => {
+export const CodeEditor = ({ height = "580px", className = "" }: CodeEditorProps) => {
     const dispatch = useDispatch();
     const code = useSelector(selectCode);
     const theme = useSelector(selectTheme);

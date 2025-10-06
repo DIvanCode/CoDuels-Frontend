@@ -4,6 +4,8 @@ import { useDispatch } from "react-redux";
 import { IconButton } from "shared/ui";
 import Loadicon from "shared/assets/icons/loadFile.svg?react";
 
+import styles from "./FileLoader.module.scss";
+
 interface FileLoaderProps {
     acceptedFileTypes?: string;
     className?: string;
@@ -11,7 +13,7 @@ interface FileLoaderProps {
 
 export const FileLoader = ({
     acceptedFileTypes = ".cpp,.cs,.py,.js,.ts,.java,.txt",
-    className = "",
+    className = styles.button,
 }: FileLoaderProps) => {
     const dispatch = useDispatch();
     const fileInputRef = useRef<HTMLInputElement>(null);

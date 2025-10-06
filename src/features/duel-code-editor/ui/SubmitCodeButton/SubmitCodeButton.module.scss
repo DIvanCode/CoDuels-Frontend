@@ -1,0 +1,14 @@
+.submitCodeButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+
+    width: 116px;
+    height: 24px;
+
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: normal;
+    color: var(--accent-primary);
+}

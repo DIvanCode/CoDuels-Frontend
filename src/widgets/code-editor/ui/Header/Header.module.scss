@@ -1,0 +1,22 @@
+.header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 13px 20px;
+
+    width: 608px;
+    height: 50px;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 25px;
+
+    width: 159px;
+    height: 24px;
+}

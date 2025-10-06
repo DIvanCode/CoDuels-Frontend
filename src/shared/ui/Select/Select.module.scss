@@ -1,37 +1,36 @@
 .select {
     position: relative;
-    width: 200px;
+    width: 120px;
+    height: 24px;
 }
 
 .trigger {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: white;
+    background: var(--card-primary);
     cursor: pointer;
     transition: all 0.2s;
+    gap: 5px;
+
+    height: 24px;
 }
 
 .trigger:hover {
     border-color: #9ca3af;
 }
 
-.trigger.open {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
 .value {
-    font-size: 14px;
-    color: #374151;
+    font-size: 18px;
+    color: var(--text-primary);
+    font-weight: normal;
+    margin: 0 12px;
 }
 
 .arrow {
-    color: #6b7280;
+    color: var(--text-secondary);
     transition: transform 0.2s;
+    margin: 0 12px;
 }
 
 .trigger.open .arrow {
@@ -40,15 +39,16 @@
 
 .dropdown {
     position: absolute;
-    top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: var(--card-primary);
     border-radius: 6px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    // border-bottom-left-radius: 6px;
+    // border-bottom-right-radius: 6px;
+    border-top: 1px solid var(--card-secondary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     z-index: 10;
-    margin-top: 4px;
+    margin-top: 12px;
     max-height: 200px;
     overflow-y: auto;
 }
@@ -56,16 +56,15 @@
 .option {
     padding: 8px 12px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
     transition: background-color 0.2s;
 }
 
 .option:hover {
-    background-color: #f3f4f6;
+    background-color: var(--card-secondary);
 }
 
 .option.selected {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    font-weight: 500;
+    color: var(--text-primary);
+    font-weight: normal;
 }

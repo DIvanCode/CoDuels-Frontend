@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./Select.module.scss";
+import Arrow from "shared/assets/icons/keyboardArrowDown.svg?react";
 
 export interface SelectOption {
     value: string;
@@ -51,7 +52,9 @@ export const Select: React.FC<SelectProps> = ({
                 <span className={styles.value}>
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
-                <span className={styles.arrow}>▾</span>
+                <span className={styles.arrow}>
+                    <Arrow />
+                </span>
             </div>
 
             {isOpen && (
