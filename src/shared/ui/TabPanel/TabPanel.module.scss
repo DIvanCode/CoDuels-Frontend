@@ -1,5 +1,6 @@
 .tabs {
-    display: flex;
     position: relative;
-    border-bottom: 1px solid #ddd;
+    display: flex;
+
+    border-bottom: 1px solid var(--card-secondary);
 }

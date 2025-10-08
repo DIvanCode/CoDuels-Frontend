@@ -1,29 +1,22 @@
-import { useState } from "react";
-
+import { Tab, type ITab } from "../Tab/Tab";
 import styles from "./TabPanel.module.scss";
-import { Tab } from "../Tab/Tab";
 
 interface Props {
-    tabs: string[];
-    onTabChange: (index: number) => void;
+    tabs: ITab[];
+    tabClassName?: string;
 }
 
-export const TabPanel = ({ tabs, onTabChange }: Props) => {
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    const handleClick = (index: number) => {
-        setActiveIndex(index);
-        onTabChange(index);
-    };
-
+export const TabPanel = ({ tabs, tabClassName }: Props) => {
     return (
         <header className={styles.tabs}>
-            {tabs.map((tabLabel, index) => (
+            {tabs.map((tab) => (
                 <Tab
-                    key={tabLabel}
-                    label={tabLabel}
-                    onClick={() => handleClick(index)}
-                    active={index === activeIndex}
+                    key={tab.label}
+                    className={tabClassName}
+                    label={tab.label}
+                    trailingIcon={tab.trailingIcon}
+                    active={tab.active}
+                    onClick={tab.onClick}
                 />
             ))}
         </header>

@@ -2,21 +2,30 @@ import { LoginForm, RegisterForm } from "features/auth";
 import { useState } from "react";
 import { MainCard, TabPanel } from "shared/ui";
 
+import { ITab } from "shared/ui/Tab/Tab";
+
 import styles from "./AuthPage.module.scss";
 
 const AuthPage = () => {
-    const [activePageIndex, setActivePageIndex] = useState(0);
-    const tabs = ["Вход", "Регистрация"];
+    const [activeAuthTab, setActiveAuthTab] = useState<"login" | "register">("login");
 
-    const handleTabChange = (index: number) => {
-        setActivePageIndex(index);
-    };
+    const authTabs: ITab[] = [
+        {
+            label: "Вход",
+            active: activeAuthTab === "login",
+            onClick: () => setActiveAuthTab("login"),
+        },
+        {
+            label: "Регистрация",
+            active: activeAuthTab === "register",
+            onClick: () => setActiveAuthTab("register"),
+        },
+    ];
 
     return (
         <MainCard className={styles.authCard}>
-            <TabPanel tabs={tabs} onTabChange={handleTabChange} />
-
-            {activePageIndex === 0 ? <LoginForm /> : <RegisterForm />}
+            <TabPanel tabs={authTabs} tabClassName={styles.authTab} />
+            {activeAuthTab === "login" ? <LoginForm /> : <RegisterForm />}
         </MainCard>
     );
 };
