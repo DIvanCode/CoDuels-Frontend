@@ -114,7 +114,7 @@ export const handlers = [
                 const push = (str: string) => controller.enqueue(encoder.encode(str));
 
                 // simulate matchmaking after 2 seconds
-                const matchTimeout = setTimeout(() => {
+                setTimeout(() => {
                     // Creating random user that will win
                     const opponent = db.user.create(createUserData());
 
@@ -136,7 +136,7 @@ export const handlers = [
                 }, 2000);
 
                 // simulate winner after 5 seconds
-                const winnerInterval = setTimeout(() => {
+                setTimeout(() => {
                     const duel = duels.get(duelId)!;
                     const winnerUserId = duel.opponent_user_id;
 
@@ -150,25 +150,6 @@ export const handlers = [
                         `data: ${JSON.stringify({ duel_id: duelId, winner_user_id: winnerUserId })}\n\n`,
                     );
                 }, 5000);
-
-                // close stream on abort
-                const abortHandler = () => {
-                    clearTimeout(matchTimeout);
-                    clearInterval(winnerInterval);
-                    try {
-                        controller.close();
-                    } catch {
-                        // no-op
-                    }
-                };
-
-                // request.signal exists in Service Worker fetch handler
-                if (request.signal) {
-                    request.signal.addEventListener("abort", abortHandler);
-                }
-            },
-            cancel() {
-                // stream closed by client
             },
         });
 

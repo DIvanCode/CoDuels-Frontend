@@ -1,41 +1,22 @@
-import {
-    TaskDescription,
-    useGetTaskFileQuery,
-    useGetTaskQuery,
-    useGetTaskTestsQuery,
-} from "entities/task";
+import { TaskDescription } from "entities/task";
+import { useParams } from "react-router-dom";
+import { useTaskInfo } from "widgets/task-panel/lib/useTaskInfo";
 
-// TODO: надо посидеть поразбираться с запросами
 export const TaskInfoContent = () => {
-    // const duelSession = useAppSelector(selectDuelSession);
+    const { duelId } = useParams();
 
-    // const { data: duel, isLoading: isDuelIdLoading } = useGetDuelQuery(duelSession.activeDuelId!, {
-    //     skip: !duelSession,
-    // });
+    const { data, isLoading, isError, error } = useTaskInfo(duelId);
+    const { task, statement, testCases } = data;
 
-    // const { data: duel, isLoading: isDuelIdLoading } = useGetDuelQuery(duelSession.activeDuelId!, {
-    //     skip: !duelSession,
-    // });
+    if (isLoading) return <p>Loading...</p>;
 
-    // const { data: task, isLoading: isTaskLoading } = useGetTaskQuery(duel!.task_id, {
-    //     skip: !duel || isDuelIdLoading,
-    // });
+    if (isError) {
+        return <p>Something went wrong: {JSON.stringify(error)}</p>;
+    }
 
-    const taskId = "1";
-    const { data: task, isLoading: isTaskLoading } = useGetTaskQuery(taskId);
-    const { data: statement, isLoading: isStatementLoading } = useGetTaskFileQuery(
-        {
-            taskId: taskId,
-            filename: "statement.md", // TODO: заглушка
-        },
-        { skip: !task || isTaskLoading },
-    );
+    if (!task || !statement || !testCases) {
+        return <p>Data incomplete</p>;
+    }
 
-    const { data: testCases, isLoading: isTestCasesLoading } = useGetTaskTestsQuery(task!, {
-        skip: !task || isTaskLoading,
-    });
-
-    if (isStatementLoading || isTaskLoading || isTestCasesLoading) return <p>Loading content...</p>;
-
-    return <TaskDescription task={task!} testCases={testCases!} taskDescription={statement!} />;
+    return <TaskDescription task={task} testCases={testCases} taskDescription={statement} />;
 };
