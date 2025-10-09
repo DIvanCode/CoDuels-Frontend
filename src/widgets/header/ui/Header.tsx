@@ -8,9 +8,8 @@ import { AppRoutes } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { IconButton, DropdownMenu } from "shared/ui";
 
-import styles from "./Header.module.scss";
-
 import type { DropdownItem } from "shared/ui";
+import styles from "./Header.module.scss";
 
 export const Header = () => {
     const user = useAppSelector(selectCurrentUser);

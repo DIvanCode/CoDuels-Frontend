@@ -2,7 +2,7 @@ import { LoginForm, RegisterForm } from "features/auth";
 import { useState } from "react";
 import { MainCard, TabPanel } from "shared/ui";
 
-import { ITab } from "shared/ui/Tab/Tab";
+import type { ITab } from "shared/ui";
 
 import styles from "./AuthPage.module.scss";
 

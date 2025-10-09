@@ -1,14 +1,14 @@
 .testDataCard {
     display: flex;
+    flex: 1;
     flex-direction: column;
     row-gap: 0.5em;
 
-    width: 50%;
     padding: 1em 1em;
 
     border-radius: 0.5em;
 
-    background-color: var(--card-primary);
+    background-color: var(--card-secondary);
 
     header {
         display: flex;

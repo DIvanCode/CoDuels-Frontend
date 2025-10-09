@@ -5,7 +5,9 @@ export { CopyButton } from "./CopyButton/CopyButton";
 export { DropdownMenu } from "./DropdownMenu/DropdownMenu";
 export { InputField } from "./InputField/InputField";
 
+export { TabbedCard } from "./TabbedCard/TabbedCard";
 export { TabPanel } from "./TabPanel/TabPanel";
+export type { ITab } from "./Tab/Tab";
 
 export { MarkdownSection } from "./MarkdownSection/MarkdownSection";
 export { Section } from "./Section/Section";

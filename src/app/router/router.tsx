@@ -3,10 +3,11 @@ import { AuthPage } from "pages/auth";
 import { DuelPage } from "pages/duel";
 import { HomePage } from "pages/home";
 import { Suspense } from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { Fallback, Loader } from "shared/ui";
 
+import { TaskInfoContent, TaskSubmissionsContent } from "widgets/task-panel";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -41,6 +42,20 @@ export const router = createBrowserRouter([
                         </ProtectedRoute>
                     </Suspense>
                 ),
+                children: [
+                    {
+                        index: true,
+                        element: <Navigate to="description" replace />,
+                    },
+                    {
+                        path: "description",
+                        element: <TaskInfoContent />,
+                    },
+                    {
+                        path: "submissions",
+                        element: <TaskSubmissionsContent />,
+                    },
+                ],
             },
         ],
         errorElement: <Fallback />,

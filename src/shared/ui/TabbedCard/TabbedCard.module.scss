@@ -1,0 +1,12 @@
+.tabbedCard {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    background-color: var(--card-primary);
+    border-radius: 0.5em;
+}
+
+.tab {
+    padding: 0.75em;
+}
