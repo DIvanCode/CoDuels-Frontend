@@ -14,7 +14,7 @@ export const TabPanel = ({ tabs, tabClassName }: Props) => {
                     key={tab.label}
                     className={tabClassName}
                     label={tab.label}
-                    trailingIcon={tab.trailingIcon}
+                    leadingIcon={tab.leadingIcon}
                     active={tab.active}
                     onClick={tab.onClick}
                 />

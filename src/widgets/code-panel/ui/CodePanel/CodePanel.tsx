@@ -8,7 +8,7 @@ export const CodePanel = () => {
     const leftTabs: ITab[] = [
         {
             label: "Код",
-            trailingIcon: <CodeIcon />,
+            leadingIcon: <CodeIcon />,
             active: true,
         },
     ];

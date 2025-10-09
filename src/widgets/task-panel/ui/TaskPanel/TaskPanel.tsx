@@ -14,13 +14,13 @@ export const TaskPanel = () => {
     const tabs: ITab[] = [
         {
             label: "Описание",
-            trailingIcon: <DescriptionIcon />,
+            leadingIcon: <DescriptionIcon />,
             active: matchPath(AppRoutes.DUEL_TASK_DESCRIPTION, location.pathname) !== null,
             onClick: () => navigate("description"),
         },
         {
             label: "Посылки",
-            trailingIcon: <SubmissionsIcon />,
+            leadingIcon: <SubmissionsIcon />,
             active: matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null,
             onClick: () => navigate("submissions"),
         },
