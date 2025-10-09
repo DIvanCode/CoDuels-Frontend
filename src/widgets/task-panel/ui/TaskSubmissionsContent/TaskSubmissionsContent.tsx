@@ -48,6 +48,46 @@ export const TaskSubmissionsContent = () => {
                     <td>JavaScript</td>
                     <td>01.01.1970 12:00:00</td>
                 </tr>
+
+                <tr>
+                    <td>
+                        <ResultTitle variant="failure">Неправильный ответ на тесте 42</ResultTitle>
+                    </td>
+                    <td>JavaScript</td>
+                    <td>01.01.1970 12:00:00</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <ResultTitle variant="failure">Неправильный ответ на тесте 42</ResultTitle>
+                    </td>
+                    <td>JavaScript</td>
+                    <td>01.01.1970 12:00:00</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <ResultTitle variant="failure">Неправильный ответ на тесте 42</ResultTitle>
+                    </td>
+                    <td>JavaScript</td>
+                    <td>01.01.1970 12:00:00</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <ResultTitle variant="failure">Неправильный ответ на тесте 42</ResultTitle>
+                    </td>
+                    <td>JavaScript</td>
+                    <td>01.01.1970 12:00:00</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <ResultTitle variant="failure">Неправильный ответ на тесте 42</ResultTitle>
+                    </td>
+                    <td>JavaScript</td>
+                    <td>01.01.1970 12:00:00</td>
+                </tr>
             </tbody>
         </Table>
     );
