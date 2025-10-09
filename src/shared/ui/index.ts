@@ -19,3 +19,6 @@ export { Loader } from "./Loader/Loader";
 export { SearchLoader } from "./SearchLoader/SearchLoader";
 
 export type { DropdownItem } from "./DropdownMenu/DropdownMenu";
+
+export { Table } from "./Table/Table";
+export { ResultTitle } from "./ResultTitle/ResultTitle";

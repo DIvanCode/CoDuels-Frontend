@@ -1,0 +1,22 @@
+.table {
+    text-align: left;
+    border-collapse: collapse;
+
+    background-color: var(--card-primary);
+
+    td {
+        padding: 0.5em 1em;
+    }
+
+    th {
+        padding: 1em;
+        font-weight: 500;
+        font-size: 0.95em;
+        color: var(--text-secondary);
+    }
+
+    tbody tr:hover {
+        cursor: pointer;
+        background-color: var(--card-secondary);
+    }
+}
