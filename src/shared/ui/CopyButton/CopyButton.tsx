@@ -21,17 +21,13 @@ export const CopyButton = ({ textToCopy }: Props) => {
     const handleCopy = async (text: string) => {
         if (isCopyCoolDown) return;
 
-        try {
-            await copyToClipboard(text);
-            setCopyIconState("successCopy");
-            setIsCopyCoolDown(true);
-            setTimeout(() => {
-                setCopyIconState("idleCopy");
-                setIsCopyCoolDown(false);
-            }, 1000);
-        } catch (err) {
-            console.error("Copy failed:", err);
-        }
+        await copyToClipboard(text);
+        setCopyIconState("successCopy");
+        setIsCopyCoolDown(true);
+        setTimeout(() => {
+            setCopyIconState("idleCopy");
+            setIsCopyCoolDown(false);
+        }, 1000);
     };
 
     return (

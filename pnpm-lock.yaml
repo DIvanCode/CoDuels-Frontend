@@ -43,6 +43,9 @@ importers:
             react-router-dom:
                 specifier: ^7.9.3
                 version: 7.9.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+            react-timer-hook:
+                specifier: ^4.0.5
+                version: 4.0.5(react@19.1.1)
             rehype-katex:
                 specifier: ^7.0.1
                 version: 7.0.1
@@ -4243,6 +4246,14 @@ packages:
             react-dom:
                 optional: true
 
+    react-timer-hook@4.0.5:
+        resolution:
+            {
+                integrity: sha512-elDxx4OIxBTbm4rXSK5cjBHkq06prO2qY9JzoYxOa11AkL3ij69jp0VuDUOqcehEK38CV0uu7FzUKtPVISRLKA==,
+            }
+        peerDependencies:
+            react: ">=16.8.0"
+
     react@19.1.1:
         resolution:
             {
@@ -7926,6 +7937,10 @@ snapshots:
             set-cookie-parser: 2.7.1
         optionalDependencies:
             react-dom: 19.1.1(react@19.1.1)
+
+    react-timer-hook@4.0.5(react@19.1.1):
+        dependencies:
+            react: 19.1.1
 
     react@19.1.1: {}
 

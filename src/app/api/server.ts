@@ -96,6 +96,19 @@ export const handlers = [
         return HttpResponse.json({ success: true });
     }),
 
+    http.get("/fakeApi/user/:userId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const userId = params.userId as string;
+        const user = db.user.findFirst({
+            where: {
+                id: { equals: userId },
+            },
+        });
+
+        return HttpResponse.json({ success: true, ...user });
+    }),
+
     // SSE endpoint: subscribe to duel events
     http.get("/fakeApi/duels/events", function ({ request }) {
         console.log("New SSE connection");
@@ -113,7 +126,7 @@ export const handlers = [
             start(controller) {
                 const push = (str: string) => controller.enqueue(encoder.encode(str));
 
-                // simulate matchmaking after 2 seconds
+                // simulate matchmaking timeour
                 setTimeout(() => {
                     // Creating random user that will win
                     const opponent = db.user.create(createUserData());
@@ -133,9 +146,9 @@ export const handlers = [
 
                     push(`event: duel_started\n`);
                     push(`data: ${JSON.stringify({ duel_id: duelId })}\n\n`);
-                }, 2000);
+                }, ARTIFICIAL_DELAY_MS * 2);
 
-                // simulate winner after 5 seconds
+                // simulate winner timeout
                 setTimeout(() => {
                     const duel = duels.get(duelId)!;
                     const winnerUserId = duel.opponent_user_id;
@@ -149,7 +162,7 @@ export const handlers = [
                     push(
                         `data: ${JSON.stringify({ duel_id: duelId, winner_user_id: winnerUserId })}\n\n`,
                     );
-                }, 5000);
+                }, ARTIFICIAL_DELAY_MS * 10);
             },
         });
 

@@ -1,7 +1,17 @@
 .user {
     display: flex;
     align-items: center;
+    justify-content: end;
     column-gap: 0.75em;
+
+    &.reversed {
+        flex-direction: row-reverse;
+        justify-content: start;
+
+        .userInfo {
+            align-items: flex-start;
+        }
+    }
 }
 
 .userInfo {
@@ -39,6 +49,8 @@
 .userIcon {
     width: 2.5em;
     height: 2.5em;
+
+    flex-shrink: 0;
 
     border-radius: 50%;
 }
