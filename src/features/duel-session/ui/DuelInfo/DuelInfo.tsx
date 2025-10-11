@@ -12,28 +12,28 @@ interface Props {
 }
 
 export const DuelInfo = ({ duelId }: Props) => {
-    const user = useAppSelector(selectCurrentUser);
+    const currentUser = useAppSelector(selectCurrentUser);
 
     const { activeDuelId } = useAppSelector(selectDuelSession);
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
-    const { data: otherUser, isLoading: isOtherUserLoading } = useGetUserQuery(
+    const { data: opponentUser, isLoading: isOpponentUserLoading } = useGetUserQuery(
         duel?.opponent_user_id ?? skipToken,
     );
 
-    if (!user || isDuelLoading || isOtherUserLoading) return <div>...</div>;
+    if (!currentUser || isDuelLoading || isOpponentUserLoading) return <div>...</div>;
 
     return (
         <div className={styles.duelInfo}>
-            <UserCard user={otherUser!} />
+            <UserCard user={opponentUser!} />
             <div className={styles.duelContent}>
                 {duelId === activeDuelId ? (
                     <ActiveDuelTimer expiryTimestamp={new Date(duel!.deadline_at)} />
                 ) : (
-                    <DuelResult duel={duel!} fstUserId={user.id} />
+                    <DuelResult duel={duel!} fstUserId={opponentUser!.id} />
                 )}
             </div>
-            <UserCard user={user} reversed />
+            <UserCard user={currentUser} reversed />
         </div>
     );
 };
