@@ -1,0 +1,9 @@
+.resultTitle {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5em;
+
+    svg {
+        flex-shrink: 0;
+    }
+}

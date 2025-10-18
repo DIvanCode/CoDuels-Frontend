@@ -1,0 +1,17 @@
+.result {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.win {
+    color: var(--positive);
+}
+
+.loss {
+    color: var(--error);
+}
+
+.draw {
+    color: var(--text-secondary);
+}

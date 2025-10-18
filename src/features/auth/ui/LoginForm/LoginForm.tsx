@@ -1,9 +1,10 @@
 import { useLoginMutation } from "features/auth/api/authApi";
-import { loginSchema } from "features/auth/model/authSchema";
+import { loginStruct } from "features/auth/model/authStruct";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { InputField, SubmitButton } from "shared/ui";
+import { validate } from "superstruct";
 
 import styles from "./LoginForm.module.scss";
 
@@ -20,11 +21,12 @@ export const LoginForm = () => {
 
         const loginData = { username, password };
 
-        const result = loginSchema.safeParse(loginData);
-        if (!result.success) {
-            alert(result.error.issues.map((e) => e.message).join("\n"));
+        const [error, result] = validate(loginData, loginStruct);
+
+        if (error) {
+            alert(error.message);
         } else {
-            await login(loginData);
+            await login(result);
             navigate(AppRoutes.INDEX);
         }
     };

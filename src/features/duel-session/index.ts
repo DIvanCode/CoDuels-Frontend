@@ -7,3 +7,4 @@ export { selectDuelSession } from "./model/selectors";
 
 export { DuelSessionButton } from "./ui/DuelSessionButton/DuelSessionButton";
 export { DuelSessionManager } from "./ui/DuelSessionManager/DuelSessionManager";
+export { DuelInfo } from "./ui/DuelInfo/DuelInfo";

@@ -1,16 +1,31 @@
 .tab {
-    flex: 1; /*TODO: наверняка, когда будем переиспользовать tab'ы для карточек, это свойство надо будет обыгрывать*/
-    text-align: center;
-    padding: 0.5em 0.25em;
+    display: flex;
+    align-items: center;
+    column-gap: 0.25em;
+
     cursor: pointer;
     color: var(--text-secondary);
+
+    &:hover {
+        color: var(--text-primary);
+    }
+}
+
+.leadingIcon {
+    flex-shrink: 0;
+    width: 1.25em;
+    height: 1.25em;
 }
 
 .active {
+    &:not(:only-child) {
+        border-bottom: 1px solid var(--text-primary);
+    }
+
     color: var(--text-primary);
     font-weight: 500;
-    border-bottom: 1px solid var(--text-primary);
-    transition:
-        color 0.2s ease-in-out,
-        font-weight 0.2s ease-in-out;
+
+    .leadingIcon {
+        color: var(--accent-primary);
+    }
 }

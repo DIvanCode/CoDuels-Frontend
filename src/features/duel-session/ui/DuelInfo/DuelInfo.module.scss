@@ -1,0 +1,15 @@
+.duelInfo {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    column-gap: 1em;
+}
+
+.duelContent {
+    justify-self: center;
+
+    font-size: 1.5em;
+    font-weight: 600;
+
+    user-select: none;
+}

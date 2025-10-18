@@ -1,0 +1,30 @@
+.taskDescription {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    margin: 1em;
+}
+
+.runtimeLimits {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0.5em;
+
+    padding: 1em 1.5em;
+
+    border-radius: 0.5em;
+
+    background-color: var(--card-secondary);
+    font-weight: 400;
+
+    dt {
+        color: var(--text-secondary);
+    }
+}
+
+.testCases {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1em;
+}

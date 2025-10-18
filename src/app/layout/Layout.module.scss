@@ -2,13 +2,16 @@
     height: 100%;
     display: grid;
     grid-template-areas: "header" "content";
-    grid-template-rows: 70px auto;
+    grid-template-rows: 70px minmax(0, 1fr);
+
+    overflow: hidden;
 }
 
 .content {
     grid-area: content;
 
     display: grid;
-    justify-content: center;
-    align-items: center;
+
+    overflow: auto;
+    scrollbar-color: var(--card-secondary) transparent;
 }

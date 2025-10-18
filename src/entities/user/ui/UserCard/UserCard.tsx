@@ -2,22 +2,27 @@ import { UserData } from "entities/user/model/types";
 import CupIcon from "shared/assets/icons/cup.svg?react";
 import UserIcon from "shared/assets/icons/user.svg?react";
 
+import clsx from "clsx";
 import styles from "./UserCard.module.scss";
 
 interface Props {
     user: UserData;
+    hideInfo?: boolean;
+    reversed?: boolean;
 }
 
-export const UserCard = ({ user }: Props) => {
+export const UserCard = ({ user, hideInfo, reversed }: Props) => {
     return (
-        <div className={styles.user}>
-            <div className={styles.userInfo}>
-                <p className={styles.username}>{user.username}</p>
-                <div className={styles.rating}>
-                    <span>{user.rating}</span>
-                    <CupIcon />
+        <div className={clsx(styles.user, reversed && styles.reversed)}>
+            {!hideInfo && (
+                <div className={styles.userInfo}>
+                    <p className={styles.username}>{user.username}</p>
+                    <div className={styles.rating}>
+                        <span>{user.rating}</span>
+                        <CupIcon />
+                    </div>
                 </div>
-            </div>
+            )}
 
             <UserIcon className={styles.userIcon} />
         </div>

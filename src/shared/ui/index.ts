@@ -1,10 +1,16 @@
 export { IconButton } from "./IconButton/IconButton";
 export { SubmitButton } from "./SubmitButton/SubmitButton";
+export { CopyButton } from "./CopyButton/CopyButton";
 
 export { DropdownMenu } from "./DropdownMenu/DropdownMenu";
 export { InputField } from "./InputField/InputField";
 
+export { TabbedCard } from "./TabbedCard/TabbedCard";
 export { TabPanel } from "./TabPanel/TabPanel";
+export type { ITab } from "./Tab/Tab";
+
+export { MarkdownSection } from "./MarkdownSection/MarkdownSection";
+export { Section } from "./Section/Section";
 
 export { MainCard } from "./MainCard/MainCard";
 
@@ -14,5 +20,5 @@ export { SearchLoader } from "./SearchLoader/SearchLoader";
 
 export type { DropdownItem } from "./DropdownMenu/DropdownMenu";
 
-export { Select } from "./Select/Select";
-export type { SelectOption } from "./Select/Select";
+export { Table } from "./Table/Table";
+export { ResultTitle } from "./ResultTitle/ResultTitle";

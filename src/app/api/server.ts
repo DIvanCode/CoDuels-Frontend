@@ -96,6 +96,19 @@ export const handlers = [
         return HttpResponse.json({ success: true });
     }),
 
+    http.get("/fakeApi/user/:userId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const userId = params.userId as string;
+        const user = db.user.findFirst({
+            where: {
+                id: { equals: userId },
+            },
+        });
+
+        return HttpResponse.json({ success: true, ...user });
+    }),
+
     // SSE endpoint: subscribe to duel events
     http.get("/fakeApi/duels/events", function ({ request }) {
         console.log("New SSE connection");
@@ -113,8 +126,8 @@ export const handlers = [
             start(controller) {
                 const push = (str: string) => controller.enqueue(encoder.encode(str));
 
-                // simulate matchmaking after 2 seconds
-                const matchTimeout = setTimeout(() => {
+                // simulate matchmaking timeour
+                setTimeout(() => {
                     // Creating random user that will win
                     const opponent = db.user.create(createUserData());
 
@@ -133,10 +146,10 @@ export const handlers = [
 
                     push(`event: duel_started\n`);
                     push(`data: ${JSON.stringify({ duel_id: duelId })}\n\n`);
-                }, 2000);
+                }, ARTIFICIAL_DELAY_MS * 2);
 
-                // simulate winner after 5 seconds
-                const winnerInterval = setTimeout(() => {
+                // simulate winner timeout
+                setTimeout(() => {
                     const duel = duels.get(duelId)!;
                     const winnerUserId = duel.opponent_user_id;
 
@@ -149,26 +162,7 @@ export const handlers = [
                     push(
                         `data: ${JSON.stringify({ duel_id: duelId, winner_user_id: winnerUserId })}\n\n`,
                     );
-                }, 5000);
-
-                // close stream on abort
-                const abortHandler = () => {
-                    clearTimeout(matchTimeout);
-                    clearInterval(winnerInterval);
-                    try {
-                        controller.close();
-                    } catch {
-                        // no-op
-                    }
-                };
-
-                // request.signal exists in Service Worker fetch handler
-                if (request.signal) {
-                    request.signal.addEventListener("abort", abortHandler);
-                }
-            },
-            cancel() {
-                // stream closed by client
+                }, ARTIFICIAL_DELAY_MS * 10);
             },
         });
 
@@ -198,6 +192,58 @@ export const handlers = [
         return new Response(JSON.stringify(duel), {
             status: 200,
             headers: { "Content-Type": "application/json" },
+        });
+    }),
+
+    http.get("/fakeApi/task/:taskId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        // Опять же забиваем на taskId, этож мок
+        const { taskId } = params;
+
+        return HttpResponse.json({
+            id: "4cf94aac-ae47-459b-bb6a-459784fecc66",
+            name: "A + B",
+            level: 1,
+            statement: "statement.md",
+            tl: 1000,
+            ml: 256,
+            tests: [
+                {
+                    order: 1,
+                    inputFile: "01.in",
+                    outputFile: "01.out",
+                },
+                {
+                    order: 2,
+                    inputFile: "02.in",
+                    outputFile: "02.out",
+                },
+            ],
+        });
+    }),
+
+    http.get("/fakeApi/task/:taskId/:filename", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        // NOTE: на параметры забили, т.к. это мок
+        const { taskId, filename } = params;
+
+        const res = await fetch(`/${filename}`);
+
+        if (!res.ok) {
+            return new Response("File not found", {
+                status: 404,
+                headers: { "Content-Type": "text/plain" },
+            });
+        }
+
+        const blob = await res.blob();
+        return new Response(blob, {
+            status: 200,
+            headers: {
+                "Content-Type": res.headers.get("Content-Type") ?? "application/octet-stream",
+            },
         });
     }),
 ];
