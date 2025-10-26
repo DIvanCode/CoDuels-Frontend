@@ -1,29 +1,41 @@
-import { setLanguage } from "features/duel-code-editor/model/language-selector/languagesSelectorSlice";
-import {
-    selectAvailableLanguages,
-    selectLanguageValue,
-} from "features/duel-code-editor/model/language-selector/selectors";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import { Select } from "shared/ui";
+import {
+    LANGUAGE_OPTIONS,
+    LANGUAGES,
+    LanguageValue,
+} from "../../model/language-selector/languages";
 
-export const LanguageSelector = () => {
-    const dispatch = useDispatch();
+interface LanguageSelectorProps {
+    value?: LanguageValue;
+    onChange?: (value: LanguageValue) => void;
+}
 
-    const currentLanguage = useSelector(selectLanguageValue);
-    const availableLanguages = useSelector(selectAvailableLanguages);
+export const LanguageSelector = ({ value, onChange }: LanguageSelectorProps) => {
+    const [selectedLanguage, setSelectedLanguage] = useState<LanguageValue>(value || LANGUAGES.CPP);
+
+    useEffect(() => {
+        if (value !== undefined) {
+            setSelectedLanguage(value);
+        }
+    }, [value]);
+
+    const currentLanguage = value !== undefined ? value : selectedLanguage;
 
     const handleLanguageChange = (languageValue: string) => {
-        dispatch(setLanguage(languageValue));
-    };
+        const newValue = languageValue as LanguageValue;
 
-    if (!availableLanguages) {
-        return <div>Loading languages...</div>;
-    }
+        if (value === undefined) {
+            setSelectedLanguage(newValue);
+        }
+
+        onChange?.(newValue);
+    };
 
     return (
         <Select
-            value={currentLanguage || ""}
-            options={availableLanguages || []}
+            value={currentLanguage}
+            options={LANGUAGE_OPTIONS}
             onChange={handleLanguageChange}
         />
     );

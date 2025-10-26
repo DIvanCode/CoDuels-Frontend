@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import Arrow from "shared/assets/icons/keyboard-arrow-down.svg?react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./Select.module.scss";
-import Arrow from "shared/assets/icons/keyboardArrowDown.svg?react";
 
 export interface SelectOption {
     value: string;
@@ -15,13 +15,13 @@ interface SelectProps {
     className?: string;
 }
 
-export const Select: React.FC<SelectProps> = ({
+export const Select = ({
     value,
     options = [],
     onChange,
     placeholder = "Select...",
     className = "",
-}) => {
+}: SelectProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const selectRef = useRef<HTMLDivElement>(null);
 

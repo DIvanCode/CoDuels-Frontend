@@ -1,21 +1,20 @@
-import { setCode } from "features/duel-code-editor/model/code-editor/codeEditorSlice";
 import { useRef } from "react";
-import { useDispatch } from "react-redux";
 import { IconButton } from "shared/ui";
-import Loadicon from "shared/assets/icons/loadFile.svg?react";
+import LoadIcon from "shared/assets/icons/load-file.svg?react";
 
 import styles from "./FileLoader.module.scss";
 
-interface FileLoaderProps {
+interface Props {
+    onFileLoaded: (content: string, fileName: string) => void;
     acceptedFileTypes?: string;
     className?: string;
 }
 
 export const FileLoader = ({
+    onFileLoaded,
     acceptedFileTypes = ".cpp,.cs,.py,.js,.ts,.java,.txt",
     className = styles.button,
-}: FileLoaderProps) => {
-    const dispatch = useDispatch();
+}: Props) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +26,7 @@ export const FileLoader = ({
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                dispatch(setCode(content));
+                onFileLoaded(content, file.name);
                 console.log("File loaded successfully:", file.name);
             } catch (error) {
                 console.error("Error reading file:", error);
@@ -62,10 +61,11 @@ export const FileLoader = ({
             />
             <IconButton
                 onClick={handleButtonClick}
+                size="small"
                 className="file-loader-button"
                 title="Load code from file"
             >
-                <Loadicon />
+                <LoadIcon />
             </IconButton>
         </div>
     );

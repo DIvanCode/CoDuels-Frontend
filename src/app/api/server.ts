@@ -34,11 +34,15 @@ if (useSeededRNG) {
     faker.seed(seedDate.getTime());
 }
 
+const randomInt = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
 /* MSW Data Model Setup */
 
 export const db = factory({
     user: {
-        id: primaryKey(nanoid),
+        id: primaryKey(() => randomInt(0, 1000)),
         username: String,
         rating: Number,
     },
@@ -59,13 +63,32 @@ const duels = new Map<
     string,
     {
         id: string;
-        opponent_user_id: string;
+        opponent_user_id: number;
         status: "in_progress" | "finished" | "pending";
         task_id: string;
         starts_at: string;
         deadline_at: string;
     }
 >();
+
+/* In-memory submissions store */
+const allSubmissions = new Map<
+    string, // submission_id
+    {
+        submission_id: string;
+        duel_id: string;
+        user_id: string;
+        solution: string;
+        language: string;
+        status: "queued" | "running" | "done";
+        verdict?: string;
+        message?: string;
+        error?: string;
+        created_at: string;
+    }
+>();
+
+const duelSubmissions = new Map<string, string[]>();
 
 /* MSW REST / SSE API Handlers */
 
@@ -96,10 +119,126 @@ export const handlers = [
         return HttpResponse.json({ success: true });
     }),
 
+    http.post("/fakeApi/duels/:duelId/submit", async function ({ params, request }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const duelId = params.duelId as string;
+        const body = (await request.json()) as {
+            user_id: string;
+            solution: string;
+            language: string;
+        };
+
+        const userId = body.user_id;
+
+        const duel = duels.get(duelId);
+        if (!duel) {
+            return HttpResponse.json({ error: "Duel not found" }, { status: 404 });
+        }
+
+        if (duel.status !== "in_progress") {
+            return HttpResponse.json({ error: "Duel is not in progress" }, { status: 400 });
+        }
+
+        const deadline = new Date(duel.deadline_at);
+        if (new Date() > deadline) {
+            return HttpResponse.json({ error: "Duel deadline has passed" }, { status: 400 });
+        }
+
+        const submissionId = nanoid();
+        const submission = {
+            submission_id: submissionId,
+            duel_id: duelId,
+            user_id: userId,
+            solution: body.solution,
+            language: body.language,
+            status: "queued" as const,
+            created_at: new Date().toISOString(),
+        };
+
+        allSubmissions.set(submissionId, submission);
+
+        if (!duelSubmissions.has(duelId)) {
+            duelSubmissions.set(duelId, []);
+        }
+        duelSubmissions.get(duelId)!.push(submissionId);
+
+        setTimeout(async () => {
+            const submission = allSubmissions.get(submissionId);
+
+            if (submission) {
+                submission.status = "running";
+                allSubmissions.set(submissionId, submission);
+
+                await delay(ARTIFICIAL_DELAY_MS);
+                console.log(`Submission ${submissionId}: Compilation completed`);
+
+                const totalTests = 5;
+                let failedTest = -1;
+                const random = Math.random();
+
+                if (random < 0.7) {
+                    failedTest = -1;
+                } else if (random < 0.8) {
+                    failedTest = 2;
+                } else if (random < 0.9) {
+                    failedTest = 3;
+                } else {
+                    submission.status = "done";
+                    submission.verdict = "Compilation Error";
+                    submission.message = "Syntax error: expected ':'";
+                    allSubmissions.set(submissionId, submission);
+                    return;
+                }
+
+                for (let testNum = 1; testNum <= totalTests; testNum++) {
+                    await delay(ARTIFICIAL_DELAY_MS);
+
+                    if (failedTest === testNum) {
+                        if (random < 0.8) {
+                            console.log(
+                                `Submission ${submissionId}: Test #${testNum} - WRONG ANSWER`,
+                            );
+                            submission.status = "done";
+                            submission.verdict = `Wrong Answer on test #${testNum}`;
+                            allSubmissions.set(submissionId, submission);
+                            return;
+                        } else {
+                            console.log(
+                                `Submission ${submissionId}: Test #${testNum} - TIME LIMIT EXCEEDED`,
+                            );
+                            submission.status = "done";
+                            submission.verdict = `Time Limit on test #${testNum}`;
+                            allSubmissions.set(submissionId, submission);
+                            return;
+                        }
+                    } else {
+                        console.log(`Submission ${submissionId}: Test #${testNum} - OK`);
+                        submission.status = "running";
+                        submission.verdict = `Test ${testNum} passed successfully`;
+                    }
+                }
+
+                // Все тесты пройдены успешно
+                await delay(ARTIFICIAL_DELAY_MS);
+                console.log(`Submission ${submissionId}: All tests passed`);
+
+                submission.status = "done";
+                submission.verdict = "Accepted";
+                allSubmissions.set(submissionId, submission);
+            }
+        }, 1000);
+
+        return HttpResponse.json({
+            submission_id: submissionId,
+            status: "queued",
+        });
+    }),
+
     http.get("/fakeApi/user/:userId", async function ({ params }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
-        const userId = params.userId as string;
+        const userId = Number(params.userId);
         const user = db.user.findFirst({
             where: {
                 id: { equals: userId },
@@ -110,13 +249,13 @@ export const handlers = [
     }),
 
     // SSE endpoint: subscribe to duel events
-    http.get("/fakeApi/duels/events", function ({ request }) {
+    http.get("/fakeApi/duels/events", function () {
         console.log("New SSE connection");
 
         // Вообще мы как-то должны матчить двух подписчиков, бла-бла,
         // но это же мок, поэтому мы не будем учитывать userId, просто считаем для приличия
-        const url = new URL(request.url);
-        const userId = url.searchParams.get("user_id");
+        // const url = new URL(request.url);
+        // const userId = url.searchParams.get("user_id");
 
         const duelId = nanoid();
 
@@ -162,7 +301,7 @@ export const handlers = [
                     push(
                         `data: ${JSON.stringify({ duel_id: duelId, winner_user_id: winnerUserId })}\n\n`,
                     );
-                }, ARTIFICIAL_DELAY_MS * 10);
+                }, ARTIFICIAL_DELAY_MS * 1000);
             },
         });
 
@@ -195,11 +334,61 @@ export const handlers = [
         });
     }),
 
-    http.get("/fakeApi/task/:taskId", async function ({ params }) {
+    http.get("/fakeApi/duels/:duelId/submissions", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const duelId = params.duelId as string;
+
+        const duel = duels.get(duelId);
+        if (!duel) {
+            return HttpResponse.json({ error: "Duel not found" }, { status: 404 });
+        }
+
+        const submissionIds = duelSubmissions.get(duelId) || [];
+        const userSubmissions = submissionIds
+            .map((id) => allSubmissions.get(id))
+            .sort((a, b) => new Date(b!.created_at).getTime() - new Date(a!.created_at).getTime())
+            .map((sub) => ({
+                submission_id: sub!.submission_id,
+                status: sub!.status,
+                verdict: sub!.verdict,
+                created_at: sub!.created_at,
+            }));
+
+        return HttpResponse.json(userSubmissions);
+    }),
+
+    http.get("/fakeApi/duels/:duelId/submissions/:submissionId", async function ({ params }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const { duelId, submissionId } = params;
+
+        const duel = duels.get(duelId as string);
+        if (!duel) {
+            return HttpResponse.json({ error: "Duel not found" }, { status: 404 });
+        }
+
+        const submission = allSubmissions.get(submissionId as string);
+
+        if (!submission || submission.duel_id !== duelId) {
+            return HttpResponse.json({ error: "Submission not found" }, { status: 404 });
+        }
+
+        return HttpResponse.json({
+            submission_id: submission.submission_id,
+            solution: submission.solution,
+            language: submission.language,
+            status: submission.status,
+            verdict: submission.verdict,
+            created_at: submission.created_at,
+        });
+    }),
+
+    http.get("/fakeApi/task/:taskId", async function () {
         await delay(ARTIFICIAL_DELAY_MS);
 
         // Опять же забиваем на taskId, этож мок
-        const { taskId } = params;
+        // const { taskId } = params;
 
         return HttpResponse.json({
             id: "4cf94aac-ae47-459b-bb6a-459784fecc66",
@@ -227,7 +416,7 @@ export const handlers = [
         await delay(ARTIFICIAL_DELAY_MS);
 
         // NOTE: на параметры забили, т.к. это мок
-        const { taskId, filename } = params;
+        const { filename } = params;
 
         const res = await fetch(`/${filename}`);
 

@@ -1,62 +1,157 @@
-import { selectCode } from "features/duel-code-editor/model/code-editor/selectors";
-import { LANGUAGE_TO_LABELS } from "features/duel-code-editor/model/language-selector/languages";
-import { selectLanguageValue } from "features/duel-code-editor/model/language-selector/selectors";
-import { useSelector } from "react-redux";
-import { IconButton } from "shared/ui";
-import Submitcodeicon from "shared/assets/icons/submitCode.svg?react";
+import { SubmitButton } from "shared/ui";
+import Submitcodeicon from "shared/assets/icons/submit-code.svg?react";
+import {
+    useSubmitCodeMutation,
+    useGetSubmissionDetailQuery,
+} from "features/duel-code-editor/api/submitCodeApi";
+import { useEffect, useState } from "react";
+import { LanguageValue } from "features/duel-code-editor/model/language-selector/languages";
 
-import styles from "./SubmitCodeButton.module.scss";
-
-interface SubmitCodeButtonProps {
-    onSubmissionStart?: () => void;
-    onSubmissionComplete?: () => void;
+interface Props {
+    code: string;
+    language: LanguageValue;
+    onSubmissionStart: () => void;
+    onSubmissionComplete: (result?: { verdict: string; message?: string }) => void;
+    duelId: string;
 }
 
 export const SubmitCodeButton = ({
+    code,
+    language,
     onSubmissionStart,
     onSubmissionComplete,
-}: SubmitCodeButtonProps) => {
-    const code = useSelector(selectCode);
-    const language = useSelector(selectLanguageValue);
+    duelId,
+}: Props) => {
+    const [submitCode, { isLoading: isSubmitting }] = useSubmitCodeMutation();
+    const [currentSubmissionId, setCurrentSubmissionId] = useState<string | null>(null);
+    const [currentStatus, setCurrentStatus] = useState<string>("");
+
+    const { data: submissionDetail, error } = useGetSubmissionDetailQuery(
+        { duelId, submissionId: currentSubmissionId! },
+        { skip: !currentSubmissionId, pollingInterval: currentSubmissionId ? 2000 : 0 },
+    );
+
+    useEffect(() => {
+        if (submissionDetail) {
+            setCurrentStatus(submissionDetail.status);
+
+            if (submissionDetail.status === "done") {
+                onSubmissionComplete({
+                    verdict: submissionDetail.verdict || "Unknown",
+                    message:
+                        submissionDetail.verdict === "Accepted"
+                            ? "All tests passed successfully!"
+                            : submissionDetail.verdict,
+                });
+                setCurrentSubmissionId(null);
+            }
+        }
+    }, [submissionDetail]);
+
+    const translateStatus = (status: string): string => {
+        switch (status.toLowerCase()) {
+            case "queued":
+                return "В очереди";
+            case "running":
+                return "Тестирование";
+            case "pending":
+                return "В ожидании";
+            case "done":
+                return "Готово";
+            default:
+                return status;
+        }
+    };
+
+    useEffect(() => {
+        if (error) {
+            console.error("Error fetching submission status:", error);
+            setCurrentStatus("Error checking status");
+            onSubmissionComplete({
+                verdict: "Error",
+                message: "Failed to check submission status",
+            });
+            setCurrentSubmissionId(null);
+        }
+    }, [error]);
 
     const handleSubmit = async () => {
-        onSubmissionStart?.();
+        if (!duelId || duelId.trim().length === 0) {
+            onSubmissionComplete({
+                verdict: "Error",
+                message: "Invalid duel ID",
+            });
+            return;
+        }
+
+        onSubmissionStart();
+        setCurrentStatus("Submitting...");
 
         try {
-            console.log("=== SENDING CODE TO SERVER ===");
-            console.log("Language:", LANGUAGE_TO_LABELS[language]);
-            console.log("Code length:", code.length, "characters");
-            console.log("Code content:");
-            console.log(code);
-            console.log("==============================");
+            const cookies = document.cookie;
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const userIdMatch = cookies.match(/UserId=([^;]+)/);
+            const userIdStr = userIdMatch ? userIdMatch[1].trim() : null;
 
-            console.log("✅ Code successfully sent to server!");
+            if (userIdStr === null) {
+                throw Error("No user in cookies");
+            }
 
-            alert(
-                `Code submitted successfully!\nLanguage: ${LANGUAGE_TO_LABELS[language]}\nLength: ${code.length} chars`,
-            );
+            const submissionData = {
+                user_id: userIdStr,
+                solution: code,
+                language: language,
+            };
+
+            const result = await submitCode({
+                duelId,
+                data: submissionData,
+            }).unwrap();
+
+            setCurrentSubmissionId(result.submission_id);
+            setCurrentStatus("Queued");
         } catch (error) {
-            console.error("❌ Error submitting code:", error);
-            alert("Error submitting code. Please try again.");
-        } finally {
-            onSubmissionComplete?.();
+            console.error("Submission error:", error);
+            setCurrentStatus("Submission failed");
+            onSubmissionComplete({
+                verdict: "Submission Error",
+                message: "Failed to submit code. Please try again.",
+            });
         }
     };
 
     const isCodeEmpty = !code || code.trim().length === 0;
+    const isDisabled = isCodeEmpty || isSubmitting || currentSubmissionId !== null;
+
+    const getButtonText = () => {
+        if (isSubmitting) return "Отправка...";
+        if (currentSubmissionId) {
+            const translatedStatus = translateStatus(currentStatus);
+            // Capitalize first letter
+            return translatedStatus.charAt(0).toUpperCase() + translatedStatus.slice(1);
+        }
+        return "Отправить";
+    };
+
+    const getTitle = () => {
+        if (isCodeEmpty) return "Напишите код сначала";
+        if (isSubmitting) return "Отправка кода...";
+        if (currentSubmissionId) {
+            const translatedStatus = translateStatus(currentStatus);
+            return translatedStatus.charAt(0).toUpperCase() + translatedStatus.slice(1);
+        }
+        return "Отправить код на проверку";
+    };
 
     return (
-        <div>
-            <IconButton
-                className={styles.submitCodeButton}
-                onClick={handleSubmit}
-                disabled={isCodeEmpty}
-                title={isCodeEmpty ? "Please write some code first" : "Submit code for checking"}
-            >
-                <Submitcodeicon /> Отправить
-            </IconButton>
-        </div>
+        <SubmitButton
+            variant="outlined"
+            leadingIcon={<Submitcodeicon />}
+            onClick={handleSubmit}
+            disabled={isDisabled}
+            title={getTitle()}
+        >
+            {getButtonText()}
+        </SubmitButton>
     );
 };

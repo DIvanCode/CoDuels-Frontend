@@ -4,6 +4,9 @@ export { CopyButton } from "./CopyButton/CopyButton";
 
 export { DropdownMenu } from "./DropdownMenu/DropdownMenu";
 export { InputField } from "./InputField/InputField";
+export { Select } from "./Select/Select";
+export type { SelectOption } from "./Select/Select";
+export { FileLoader } from "./FileLoader/FileLoader";
 
 export { TabbedCard } from "./TabbedCard/TabbedCard";
 export { TabPanel } from "./TabPanel/TabPanel";
@@ -22,3 +25,5 @@ export type { DropdownItem } from "./DropdownMenu/DropdownMenu";
 
 export { Table } from "./Table/Table";
 export { ResultTitle } from "./ResultTitle/ResultTitle";
+
+export { CodeEditor } from "./CodeEditor/CodeEditor";

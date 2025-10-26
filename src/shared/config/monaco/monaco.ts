@@ -40,8 +40,7 @@ export const customThemes = {
 
 export const languageConfigs = {
     cpp: {
-        wordPattern:
-            /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+        wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}|;:'",.<>/?\s]+)/g,
 
         autoClosingPairs: [
             { open: "{", close: "}" },
@@ -103,8 +102,7 @@ export const languageConfigs = {
     },
 
     csharp: {
-        wordPattern:
-            /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+        wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}|;:'",.<>/?\s]+)/g,
 
         autoClosingPairs: [
             { open: "{", close: "}" },
@@ -183,9 +181,9 @@ export const languageConfigs = {
 
 export const defaultEditorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     automaticLayout: true,
-    fontSize: 20,
+    fontSize: 14,
     fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-    lineHeight: 2,
+    lineHeight: 1.6,
 
     minimap: {
         enabled: true,
@@ -208,7 +206,7 @@ export const defaultEditorOptions: monaco.editor.IStandaloneEditorConstructionOp
     wordWrapColumn: 80,
     wrappingIndent: "same",
 
-    tabSize: 2,
+    tabSize: 4,
     insertSpaces: true,
     detectIndentation: true,
 

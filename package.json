@@ -28,8 +28,8 @@
         "react-markdown": "^10.1.0",
         "react-redux": "^9.2.0",
         "react-router-dom": "^7.9.3",
-        "redux": "^5.0.1",
         "react-timer-hook": "^4.0.5",
+        "redux": "^5.0.1",
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
         "superstruct": "^2.0.2"
