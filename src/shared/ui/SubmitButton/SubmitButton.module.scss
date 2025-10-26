@@ -38,6 +38,10 @@
         --btn-text-color: var(--accent-primary);
         --btn-border-color: var(--accent-primary);
 
+        &:hover:not(.disabled) {
+            background-color: var(--card-secondary);
+        }
+
         &:active:not(.disabled) {
             --btn-bg-color: color-mix(in srgb, var(--accent-primary) 75%, black);
             --btn-border-color: color-mix(in srgb, var(--accent-primary) 75%, black);
@@ -47,6 +51,12 @@
     &:disabled {
         cursor: not-allowed;
         background-color: var(--card-secondary);
+
+        &.outlined {
+            --btn-text-color: var(--text-secondary);
+            --btn-border-color: var(--text-secondary);
+            background-color: transparent;
+        }
     }
 }
 
@@ -58,5 +68,14 @@
     svg {
         width: 1.25em;
         height: 1.25em;
+    }
+}
+
+.disabled {
+    color: var(--text-secondary);
+
+    .leadingIcon svg {
+        filter: grayscale(100%) brightness(1.5);
+        opacity: 1;
     }
 }
