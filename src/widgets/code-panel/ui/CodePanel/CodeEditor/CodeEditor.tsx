@@ -1,48 +1,64 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { LANGUAGES, LanguageValue } from "features/duel-code-editor";
+import { useMemo, useReducer } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { codeEditorInitialState, codeEditorReducer, LanguageValue } from "features/submit-code";
+import { MonacoEditor } from "shared/ui";
+import { editor } from "monaco-editor";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
-import { Editor } from "./Editor/Editor";
 
 function CodeEditor() {
     const { duelId } = useParams();
-    const [code, setCode] = useState<string>("");
-    const [language, setLanguage] = useState<LanguageValue>(LANGUAGES.CPP);
+    const navigate = useNavigate();
 
-    // Validate duelId
-    if (!duelId) {
-        return null;
-    }
+    const [state, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
+
+    const onCodeChange = (newCode: string) => dispatch({ type: "SET_CODE", payload: newCode });
+
+    const onLanguageChange = (newLanguage: LanguageValue) =>
+        dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
 
     const onSubmissionStart = () => {
-        alert("code submitted");
+        if (duelId) {
+            navigate(`/duel/${duelId}/submissions`);
+        }
     };
 
     const onSubmissionComplete = (result?: { verdict: string; message?: string }) => {
         alert("code result: " + result?.verdict);
     };
 
-    const onCodeChange = (newCode: string) => {
-        setCode(newCode);
-    };
+    const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
+        () => ({
+            theme: state.theme,
+            fontSize: state.fontSize,
+            wordWrap: state.wordWrap ? "on" : "off",
+            minimap: { enabled: state.minimap },
+        }),
+        [state.theme, state.fontSize, state.wordWrap, state.minimap],
+    );
 
-    const onLanguageChange = (newLanguage: LanguageValue) => {
-        setLanguage(newLanguage);
-    };
+    if (!duelId) return null;
 
     return (
         <div className={styles.codeEditor}>
             <EditorHeader
-                code={code}
-                language={language}
+                code={state.code}
+                language={state.language}
                 onCodeChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
                 onSubmissionComplete={onSubmissionComplete}
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}
             />
-            <Editor code={code} language={language} onCodeChange={onCodeChange} height="100%" />
+            <MonacoEditor
+                height="100%"
+                value={state.code}
+                onValueChange={onCodeChange}
+                language={state.language}
+                theme={state.theme}
+                options={editorConfig}
+                className={styles.editor}
+            />
         </div>
     );
 }

@@ -72,12 +72,12 @@ const duels = new Map<
 >();
 
 /* In-memory submissions store */
+// В submission опустим user_id, т.к. в моке все равно только мы будем отсылать
 const allSubmissions = new Map<
     string, // submission_id
     {
         submission_id: string;
         duel_id: string;
-        user_id: string;
         solution: string;
         language: string;
         status: "queued" | "running" | "done";
@@ -119,17 +119,14 @@ export const handlers = [
         return HttpResponse.json({ success: true });
     }),
 
-    http.post("/fakeApi/duels/:duelId/submit", async function ({ params, request }) {
+    http.post("/fakeApi/duels/:duelId/submissions", async function ({ params, request }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
         const duelId = params.duelId as string;
         const body = (await request.json()) as {
-            user_id: string;
             solution: string;
             language: string;
         };
-
-        const userId = body.user_id;
 
         const duel = duels.get(duelId);
         if (!duel) {
@@ -149,7 +146,6 @@ export const handlers = [
         const submission = {
             submission_id: submissionId,
             duel_id: duelId,
-            user_id: userId,
             solution: body.solution,
             language: body.language,
             status: "queued" as const,

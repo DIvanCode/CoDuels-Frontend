@@ -26,4 +26,4 @@ export type { DropdownItem } from "./DropdownMenu/DropdownMenu";
 export { Table } from "./Table/Table";
 export { ResultTitle } from "./ResultTitle/ResultTitle";
 
-export { CodeEditor } from "./CodeEditor/CodeEditor";
+export { MonacoEditor } from "./MonacoEditor/MonacoEditor";

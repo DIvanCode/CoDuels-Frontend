@@ -1,5 +1,6 @@
 .select {
     position: relative;
+
     min-width: 120px;
 }
 
@@ -7,12 +8,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    min-height: 32px;
+    padding: 0.25em 0.5em;
+
+    border-radius: 0.5em;
+
     background: var(--card-primary);
     cursor: pointer;
     transition: all 0.2s;
-    border-radius: 4px;
-    padding: 4px 8px;
-    min-height: 32px;
 }
 
 .trigger:hover {
@@ -20,24 +24,27 @@
 }
 
 .value {
-    font-size: 16px;
-    color: var(--text-primary);
-    font-weight: normal;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    font-size: 1em;
+    font-weight: normal;
+    color: var(--text-primary);
 }
 
 .arrow {
-    color: var(--text-secondary);
-    transition: transform 0.2s;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+
+    width: 1.25em;
+    height: 1.25em;
+
+    color: var(--text-secondary);
+    transition: transform 0.2s;
 }
 
 .trigger.open .arrow {
@@ -49,25 +56,32 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--card-primary);
-    border-radius: 4px;
-    border: 1px solid var(--card-secondary);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-    margin-top: 4px;
-    max-height: 200px;
-    overflow-y: auto;
+    z-index: 1;
+
     min-width: 100%;
+    max-height: 200px;
+    margin-top: 0.25em;
+
+    border: 1px solid var(--card-secondary);
+    border-radius: 0.5em;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+
+    overflow-y: auto;
+
+    background: var(--card-primary);
 }
 
 .option {
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s;
+    padding: 0.5em 0.75em;
+
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    font-size: 1em;
+
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .option:hover {
@@ -75,6 +89,6 @@
 }
 
 .option.selected {
-    color: var(--text-primary);
     font-weight: normal;
+    color: var(--text-primary);
 }

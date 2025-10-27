@@ -1,9 +1,10 @@
 import {
-    LanguageSelector,
     FileLoader,
     SubmitCodeButton,
     LanguageValue,
-} from "features/duel-code-editor";
+    LANGUAGE_OPTIONS,
+} from "features/submit-code";
+import { Select } from "shared/ui";
 import styles from "./EditorHeader.module.scss";
 
 interface EditorHeaderProps {
@@ -11,9 +12,9 @@ interface EditorHeaderProps {
     language: LanguageValue;
     onCodeChange: (code: string) => void;
     onLanguageChange: (language: LanguageValue) => void;
-    duelId: string;
     onSubmissionStart: () => void;
     onSubmissionComplete: (result?: { verdict: string; message?: string }) => void;
+    duelId: string;
 }
 
 export const EditorHeader = ({
@@ -25,13 +26,12 @@ export const EditorHeader = ({
     onSubmissionStart,
     onSubmissionComplete,
 }: EditorHeaderProps) => {
-    const handleFileLoaded = (content: string) => {
-        onCodeChange(content);
-    };
+    const handleFileLoaded = (content: string) => onCodeChange(content);
 
     return (
         <header className={styles.header}>
-            <LanguageSelector value={language} onChange={onLanguageChange} />
+            <Select value={language} options={LANGUAGE_OPTIONS} onChange={onLanguageChange} />
+
             <div className={styles.buttons}>
                 <FileLoader onFileLoaded={handleFileLoaded} />
                 <SubmitCodeButton

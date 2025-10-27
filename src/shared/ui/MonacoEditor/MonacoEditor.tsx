@@ -1,43 +1,42 @@
 import { useRef, useEffect } from "react";
-import Editor from "@monaco-editor/react";
-import type { editor } from "monaco-editor";
-import type { OnMount } from "@monaco-editor/react";
+import Editor, { type OnMount } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
 import { defaultEditorOptions, initializeMonaco } from "shared/config/monaco/monaco";
-import styles from "./CodeEditor.module.scss";
+import clsx from "clsx";
+import styles from "./MonacoEditor.module.scss";
 
 interface Props {
-    height?: string;
-    className?: string;
+    height: string;
     value: string;
     onValueChange: (value: string) => void;
     language: string;
-    theme?: string;
-    options?: editor.IStandaloneEditorConstructionOptions;
+    options: monaco.editor.IStandaloneEditorConstructionOptions;
+    theme: string;
+    className?: string;
     onEditorMount?: OnMount;
 }
 
-export const CodeEditor = ({
-    height = "100%",
+export const MonacoEditor = ({
+    height,
     value,
     onValueChange,
     language,
-    theme = "vs-dark",
-    options = {},
+    options,
+    theme,
+    className,
     onEditorMount,
 }: Props) => {
-    const monacoRef = useRef<any>(null);
+    const monacoRef = useRef<typeof monaco | null>(null);
 
-    const handleEditorChange = (value: string | undefined) => {
-        onValueChange(value || "");
-    };
+    const handleEditorChange = (value: string | undefined) => onValueChange(value ?? "");
 
-    const handleEditorDidMount: OnMount = (editor, monaco) => {
-        monacoRef.current = monaco;
+    const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
+        monacoRef.current = monacoInstance;
 
-        initializeMonaco(monaco);
-        monaco.editor.setTheme(theme);
+        initializeMonaco(monacoInstance);
+        monacoInstance.editor.setTheme(theme);
 
-        onEditorMount?.(editor, monaco);
+        onEditorMount?.(editor, monacoInstance);
     };
 
     useEffect(() => {
@@ -47,7 +46,7 @@ export const CodeEditor = ({
     }, [theme]);
 
     return (
-        <div className={styles.codeEditor}>
+        <div className={clsx(styles.codeEditor, className)}>
             <Editor
                 height={height}
                 language={language}

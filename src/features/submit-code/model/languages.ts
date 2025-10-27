@@ -10,13 +10,13 @@ export const LANGUAGE_LABELS = {
     [LANGUAGES.PYTHON]: "Python",
 };
 
-export type LanguageValue = LANGUAGES;
-export type LanguageLabel = (typeof LANGUAGE_LABELS)[LANGUAGES];
-
 export const LANGUAGE_OPTIONS: Array<{ label: LanguageLabel; value: LanguageValue }> = [
     { label: LANGUAGE_LABELS[LANGUAGES.CPP], value: LANGUAGES.CPP },
     { label: LANGUAGE_LABELS[LANGUAGES.CSHARP], value: LANGUAGES.CSHARP },
     { label: LANGUAGE_LABELS[LANGUAGES.PYTHON], value: LANGUAGES.PYTHON },
 ];
+
+export type LanguageValue = LANGUAGES;
+export type LanguageLabel = (typeof LANGUAGE_LABELS)[LANGUAGES];
 
 export type LanguageOptions = typeof LANGUAGE_OPTIONS;

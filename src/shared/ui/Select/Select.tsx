@@ -1,5 +1,6 @@
 import Arrow from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import styles from "./Select.module.scss";
 
 export interface SelectOption {
@@ -7,25 +8,25 @@ export interface SelectOption {
     label: string;
 }
 
-interface SelectProps {
-    value: string;
-    options: SelectOption[];
-    onChange: (value: string) => void;
+interface SelectProps<T extends string> {
+    value: T;
+    options: Array<{ label: string; value: T }>;
+    onChange: (value: T) => void;
     placeholder?: string;
     className?: string;
 }
 
-export const Select = ({
+export const Select = <T extends string>({
     value,
-    options = [],
+    options,
     onChange,
-    placeholder = "Select...",
-    className = "",
-}: SelectProps) => {
+    placeholder,
+    className,
+}: SelectProps<T>) => {
     const [isOpen, setIsOpen] = useState(false);
     const selectRef = useRef<HTMLDivElement>(null);
 
-    const selectedOption = options?.find((option) => option.value === value);
+    const selectedOption = options.find((option) => option.value === value);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -38,15 +39,15 @@ export const Select = ({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleOptionClick = (optionValue: string) => {
+    const handleOptionClick = (optionValue: T) => {
         onChange(optionValue);
         setIsOpen(false);
     };
 
     return (
-        <div className={`${styles.select} ${className}`} ref={selectRef}>
+        <div className={clsx(styles.select, className)} ref={selectRef}>
             <div
-                className={`${styles.trigger} ${isOpen ? styles.open : ""}`}
+                className={clsx(styles.trigger, isOpen && styles.open)}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span className={styles.value}>
@@ -59,12 +60,13 @@ export const Select = ({
 
             {isOpen && (
                 <div className={styles.dropdown}>
-                    {options?.map((option) => (
+                    {options.map((option) => (
                         <div
                             key={option.value}
-                            className={`${styles.option} ${
-                                option.value === value ? styles.selected : ""
-                            }`}
+                            className={clsx(
+                                styles.option,
+                                option.value === value && styles.selected,
+                            )}
                             onClick={() => handleOptionClick(option.value)}
                         >
                             {option.label}
