@@ -15,10 +15,12 @@
     },
     "dependencies": {
         "@faker-js/faker": "^10.0.0",
+        "@monaco-editor/react": "^4.7.0",
         "@mswjs/data": "^0.16.2",
         "@reduxjs/toolkit": "^2.9.0",
         "clsx": "^2.1.1",
         "katex": "^0.16.22",
+        "monaco-editor": "^0.53.0",
         "msw": "^2.11.3",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
@@ -27,6 +29,7 @@
         "react-redux": "^9.2.0",
         "react-router-dom": "^7.9.3",
         "react-timer-hook": "^4.0.5",
+        "redux": "^5.0.1",
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
         "superstruct": "^2.0.2"

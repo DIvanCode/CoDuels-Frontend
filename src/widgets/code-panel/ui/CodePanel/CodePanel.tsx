@@ -1,8 +1,8 @@
 import type { ITab } from "shared/ui";
 import { TabbedCard } from "shared/ui";
 import CodeIcon from "shared/assets/icons/code.svg?react";
-
 import styles from "./CodePanel.module.scss";
+import CodeEditor from "./CodeEditor/CodeEditor";
 
 export const CodePanel = () => {
     const leftTabs: ITab[] = [
@@ -14,8 +14,8 @@ export const CodePanel = () => {
     ];
 
     return (
-        <TabbedCard tabs={leftTabs} contentClassName={styles.codePanelContent}>
-            <p>Code</p>
+        <TabbedCard contentClassName={styles.codePanelContent} tabs={leftTabs}>
+            <CodeEditor />
         </TabbedCard>
     );
 };

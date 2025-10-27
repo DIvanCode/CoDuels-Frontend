@@ -1,0 +1,94 @@
+.select {
+    position: relative;
+
+    min-width: 120px;
+}
+
+.trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    min-height: 32px;
+    padding: 0.25em 0.5em;
+
+    border-radius: 0.5em;
+
+    background: var(--card-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.trigger:hover {
+    background-color: var(--card-secondary);
+}
+
+.value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 1em;
+    font-weight: normal;
+    color: var(--text-primary);
+}
+
+.arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 1.25em;
+    height: 1.25em;
+
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.trigger.open .arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+
+    min-width: 100%;
+    max-height: 200px;
+    margin-top: 0.25em;
+
+    border: 1px solid var(--card-secondary);
+    border-radius: 0.5em;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+
+    overflow-y: auto;
+
+    background: var(--card-primary);
+}
+
+.option {
+    padding: 0.5em 0.75em;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 1em;
+
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.option:hover {
+    background-color: var(--card-secondary);
+}
+
+.option.selected {
+    font-weight: normal;
+    color: var(--text-primary);
+}
