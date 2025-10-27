@@ -1,6 +1,8 @@
 import * as monaco from "monaco-editor";
 import { loader } from "@monaco-editor/react";
 
+type Monaco = typeof monaco;
+
 loader.config({
     "paths": {
         vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs",
@@ -21,7 +23,7 @@ const colors = {
     cardSecondary: "#494949",
 };
 
-export const customThemes = {
+export const customThemes: Record<string, monaco.editor.IStandaloneThemeData> = {
     dark: {
         base: "vs-dark",
         inherit: true,
@@ -38,7 +40,7 @@ export const customThemes = {
     },
 };
 
-export const languageConfigs = {
+export const languageConfigs: Record<string, monaco.languages.LanguageConfiguration> = {
     cpp: {
         wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}|;:'",.<>/?\s]+)/g,
 
@@ -136,7 +138,6 @@ export const languageConfigs = {
         comments: {
             lineComment: "//",
             blockComment: ["/*", "*/"],
-            docComment: "///",
         },
 
         brackets: [
@@ -174,7 +175,7 @@ export const languageConfigs = {
         ],
 
         __electricCharacterSupport: {
-            docComment: { open: "///", lineStart: "/// ", close: "" },
+            docComment: { open: "///", close: "" },
         },
     },
 };
@@ -232,7 +233,7 @@ export const defaultEditorOptions: monaco.editor.IStandaloneEditorConstructionOp
     accessibilitySupport: "auto" as const,
 };
 
-export const initializeMonaco = (monaco: any) => {
+export const initializeMonaco = (monaco: Monaco) => {
     Object.entries(customThemes).forEach(([themeName, themeData]) => {
         monaco.editor.defineTheme(themeName, themeData);
     });
