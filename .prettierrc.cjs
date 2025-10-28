@@ -4,7 +4,6 @@ const config = {
     singleQuote: false,
     tabWidth: 4,
     quoteProps: "consistent",
-    endOfLine: "lf",
     trailingComma: "all",
     arrowParens: "always",
 };

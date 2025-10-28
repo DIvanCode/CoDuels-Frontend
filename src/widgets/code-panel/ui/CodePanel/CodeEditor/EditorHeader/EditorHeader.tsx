@@ -1,10 +1,6 @@
-import {
-    FileLoader,
-    SubmitCodeButton,
-    LanguageValue,
-    LANGUAGE_OPTIONS,
-} from "features/submit-code";
+import { FileLoader, SubmitCodeButton } from "features/submit-code";
 import { Select } from "shared/ui";
+import { LANGUAGE_OPTIONS, type LanguageValue } from "shared/config";
 import styles from "./EditorHeader.module.scss";
 
 interface EditorHeaderProps {

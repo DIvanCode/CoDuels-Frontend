@@ -1,4 +1,4 @@
-import { LANGUAGES, LanguageValue } from "./languages";
+import { LANGUAGES, type LanguageValue } from "shared/config";
 
 interface CodeEditorState {
     code: string;

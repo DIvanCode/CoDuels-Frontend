@@ -5,7 +5,7 @@ import {
     useGetSubmissionDetailQuery,
 } from "features/submit-code/api/submitCodeApi";
 import { useEffect, useState } from "react";
-import { LanguageValue } from "features/submit-code/model/languages";
+import type { LanguageValue } from "shared/config";
 import { POOLING_INTERVAL } from "features/submit-code/lib/consts";
 
 interface Props {

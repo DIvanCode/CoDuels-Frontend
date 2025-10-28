@@ -1,8 +1,12 @@
 import { useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { codeEditorInitialState, codeEditorReducer, LanguageValue } from "features/submit-code";
+import type { LanguageValue } from "shared/config";
 import { MonacoEditor } from "shared/ui";
 import { editor } from "monaco-editor";
+import {
+    codeEditorInitialState,
+    codeEditorReducer,
+} from "widgets/code-panel/model/codeEditorReducer";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
