@@ -4,16 +4,18 @@ import { apiSlice } from "shared/api";
 import { setActiveDuelId, setPhase } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
 
+const BASE_URL = "http://localhost/api"; // TODO: полетит в .env
+
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        subscribeToDuelStates: builder.query<void, string>({
+        subscribeToDuelStates: builder.query<void, void>({
             async queryFn() {
                 // We don't actually need to make a network request here
                 return { data: undefined };
             },
             keepUnusedDataFor: 0, // no cache
-            async onCacheEntryAdded(userId, { cacheDataLoaded, cacheEntryRemoved, dispatch }) {
-                const eventSource = new EventSource(`/fakeApi/duels/events?user_id=${userId}`);
+            async onCacheEntryAdded(_, { cacheDataLoaded, cacheEntryRemoved, dispatch }) {
+                const eventSource = new EventSource(`${BASE_URL}/duels/connect`);
 
                 try {
                     await cacheDataLoaded;

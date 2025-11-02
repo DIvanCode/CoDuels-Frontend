@@ -1,4 +1,4 @@
-import { selectCurrentUser } from "entities/user";
+import { selectCurrentUser } from "features/auth";
 import { duelSessionApiSlice } from "features/duel-session/api/duelSessionApi";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { useEffect, useRef } from "react";
@@ -17,7 +17,7 @@ export const DuelSessionManager = () => {
 
         if (phase === "searching" && !subscriptionRef.current) {
             subscriptionRef.current = dispatch(
-                duelSessionApiSlice.endpoints.subscribeToDuelStates.initiate(user.id),
+                duelSessionApiSlice.endpoints.subscribeToDuelStates.initiate(),
             );
         }
 

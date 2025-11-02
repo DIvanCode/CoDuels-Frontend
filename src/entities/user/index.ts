@@ -1,6 +1,6 @@
 export { UserCard } from "./ui/UserCard/UserCard";
 export type { UserData } from "./model/types";
 
-export { selectCurrentUser } from "./model/selectors";
+export { useGetUserQuery, useGetMeQuery } from "./api/userApi";
 
-export { useGetUserQuery } from "./api/userApi";
+export { userApiSlice } from "./api/userApi";

@@ -9,7 +9,8 @@ import { validate } from "superstruct";
 import styles from "./RegisterForm.module.scss";
 
 export const RegisterForm = () => {
-    const [email, setEmail] = useState("");
+    const [nickname, setNickname] = useState("");
+
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -20,7 +21,7 @@ export const RegisterForm = () => {
     const onSubmit: FormEventHandler<HTMLFormElement> = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const registrationData = { email, password, confirmPassword };
+        const registrationData = { nickname, password, confirmPassword };
 
         const [error, result] = validate(registrationData, registrationStruct);
 
@@ -35,14 +36,15 @@ export const RegisterForm = () => {
     return (
         <form className={styles.registerForm} aria-label="Форма регистрации" onSubmit={onSubmit}>
             <InputField
-                id="email"
-                labelValue="Почта"
-                placeholder="Почта"
-                value={email}
-                type="email"
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                id="nickname"
+                labelValue="Никнейм"
+                placeholder="Никнейм"
+                value={nickname}
+                type="text"
+                onChange={(e) => setNickname(e.target.value)}
                 required
+                disabled={isLoading}
+                autoComplete="on"
             />
             <InputField
                 id="password"

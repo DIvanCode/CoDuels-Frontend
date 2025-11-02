@@ -16,7 +16,7 @@ export const UserCard = ({ user, hideInfo, reversed }: Props) => {
         <div className={clsx(styles.user, reversed && styles.reversed)}>
             {!hideInfo && (
                 <div className={styles.userInfo}>
-                    <p className={styles.username}>{user.username}</p>
+                    <p className={styles.nickname}>{user.nickname}</p>
                     <div className={styles.rating}>
                         <span>{user.rating}</span>
                         <CupIcon />

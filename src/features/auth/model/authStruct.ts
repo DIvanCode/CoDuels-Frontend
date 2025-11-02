@@ -1,11 +1,11 @@
 import { object, string, refine, size } from "superstruct";
 
-const Username = size(string(), 2, 30);
+const Nickname = size(string(), 2, 30);
 const Password = size(string(), 6, 30);
 
 export const registrationStruct = refine(
     object({
-        email: string(),
+        nickname: Nickname,
         password: Password,
         confirmPassword: Password,
     }),
@@ -19,6 +19,6 @@ export const registrationStruct = refine(
 );
 
 export const loginStruct = object({
-    username: Username,
+    nickname: Nickname,
     password: Password,
 });

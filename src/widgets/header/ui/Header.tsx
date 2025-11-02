@@ -1,5 +1,5 @@
-import { selectCurrentUser, UserCard } from "entities/user";
-import { useLogoutMutation } from "features/auth";
+import { UserCard } from "entities/user";
+import { selectCurrentUser, useLogoutMutation } from "features/auth";
 import { Link, useParams } from "react-router-dom";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";

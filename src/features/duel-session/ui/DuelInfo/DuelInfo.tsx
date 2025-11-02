@@ -1,9 +1,10 @@
 import { DuelResult, useGetDuelQuery } from "entities/duel";
-import { selectCurrentUser, useGetUserQuery, UserCard } from "entities/user";
+import { useGetUserQuery, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
 
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { selectCurrentUser } from "features/auth";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 

@@ -9,7 +9,7 @@ import { validate } from "superstruct";
 import styles from "./LoginForm.module.scss";
 
 export const LoginForm = () => {
-    const [username, setUsername] = useState("");
+    const [nickname, setNickname] = useState("");
     const [password, setPassword] = useState("");
 
     const [login, { isLoading }] = useLoginMutation();
@@ -19,7 +19,7 @@ export const LoginForm = () => {
     const onSubmit: FormEventHandler<HTMLFormElement> = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const loginData = { username, password };
+        const loginData = { nickname, password };
 
         const [error, result] = validate(loginData, loginStruct);
 
@@ -34,12 +34,12 @@ export const LoginForm = () => {
     return (
         <form className={styles.loginForm} aria-label="Форма входа" onSubmit={onSubmit}>
             <InputField
-                id="username"
+                id="nickname"
                 labelValue="Никнейм"
                 placeholder="Никнейм"
-                value={username}
+                value={nickname}
                 type="text"
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setNickname(e.target.value)}
                 required
                 disabled={isLoading}
                 autoComplete="on"

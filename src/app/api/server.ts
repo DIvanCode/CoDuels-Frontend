@@ -43,17 +43,17 @@ const randomInt = (min: number, max: number) => {
 export const db = factory({
     user: {
         id: primaryKey(() => randomInt(0, 1000)),
-        username: String,
+        nickname: String,
         rating: Number,
     },
 });
 
 const createUserData = (
-    username = faker.person.firstName(),
+    nickname = faker.person.firstName(),
     rating = faker.number.int({ min: 300, max: 2000 }),
 ) => {
     return {
-        username,
+        nickname,
         rating,
     };
 };
@@ -100,19 +100,63 @@ export const handlers = [
 
         const user = db.user.create(createUserData(body.email.split("@")[0]));
 
-        return HttpResponse.json({ success: true, user });
+        // NOTE: это просто фейковые токены
+        const access_token = `access_${faker.string.alphanumeric(32)}`;
+        const refresh_token = `refresh_${faker.string.alphanumeric(32)}`;
+
+        return HttpResponse.json({
+            success: true,
+            user,
+            access_token,
+            refresh_token,
+        });
     }),
 
     http.post("/fakeApi/login", async function ({ request }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
-        const body = (await request.json()) as { username: string; password: string };
+        const body = (await request.json()) as { nickname: string; password: string };
         const currentUser = db.user.findFirst({
             where: {
-                username: { equals: body.username },
+                nickname: { equals: body.nickname },
             },
         });
-        return HttpResponse.json({ success: true, user: currentUser });
+
+        if (!currentUser) {
+            return HttpResponse.json({ error: "Invalid credentials" }, { status: 401 });
+        }
+
+        // NOTE: это просто фейковые токены
+        const access_token = `access_${faker.string.alphanumeric(32)}`;
+        const refresh_token = `refresh_${faker.string.alphanumeric(32)}`;
+
+        return HttpResponse.json({
+            success: true,
+            user: currentUser,
+            access_token,
+            refresh_token,
+        });
+    }),
+
+    http.post("/fakeApi/users/refresh", async function ({ request }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const body = (await request.json()) as { refresh_token: string };
+
+        // In a real app, this would validate the refresh token on the backend
+        // For the mock, we'll just generate new tokens if a refresh token is provided
+        if (!body.refresh_token) {
+            return HttpResponse.json({ error: "Refresh token required" }, { status: 400 });
+        }
+
+        // For the mock, we'll just create new tokens
+        const new_access_token = `access_${faker.string.alphanumeric(32)}`;
+        const new_refresh_token = `refresh_${faker.string.alphanumeric(32)}`;
+
+        return HttpResponse.json({
+            access_token: new_access_token,
+            refresh_token: new_refresh_token,
+        });
     }),
 
     http.post("/fakeApi/logout", async function () {
@@ -231,7 +275,7 @@ export const handlers = [
         });
     }),
 
-    http.get("/fakeApi/user/:userId", async function ({ params }) {
+    http.get("/fakeApi/users/:userId", async function ({ params }) {
         await delay(ARTIFICIAL_DELAY_MS);
 
         const userId = Number(params.userId);
@@ -245,13 +289,8 @@ export const handlers = [
     }),
 
     // SSE endpoint: subscribe to duel events
-    http.get("/fakeApi/duels/events", function () {
+    http.get("/fakeApi/duels/connect", function () {
         console.log("New SSE connection");
-
-        // Вообще мы как-то должны матчить двух подписчиков, бла-бла,
-        // но это же мок, поэтому мы не будем учитывать userId, просто считаем для приличия
-        // const url = new URL(request.url);
-        // const userId = url.searchParams.get("user_id");
 
         const duelId = nanoid();
 
@@ -261,7 +300,7 @@ export const handlers = [
             start(controller) {
                 const push = (str: string) => controller.enqueue(encoder.encode(str));
 
-                // simulate matchmaking timeour
+                // simulate matchmaking timeout
                 setTimeout(() => {
                     // Creating random user that will win
                     const opponent = db.user.create(createUserData());
@@ -430,6 +469,22 @@ export const handlers = [
                 "Content-Type": res.headers.get("Content-Type") ?? "application/octet-stream",
             },
         });
+    }),
+
+    http.get("/fakeApi/users/iam", async function ({ request }) {
+        await delay(ARTIFICIAL_DELAY_MS);
+
+        const accessToken = request.headers.get("authorization");
+        if (!accessToken) {
+            return new Response("Unauthorized", {
+                status: 401,
+                headers: { "Content-Type": "text/plain" },
+            });
+        }
+
+        const currentUser = db.user.getAll()[0];
+
+        return HttpResponse.json(currentUser);
     }),
 ];
 

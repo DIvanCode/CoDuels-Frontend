@@ -4,7 +4,7 @@ import styles from "./DuelResult.module.scss";
 
 interface Props {
     duel: Duel;
-    fstUserId: string;
+    fstUserId: number;
 }
 
 type DuelResultType = "W" | "L" | "D";

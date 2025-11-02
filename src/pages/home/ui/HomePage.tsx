@@ -1,19 +1,19 @@
-import { selectCurrentUser } from "entities/user";
 import { DuelSessionButton, selectDuelSession } from "features/duel-session";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { MainCard, SearchLoader } from "shared/ui";
 
+import { selectCurrentUser } from "features/auth";
 import styles from "./HomePage.module.scss";
 
 interface IdleStateContentProps {
-    username: string;
+    nickname: string;
 }
 
-const IdleStateContent = ({ username }: IdleStateContentProps) => {
+const IdleStateContent = ({ nickname }: IdleStateContentProps) => {
     return (
         <>
             <h2 className={styles.cardHeading}>
-                Привет, <span className={styles.username}>{username}</span>!
+                Привет, <span className={styles.nickname}>{nickname}</span>!
             </h2>
 
             <p className={styles.cardDescription}>Время испытать свои навыки в дуэли!</p>
@@ -41,7 +41,7 @@ const HomePage = () => {
             {phase === "searching" ? (
                 <SearchingStateContent />
             ) : (
-                <IdleStateContent username={user?.username ?? "Аноним"} />
+                <IdleStateContent nickname={user?.nickname ?? "Аноним"} />
             )}
             <DuelSessionButton />
         </MainCard>
