@@ -32,6 +32,7 @@
         "redux": "^5.0.1",
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
+        "sse.js": "^2.7.2",
         "superstruct": "^2.0.2"
     },
     "devDependencies": {

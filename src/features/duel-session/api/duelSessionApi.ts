@@ -1,6 +1,7 @@
 import { duelApiSlice } from "entities/duel";
 import { apiSlice } from "shared/api";
 
+import { SSE } from "sse.js";
 import { setActiveDuelId, setPhase } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
 
@@ -14,8 +15,16 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                 return { data: undefined };
             },
             keepUnusedDataFor: 0, // no cache
-            async onCacheEntryAdded(_, { cacheDataLoaded, cacheEntryRemoved, dispatch }) {
-                const eventSource = new EventSource(`${BASE_URL}/duels/connect`);
+            async onCacheEntryAdded(_, { cacheDataLoaded, cacheEntryRemoved, dispatch, getState }) {
+                // TODO: мб не лучшее решение прям тащить весь стейт. Посмотри, мб можно через селекторы
+                const state = getState() as RootState;
+                const token = state.auth.token;
+
+                const eventSource = new SSE(`${BASE_URL}/duels/connect`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
                 try {
                     await cacheDataLoaded;
@@ -53,8 +62,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         );
                     };
 
-                    eventSource.addEventListener("duel_started", duelStartedListener);
-                    eventSource.addEventListener("duel_finished", duelFinishedListener);
+                    eventSource.addEventListener("DuelStarted", duelStartedListener);
+                    eventSource.addEventListener("DuelFinished", duelFinishedListener);
                 } catch {
                     // no-op in case `cacheEntryRemoved` resolves before `cacheDataLoaded`,
                     // in which case `cacheDataLoaded` will throw

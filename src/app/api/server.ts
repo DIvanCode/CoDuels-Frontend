@@ -63,7 +63,7 @@ const duels = new Map<
     string,
     {
         id: string;
-        opponent_user_id: number;
+        opponent_id: number;
         status: "in_progress" | "finished" | "pending";
         task_id: string;
         starts_at: string;
@@ -309,7 +309,7 @@ export const handlers = [
                     const deadlineAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
                     const duel = {
                         id: duelId,
-                        opponent_user_id: opponent.id,
+                        opponent_id: opponent.id,
                         status: "in_progress" as const,
                         task_id: nanoid(),
                         starts_at: startsAt,
@@ -325,7 +325,7 @@ export const handlers = [
                 // simulate winner timeout
                 setTimeout(() => {
                     const duel = duels.get(duelId)!;
-                    const winnerUserId = duel.opponent_user_id;
+                    const winnerUserId = duel.opponent_id;
 
                     duel.status = "finished";
                     duels.set(duelId, duel);

@@ -19,10 +19,12 @@ export const DuelInfo = ({ duelId }: Props) => {
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
     const { data: opponentUser, isLoading: isOpponentUserLoading } = useGetUserQuery(
-        duel?.opponent_user_id ?? skipToken,
+        duel?.opponent_id ?? skipToken,
     );
 
     if (!currentUser || isDuelLoading || isOpponentUserLoading) return <div>...</div>;
+
+    console.log(opponentUser);
 
     return (
         <div className={styles.duelInfo}>

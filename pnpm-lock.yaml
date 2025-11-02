@@ -61,6 +61,9 @@ importers:
             remark-math:
                 specifier: ^6.0.0
                 version: 6.0.0
+            sse.js:
+                specifier: ^2.7.2
+                version: 2.7.2
             superstruct:
                 specifier: ^2.0.2
                 version: 2.0.2
@@ -4603,6 +4606,12 @@ packages:
                 integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==,
             }
 
+    sse.js@2.7.2:
+        resolution:
+            {
+                integrity: sha512-EDu2kt+A+HIagwUOCrDbKfsUrKxNWdoeKQVKfpruRSO34yL2xwS142Ad3AYhjCY81oWySeCsPs0wSu+c2QG14g==,
+            }
+
     stable-hash-x@0.2.0:
         resolution:
             {
@@ -8238,6 +8247,8 @@ snapshots:
         optional: true
 
     space-separated-tokens@2.0.2: {}
+
+    sse.js@2.7.2: {}
 
     stable-hash-x@0.2.0: {}
 
