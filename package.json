@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "lint": "eslint .",
+        "lint": "tsc && eslint .",
         "lint:fix": "eslint . --fix",
         "preview": "vite preview",
         "fsd:lint": "steiger ./src",

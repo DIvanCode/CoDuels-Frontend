@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import type { LanguageValue } from "shared/config";
 import { POOLING_INTERVAL } from "features/submit-code/lib/consts";
+import { LANGUAGE_LABELS } from "shared/config";
 
 interface Props {
     code: string;
@@ -38,7 +39,7 @@ export const SubmitCodeButton = ({
     // TODO: еще у тебя там dependency не все висят в useEffect'е. Но мне кажется, что это опять же заглушка, так что простительно, если это так
     useEffect(() => {
         if (submissionDetail) {
-            if (submissionDetail.status === "done") {
+            if (submissionDetail.status === "Done") {
                 onSubmissionComplete({
                     verdict: submissionDetail.verdict || "Unknown",
                     message:
@@ -68,7 +69,7 @@ export const SubmitCodeButton = ({
 
         const submissionData = {
             solution: code,
-            language: language,
+            language: LANGUAGE_LABELS[language],
         };
 
         const result = await submitCode({

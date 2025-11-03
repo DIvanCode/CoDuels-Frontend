@@ -1,30 +1,30 @@
-import { Duel } from "entities/duel/model/types";
-
+import type { DuelResultType } from "../../model/types";
 import styles from "./DuelResult.module.scss";
 
+type DuelResultChar = "W" | "L" | "D";
+
 interface Props {
-    duel: Duel;
-    fstUserId: number;
+    result: DuelResultType;
 }
 
-type DuelResultType = "W" | "L" | "D";
+const isResultChar = (char: string): char is DuelResultChar => ["W", "L", "D"].includes(char);
 
-export const DuelResult = ({ duel, fstUserId }: Props) => {
-    const getResult = (): [DuelResultType, DuelResultType] => {
-        if (!duel.winner_user_id) return ["D", "D"];
-        return duel.winner_user_id === fstUserId ? ["W", "L"] : ["L", "W"];
-    };
+const pair: Record<DuelResultChar, DuelResultChar> = { W: "L", L: "W", D: "D" };
+const classMap: Record<DuelResultChar, string> = {
+    W: styles.win,
+    L: styles.loss,
+    D: styles.draw,
+};
 
-    const getResultClassName = (result: DuelResultType) =>
-        result === "W" ? styles.win : result === "L" ? styles.loss : styles.draw;
-
-    const [fstResult, sndResult] = getResult();
+export const DuelResult = ({ result }: Props) => {
+    const fst = isResultChar(result[0]) ? result[0] : "D";
+    const snd = pair[fst];
 
     return (
         <div className={styles.result}>
-            <span className={getResultClassName(fstResult)}>{fstResult}</span>
+            <span className={classMap[fst]}>{fst}</span>
             <span>-</span>
-            <span className={getResultClassName(sndResult)}>{sndResult}</span>
+            <span className={classMap[snd]}>{snd}</span>
         </div>
     );
 };

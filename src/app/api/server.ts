@@ -64,10 +64,10 @@ const duels = new Map<
     {
         id: string;
         opponent_id: number;
-        status: "in_progress" | "finished" | "pending";
+        status: "InProgress" | "Finished" | "pending";
         task_id: string;
-        starts_at: string;
-        deadline_at: string;
+        start_time: string;
+        deadline_time: string;
     }
 >();
 
@@ -177,11 +177,11 @@ export const handlers = [
             return HttpResponse.json({ error: "Duel not found" }, { status: 404 });
         }
 
-        if (duel.status !== "in_progress") {
+        if (duel.status !== "InProgress") {
             return HttpResponse.json({ error: "Duel is not in progress" }, { status: 400 });
         }
 
-        const deadline = new Date(duel.deadline_at);
+        const deadline = new Date(duel.deadline_time);
         if (new Date() > deadline) {
             return HttpResponse.json({ error: "Duel deadline has passed" }, { status: 400 });
         }
@@ -310,10 +310,10 @@ export const handlers = [
                     const duel = {
                         id: duelId,
                         opponent_id: opponent.id,
-                        status: "in_progress" as const,
+                        status: "InProgress" as const,
                         task_id: nanoid(),
-                        starts_at: startsAt,
-                        deadline_at: deadlineAt,
+                        start_time: startsAt,
+                        deadline_time: deadlineAt,
                     };
 
                     duels.set(duelId, duel);
@@ -327,7 +327,7 @@ export const handlers = [
                     const duel = duels.get(duelId)!;
                     const winnerUserId = duel.opponent_id;
 
-                    duel.status = "finished";
+                    duel.status = "Finished";
                     duels.set(duelId, duel);
                     push(`event: duel_finished\n`);
 
@@ -435,13 +435,13 @@ export const handlers = [
             tests: [
                 {
                     order: 1,
-                    inputFile: "01.in",
-                    outputFile: "01.out",
+                    input: "01.in",
+                    output: "01.out",
                 },
                 {
                     order: 2,
-                    inputFile: "02.in",
-                    outputFile: "02.out",
+                    input: "02.in",
+                    output: "02.out",
                 },
             ],
         });

@@ -4,7 +4,7 @@ import {
     SubmitCodeResponse,
     SubmissionDetail,
     SubmissionItem,
-} from "../model/types";
+} from "../ui/SubmitCodeButton/types";
 
 export const submitCodeApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -16,14 +16,12 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 url: `/duels/${duelId}/submissions`,
                 method: "POST",
                 body: data,
-                credentials: "include",
             }),
         }),
 
         getSubmissions: builder.query<SubmissionItem[], string>({
             query: (duelId: string) => ({
                 url: `/duels/${duelId}/submissions`,
-                credentials: "include",
             }),
         }),
 
@@ -33,7 +31,6 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
         >({
             query: ({ duelId, submissionId }) => ({
                 url: `/duels/${duelId}/submissions/${submissionId}`,
-                credentials: "include",
             }),
         }),
     }),

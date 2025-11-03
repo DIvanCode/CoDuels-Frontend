@@ -5,7 +5,7 @@ import { useTaskInfo } from "widgets/task-panel/lib/useTaskInfo";
 export const TaskInfoContent = () => {
     const { duelId } = useParams();
 
-    const { data, isLoading, isError, error } = useTaskInfo(duelId);
+    const { data, isLoading, isError, error } = useTaskInfo(Number(duelId));
     const { task, statement, testCases } = data;
 
     if (isLoading) return <p>Loading...</p>;
@@ -14,9 +14,9 @@ export const TaskInfoContent = () => {
         return <p>Something went wrong: {JSON.stringify(error)}</p>;
     }
 
-    if (!task || !statement || !testCases) {
+    if (!task?.task || !statement || !testCases) {
         return <p>Data incomplete</p>;
     }
 
-    return <TaskDescription task={task} testCases={testCases} taskDescription={statement} />;
+    return <TaskDescription task={task.task} testCases={testCases} taskDescription={statement} />;
 };

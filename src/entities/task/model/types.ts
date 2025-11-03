@@ -2,16 +2,18 @@ import { Infer, number, object, string } from "superstruct";
 
 export interface Task {
     id: string;
-    name: string;
-    level: number;
+    title: string;
+    type: "write_code";
     statement: string;
     tl: number;
     ml: number;
-    tests: Array<{
-        order: number;
-        inputFile: string;
-        outputFile: string;
-    }>;
+    tests: TestCase[];
+}
+
+export interface TaskResponse {
+    status: "OK" | "Error";
+    task?: Task;
+    error?: string;
 }
 
 export const TestCaseStruct = object({

@@ -1,9 +1,12 @@
 export interface Duel {
     id: number;
+    status: "InProgress" | "Finished";
     opponent_id: number;
-    status: "in_progress" | "finished";
+    result?: DuelResultType;
     task_id: string;
-    starts_at: string;
-    deadline_at: string;
-    winner_user_id?: number;
+    start_time: string;
+    deadline_time: string;
+    end_time?: number;
 }
+
+export type DuelResultType = "Win" | "Lose" | "Draw";

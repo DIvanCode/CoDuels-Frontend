@@ -1,5 +1,5 @@
-import { UserCard } from "entities/user";
-import { selectCurrentUser, useLogoutMutation } from "features/auth";
+import { selectCurrentUser, UserCard } from "entities/user";
+import { useLogoutMutation } from "features/auth";
 import { Link, useParams } from "react-router-dom";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
@@ -39,7 +39,7 @@ export const Header = () => {
                     <Favicon />
                 </IconButton>
             </Link>
-            {duelId && <DuelInfo duelId={duelId} />}
+            {duelId && <DuelInfo duelId={Number(duelId)} />}
             {user && (
                 <DropdownMenu
                     trigger={<UserCard user={user} hideInfo={Boolean(duelId)} />}

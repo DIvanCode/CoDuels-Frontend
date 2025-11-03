@@ -1,10 +1,9 @@
 export interface DuelMessage {
-    duel_id: string;
-    winner_user_id?: string;
+    duel_id: number;
 }
 
 export interface DuelSessionState {
-    activeDuelId: string | null;
+    activeDuelId: number | null;
     phase: DuelSessionPhase;
 }
 

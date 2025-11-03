@@ -4,9 +4,8 @@ import { Duel } from "../model/types";
 
 export const duelApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        getDuel: builder.query<Duel, string>({
-            query: (duelId: string) => `/duels/${duelId}`,
-            // NOTE: теги на будущее, когда получать список дуэлей пользователя будем
+        getDuel: builder.query<Duel, number>({
+            query: (duelId: number) => `/duels/${duelId}`,
             providesTags: (_result, _error, arg) => [{ type: "Duel", id: arg }],
         }),
     }),

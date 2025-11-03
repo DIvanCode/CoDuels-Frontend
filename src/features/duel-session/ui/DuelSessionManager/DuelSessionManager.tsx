@@ -1,4 +1,4 @@
-import { selectCurrentUser } from "features/auth";
+import { selectCurrentUser } from "entities/user";
 import { duelSessionApiSlice } from "features/duel-session/api/duelSessionApi";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { useEffect, useRef } from "react";

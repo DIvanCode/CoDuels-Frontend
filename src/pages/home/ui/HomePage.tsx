@@ -2,7 +2,7 @@ import { DuelSessionButton, selectDuelSession } from "features/duel-session";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { MainCard, SearchLoader } from "shared/ui";
 
-import { selectCurrentUser } from "features/auth";
+import { selectCurrentUser } from "entities/user";
 import styles from "./HomePage.module.scss";
 
 interface IdleStateContentProps {

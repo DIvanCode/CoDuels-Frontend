@@ -13,7 +13,7 @@ interface Props {
 export const TaskDescription = ({ task, taskDescription, testCases }: Props) => {
     return (
         <div className={styles.taskDescription}>
-            <MarkdownSection content={`# ${task.name}\n\n${taskDescription}`} />
+            <MarkdownSection content={`# ${task.title}\n\n${taskDescription}`} />
 
             <Section title="Ограничения">
                 <dl className={styles.runtimeLimits}>

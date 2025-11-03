@@ -17,7 +17,7 @@ const duelSessionSlice = createSlice({
                 state.activeDuelId = null;
             }
         },
-        setActiveDuelId: (state, action: PayloadAction<string | null>) => {
+        setActiveDuelId: (state, action: PayloadAction<number | null>) => {
             state.activeDuelId = action.payload;
             if (action.payload && state.phase === "searching") {
                 state.phase = "active";

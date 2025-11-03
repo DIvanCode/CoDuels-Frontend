@@ -2,14 +2,22 @@
 
 ## Quick start
 
-To start the project, run the following commands:
+To start the project:
 
-- `pnpm install`
-- `pnpm dev`
+- Create `.env` file with following content:
+
+```
+VITE_BASE_URL=http://localhost/api
+```
+
+- Run the following commands:
+    - `pnpm install`
+    - `pnpm dev`
+- Enjoy!
 
 ## Scripts
 
-Scripts to run the project:
+Scripts available in the project:
 
 - `dev`: runs the project with vite in development mode
 - `build`: builds the project with vite in production mode

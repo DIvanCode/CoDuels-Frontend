@@ -5,8 +5,6 @@ import { SSE } from "sse.js";
 import { setActiveDuelId, setPhase } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
 
-const BASE_URL = "http://localhost/api"; // TODO: полетит в .env
-
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         subscribeToDuelStates: builder.query<void, void>({
@@ -16,11 +14,10 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
             },
             keepUnusedDataFor: 0, // no cache
             async onCacheEntryAdded(_, { cacheDataLoaded, cacheEntryRemoved, dispatch, getState }) {
-                // TODO: мб не лучшее решение прям тащить весь стейт. Посмотри, мб можно через селекторы
                 const state = getState() as RootState;
                 const token = state.auth.token;
 
-                const eventSource = new SSE(`${BASE_URL}/duels/connect`, {
+                const eventSource = new SSE(`${import.meta.env.VITE_BASE_URL}/duels/connect`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -30,35 +27,28 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                     await cacheDataLoaded;
 
                     const duelStartedListener = (event: MessageEvent) => {
+                        console.log("Duel started");
                         const duelMessage = JSON.parse(event.data) satisfies DuelMessage;
 
                         dispatch(setActiveDuelId(duelMessage.duel_id));
 
                         dispatch(
-                            duelApiSlice.util.updateQueryData(
-                                "getDuel",
-                                duelMessage.duel_id,
-                                (draft) => {
-                                    draft.status = "in_progress";
-                                },
-                            ),
+                            duelApiSlice.util.invalidateTags([
+                                { type: "Duel", id: duelMessage.duel_id },
+                            ]),
                         );
                     };
 
                     const duelFinishedListener = (event: MessageEvent) => {
+                        console.log("Duel finished");
                         const duelMessage = JSON.parse(event.data) satisfies DuelMessage;
 
                         dispatch(setPhase("idle"));
 
                         dispatch(
-                            duelApiSlice.util.updateQueryData(
-                                "getDuel",
-                                duelMessage.duel_id,
-                                (draft) => {
-                                    draft.status = "finished";
-                                    draft.winner_user_id = duelMessage.winner_user_id;
-                                },
-                            ),
+                            duelApiSlice.util.invalidateTags([
+                                { type: "Duel", id: duelMessage.duel_id },
+                            ]),
                         );
                     };
 

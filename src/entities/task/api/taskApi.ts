@@ -2,7 +2,7 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiSlice } from "shared/api";
 import { StructError, create } from "superstruct";
 
-import { Task, TestCase, TestCaseStruct } from "../model/types";
+import { Task, TaskResponse, TestCase, TestCaseStruct } from "../model/types";
 
 const buildTaskFileRequest = (taskId: string, filename: string) => ({
     url: `/task/${encodeURIComponent(taskId)}/${encodeURIComponent(filename)}`,
@@ -11,7 +11,7 @@ const buildTaskFileRequest = (taskId: string, filename: string) => ({
 
 export const taskApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        getTask: builder.query<Task, string>({
+        getTask: builder.query<TaskResponse, string>({
             query: (taskId: string) => `/task/${taskId}`,
         }),
         getTaskFile: builder.query<string, { taskId: string; filename: string }>({
@@ -21,21 +21,21 @@ export const taskApiSlice = apiSlice.injectEndpoints({
             async queryFn({ id, tests }, _api, _extra, baseQuery) {
                 try {
                     const data = await Promise.all(
-                        tests.map(async ({ order, inputFile, outputFile }) => {
-                            const [input, output] = await Promise.all([
-                                baseQuery(buildTaskFileRequest(id, inputFile)),
-                                baseQuery(buildTaskFileRequest(id, outputFile)),
+                        tests.map(async ({ order, input, output }) => {
+                            const [inputContent, outputContent] = await Promise.all([
+                                baseQuery(buildTaskFileRequest(id, input)),
+                                baseQuery(buildTaskFileRequest(id, output)),
                             ]);
 
                             // FetchBaseQueryError
-                            if (input.error) throw input.error;
-                            if (output.error) throw output.error;
+                            if (inputContent.error) throw inputContent.error;
+                            if (outputContent.error) throw outputContent.error;
 
                             const testCase: TestCase = create(
                                 {
                                     order,
-                                    input: input.data,
-                                    output: output.data,
+                                    input: inputContent.data,
+                                    output: outputContent.data,
                                 },
                                 TestCaseStruct,
                                 `Unable to parse test case #${order}`,

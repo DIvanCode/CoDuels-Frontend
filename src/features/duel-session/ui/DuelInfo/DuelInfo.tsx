@@ -1,15 +1,14 @@
 import { DuelResult, useGetDuelQuery } from "entities/duel";
-import { useGetUserQuery, UserCard } from "entities/user";
+import { selectCurrentUser, useGetUserQuery, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
 
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { selectCurrentUser } from "features/auth";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
 interface Props {
-    duelId: string;
+    duelId: number;
 }
 
 export const DuelInfo = ({ duelId }: Props) => {
@@ -22,18 +21,16 @@ export const DuelInfo = ({ duelId }: Props) => {
         duel?.opponent_id ?? skipToken,
     );
 
-    if (!currentUser || isDuelLoading || isOpponentUserLoading) return <div>...</div>;
-
-    console.log(opponentUser);
+    if (!currentUser || !duel || isDuelLoading || isOpponentUserLoading) return <div>...</div>;
 
     return (
         <div className={styles.duelInfo}>
             <UserCard user={opponentUser!} />
             <div className={styles.duelContent}>
-                {duelId === activeDuelId ? (
-                    <ActiveDuelTimer expiryTimestamp={new Date(duel!.deadline_at)} />
+                {duelId === activeDuelId || !duel.result ? (
+                    <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
                 ) : (
-                    <DuelResult duel={duel!} fstUserId={opponentUser!.id} />
+                    <DuelResult result={duel.result} />
                 )}
             </div>
             <UserCard user={currentUser} reversed />
