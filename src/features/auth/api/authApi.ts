@@ -1,10 +1,10 @@
-import { apiSlice } from "shared/api";
+import { apiSlice } from "shared/api/";
 
-import { AuthCredentials, TokenResponse } from "../model/types";
+import { AuthCredentials, RefreshTokenRequest, TokenPair } from "../model/types";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        register: builder.mutation<TokenResponse, AuthCredentials>({
+        register: builder.mutation<TokenPair, AuthCredentials>({
             query: (credentials: AuthCredentials) => ({
                 url: "/users/register",
                 method: "POST",
@@ -12,7 +12,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["User"],
         }),
-        login: builder.mutation<TokenResponse, AuthCredentials>({
+        login: builder.mutation<TokenPair, AuthCredentials>({
             query: (credentials: AuthCredentials) => ({
                 url: "/users/login",
                 method: "POST",
@@ -20,14 +20,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["User"],
         }),
-        logout: builder.mutation<void, void>({
-            query: () => ({
-                url: "/users/logout",
+        refresh: builder.mutation<TokenPair, RefreshTokenRequest>({
+            query: (credentials: RefreshTokenRequest) => ({
+                url: "/users/refresh",
                 method: "POST",
+                body: { ...credentials },
             }),
-            invalidatesTags: ["User"],
         }),
     }),
 });
 
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation } = authApiSlice;
+export const { useLoginMutation, useRegisterMutation, useRefreshMutation } = authApiSlice;

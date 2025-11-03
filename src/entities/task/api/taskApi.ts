@@ -1,6 +1,6 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiSlice } from "shared/api";
-import { StructError, create } from "superstruct";
+import { StructError } from "superstruct";
 
 import { Task, TaskResponse, TestCase, TestCaseStruct } from "../model/types";
 
@@ -31,13 +31,12 @@ export const taskApiSlice = apiSlice.injectEndpoints({
                             if (inputContent.error) throw inputContent.error;
                             if (outputContent.error) throw outputContent.error;
 
-                            const testCase: TestCase = create(
+                            const testCase: TestCase = TestCaseStruct.create(
                                 {
                                     order,
                                     input: inputContent.data,
                                     output: outputContent.data,
                                 },
-                                TestCaseStruct,
                                 `Unable to parse test case #${order}`,
                             );
 
