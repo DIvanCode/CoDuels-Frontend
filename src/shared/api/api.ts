@@ -2,7 +2,7 @@ import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 // import { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-// import { authActions, TokenPairStruct } from "features/auth"; // TODO: нарушает fsd
+// import { authActions, TokenPairStruct } from "features/auth"; // TODO: нарушает fsd & создает circular import
 
 const baseQuery = fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL,
@@ -17,7 +17,7 @@ const baseQuery = fetchBaseQuery({
     },
 });
 
-// TODO: нарушает fsd
+// TODO: нарушает fsd & создает circular import
 // const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
 //     args,
 //     api,
