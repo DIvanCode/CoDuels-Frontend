@@ -1,6 +1,5 @@
-import { apiSlice } from "shared/api/";
-
-import { AuthCredentials, RefreshTokenRequest, TokenPair } from "../model/types";
+import { apiSlice, TokenPair } from "shared/api/";
+import { AuthCredentials } from "../model/types";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -20,14 +19,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["User"],
         }),
-        refresh: builder.mutation<TokenPair, RefreshTokenRequest>({
-            query: (credentials: RefreshTokenRequest) => ({
-                url: "/users/refresh",
-                method: "POST",
-                body: { ...credentials },
-            }),
-        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useRefreshMutation } = authApiSlice;
+export const { useLoginMutation, useRegisterMutation } = authApiSlice;

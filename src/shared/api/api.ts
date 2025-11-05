@@ -1,8 +1,11 @@
-import { fetchBaseQuery } from "@reduxjs/toolkit/query";
+import {
+    fetchBaseQuery,
+    BaseQueryFn,
+    FetchArgs,
+    FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
 import { createApi } from "@reduxjs/toolkit/query/react";
-
-// import { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-// import { authActions, TokenPairStruct } from "features/auth"; // TODO: нарушает fsd & создает circular import
+import { refreshAuthToken } from "./token/refreshAuthToken";
 
 const baseQuery = fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL,
@@ -11,54 +14,32 @@ const baseQuery = fetchBaseQuery({
         const token = state.auth.token;
 
         if (token) {
-            headers.set("authorization", `Bearer ${token}`);
+            headers.set("Authorization", `Bearer ${token}`);
         }
         return headers;
     },
 });
 
-// TODO: нарушает fsd & создает circular import
-// const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
-//     args,
-//     api,
-//     extraOptions
-// ) => {
-//     let result = await baseQuery(args, api, extraOptions);
+export const baseQueryWithReauth: BaseQueryFn<
+    string | FetchArgs,
+    unknown,
+    FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+    let result = await baseQuery(args, api, extraOptions);
 
-//     if (result.error && result.error.status === 401) {
-//         const state = api.getState() as RootState;
-//         const refreshToken = state.auth.refreshToken;
+    if (result.error) {
+        const newToken = await refreshAuthToken(api.getState() as RootState, api.dispatch);
 
-//         if (!refreshToken) {
-//             api.dispatch(authActions.logout());
-//             return result;
-//         }
+        if (newToken) {
+            result = await baseQuery(args, api, extraOptions);
+        }
+    }
 
-//         const refreshResult = await baseQuery(
-//             {
-//                 url: "/users/refresh",
-//                 method: "POST",
-//                 body: { refresh_token: refreshToken },
-//             },
-//             api,
-//             extraOptions
-//         );
-
-//         if (refreshResult.data) {
-//             const tokenPair = TokenPairStruct.create(refreshResult.data);
-
-//             api.dispatch(authActions.setTokens(tokenPair));
-//             result = await baseQuery(args, api, extraOptions);
-//         } else {
-//             api.dispatch(authActions.logout());
-//         }
-//     }
-
-//     return result;
-// };
+    return result;
+};
 
 export const apiSlice = createApi({
-    baseQuery: baseQuery,
+    baseQuery: baseQueryWithReauth,
     tagTypes: ["Duel", "User"],
     endpoints: () => ({}),
 });

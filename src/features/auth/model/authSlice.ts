@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { userApiSlice } from "entities/user";
+import { TokenPair } from "shared/api";
 import { authApiSlice } from "../api/authApi";
-import { AuthState, TokenPair } from "./types";
+import { AuthState } from "./types";
 
 const initialState: AuthState = {
     user: null,
@@ -34,7 +35,6 @@ const slice = createSlice({
             .addMatcher(authApiSlice.endpoints.register.matchFulfilled, (state, { payload }) =>
                 applyTokens(state, payload),
             )
-            // TODO: мб еще добавить refresh token
             .addMatcher(userApiSlice.endpoints.getMe.matchFulfilled, (state, { payload }) => {
                 state.user = payload;
             });
