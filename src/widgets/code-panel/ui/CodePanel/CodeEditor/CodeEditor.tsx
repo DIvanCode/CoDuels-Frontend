@@ -1,12 +1,14 @@
-import { useMemo, useReducer } from "react";
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LanguageValue } from "shared/config";
 import { MonacoEditor } from "shared/ui";
 import { editor } from "monaco-editor";
+import { useCodeEditor } from "widgets/code-panel/model/codeEditorContext";
 import {
     codeEditorInitialState,
     codeEditorReducer,
 } from "widgets/code-panel/model/codeEditorReducer";
+import { useReducer } from "react";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
@@ -14,21 +16,42 @@ function CodeEditor() {
     const { duelId } = useParams();
     const navigate = useNavigate();
 
-    const [state, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
+    const codeEditorContext = useCodeEditor();
 
-    const onCodeChange = (newCode: string) => dispatch({ type: "SET_CODE", payload: newCode });
+    // Используем состояние из контекста, если оно доступно, иначе локальное
+    const [localState, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
 
-    const onLanguageChange = (newLanguage: LanguageValue) =>
-        dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
+    // Используем код и язык из контекста, если доступно
+    const code = codeEditorContext?.code ?? localState.code;
+    const language = codeEditorContext?.language ?? localState.language;
+
+    // Остальные настройки берем из локального состояния
+    const state = {
+        ...localState,
+        code,
+        language,
+    };
+
+    const onCodeChange = (newCode: string) => {
+        if (codeEditorContext) {
+            codeEditorContext.setCode(newCode);
+        } else {
+            dispatch({ type: "SET_CODE", payload: newCode });
+        }
+    };
+
+    const onLanguageChange = (newLanguage: LanguageValue) => {
+        if (codeEditorContext) {
+            codeEditorContext.setLanguage(newLanguage);
+        } else {
+            dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
+        }
+    };
 
     const onSubmissionStart = () => {
         if (duelId) {
             navigate(`/duel/${duelId}/submissions`);
         }
-    };
-
-    const onSubmissionComplete = (result?: { verdict: string; message?: string }) => {
-        alert("code result: " + result?.verdict);
     };
 
     const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
@@ -50,7 +73,6 @@ function CodeEditor() {
                 language={state.language}
                 onCodeChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
-                onSubmissionComplete={onSubmissionComplete}
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}
             />

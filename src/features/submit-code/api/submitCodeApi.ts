@@ -5,6 +5,7 @@ import {
     SubmissionDetail,
     SubmissionItem,
 } from "../ui/SubmitCodeButton/types";
+import { submissionsApiSlice } from "widgets/task-panel/api/submissionsApi";
 
 export const submitCodeApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -17,6 +18,31 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
+            async onQueryStarted({ duelId }, { dispatch, queryFulfilled }) {
+                try {
+                    const { data: result } = await queryFulfilled;
+
+                    dispatch(
+                        submissionsApiSlice.util.updateQueryData(
+                            "getSubmissions",
+                            duelId,
+                            (draft) => {
+                                const exists = draft.some(
+                                    (s) => String(s.submission_id) === String(result.submission_id),
+                                );
+                                if (!exists) {
+                                    const newSubmission: SubmissionItem = {
+                                        submission_id: String(result.submission_id),
+                                        status: "Queued",
+                                        created_at: new Date().toISOString(),
+                                    };
+                                    draft.unshift(newSubmission);
+                                }
+                            },
+                        ),
+                    );
+                } catch {}
+            },
         }),
 
         getSubmissions: builder.query<SubmissionItem[], string>({
