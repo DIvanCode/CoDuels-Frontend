@@ -18,14 +18,11 @@ function CodeEditor() {
 
     const codeEditorContext = useCodeEditor();
 
-    // Используем состояние из контекста, если оно доступно, иначе локальное
     const [localState, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
 
-    // Используем код и язык из контекста, если доступно
     const code = codeEditorContext?.code ?? localState.code;
     const language = codeEditorContext?.language ?? localState.language;
 
-    // Остальные настройки берем из локального состояния
     const state = {
         ...localState,
         code,

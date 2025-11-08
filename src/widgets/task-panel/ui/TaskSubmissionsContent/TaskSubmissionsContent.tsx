@@ -28,17 +28,14 @@ const isTestingStatus = (status?: string, message?: string | null): boolean => {
 
     const normalizedStatus = status.toLowerCase();
 
-    // Если статус Done - это не тестирование
     if (normalizedStatus === "done") {
         return false;
     }
 
-    // Статусы тестирования
     if (normalizedStatus === "queued" || normalizedStatus === "running") {
         return true;
     }
 
-    // Промежуточные сообщения о тестировании (только если статус не Done)
     const normalizedMessage = message?.toLowerCase() || "";
     if (
         normalizedMessage.includes("compiled") ||
@@ -57,17 +54,14 @@ const getVerdictVariant = (
     status?: string,
     message?: string | null,
 ): "success" | "failure" | "testing" => {
-    // Если статус Done и вердикт Accepted - успех
     if (status === "Done" && verdict === "Accepted") {
         return "success";
     }
 
-    // Если статус тестирования - показываем иконку часов
     if (isTestingStatus(status, message)) {
         return "testing";
     }
 
-    // Во всех остальных случаях - ошибка
     return "failure";
 };
 
