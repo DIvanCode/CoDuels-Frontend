@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Loader, ResultTitle, Table } from "shared/ui";
 import {
     useGetSubmissionsQuery,
@@ -6,96 +6,13 @@ import {
 } from "widgets/task-panel/api/submissionsApi";
 import { SubmissionItem } from "features/submit-code/ui/SubmitCodeButton/types";
 import { POOLING_INTERVAL } from "features/submit-code/lib/consts";
-import { useCodeEditor } from "widgets/code-panel/model/codeEditorContext";
-import { LANGUAGES, type LanguageValue } from "shared/config";
+import {
+    formatDate,
+    getDisplayText,
+    getVerdictVariant,
+} from "widgets/task-panel/lib/submissionUtils";
 
 import styles from "./TaskSubmissionsContent.module.scss";
-
-const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const seconds = date.getSeconds().toString().padStart(2, "0");
-
-    return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
-};
-
-const isTestingStatus = (status?: string, message?: string | null): boolean => {
-    if (!status) return false;
-
-    const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus === "done") {
-        return false;
-    }
-
-    if (normalizedStatus === "queued" || normalizedStatus === "running") {
-        return true;
-    }
-
-    const normalizedMessage = message?.toLowerCase() || "";
-    if (
-        normalizedMessage.includes("compiled") ||
-        normalizedMessage.includes("passed test") ||
-        normalizedMessage.includes("testing") ||
-        normalizedMessage.includes("running test")
-    ) {
-        return true;
-    }
-
-    return false;
-};
-
-const getVerdictVariant = (
-    verdict?: string,
-    status?: string,
-    message?: string | null,
-): "success" | "failure" | "testing" => {
-    if (status === "Done" && verdict === "Accepted") {
-        return "success";
-    }
-
-    if (isTestingStatus(status, message)) {
-        return "testing";
-    }
-
-    return "failure";
-};
-
-const getDisplayText = (status?: string, verdict?: string, message?: string | null): string => {
-    if (!status) return "—";
-
-    if (status === "Queued") {
-        return "Queued";
-    }
-
-    if (status === "Running") {
-        return message || "Running";
-    }
-
-    if (status === "Done") {
-        return verdict || "—";
-    }
-
-    return status;
-};
-
-const mapLanguageToLanguageValue = (language: string): LanguageValue => {
-    const normalized = language.toLowerCase().trim();
-    if (normalized === "c++" || normalized === "cpp") {
-        return LANGUAGES.CPP;
-    }
-    if (normalized === "c#" || normalized === "csharp") {
-        return LANGUAGES.CSHARP;
-    }
-    if (normalized === "python") {
-        return LANGUAGES.PYTHON;
-    }
-    return LANGUAGES.CPP;
-};
 
 interface SubmissionRowProps {
     submission: SubmissionItem;
@@ -103,6 +20,7 @@ interface SubmissionRowProps {
 }
 
 const SubmissionRow = ({ submission, duelId }: SubmissionRowProps) => {
+    const navigate = useNavigate();
     const initialStatus = submission.status?.toLowerCase();
     const isDone = initialStatus === "done";
 
@@ -122,22 +40,11 @@ const SubmissionRow = ({ submission, duelId }: SubmissionRowProps) => {
     const displayText = getDisplayText(status, verdict, message);
     const variant = getVerdictVariant(verdict, status, message);
 
-    const codeEditor = useCodeEditor();
-
-    const handleRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
-        const isClickable = Boolean(
-            submissionDetail?.solution && submissionDetail?.language && codeEditor,
-        );
-        if (isClickable) {
-            e.preventDefault();
-            codeEditor!.setCode(submissionDetail!.solution);
-            codeEditor!.setLanguage(mapLanguageToLanguageValue(submissionDetail!.language));
-        }
+    const handleRowClick = () => {
+        navigate(`/duel/${duelId}/submissions/${submission.submission_id}`);
     };
 
-    const isClickable = Boolean(
-        submissionDetail?.solution && submissionDetail?.language && codeEditor,
-    );
+    const isClickable = Boolean(submissionDetail?.solution && submissionDetail?.language);
 
     return (
         <tr
