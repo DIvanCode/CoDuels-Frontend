@@ -242,8 +242,6 @@ export const initializeMonaco = (monaco: Monaco) => {
         monaco.languages.register({ id: language });
         monaco.languages.setLanguageConfiguration(language, config);
     });
-
-    console.log("Monaco Editor initialized");
 };
 
 export default {
