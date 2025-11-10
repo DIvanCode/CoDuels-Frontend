@@ -62,6 +62,17 @@ export const TaskSubmissionCodeContent = () => {
         };
     }, []);
 
+    const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
+        () => ({
+            readOnly: true,
+            theme: "dark",
+            fontSize: 14,
+            wordWrap: "on",
+            minimap: { enabled: true },
+        }),
+        [],
+    );
+
     const handleCopyMessage = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
         if (!message) return;
@@ -105,17 +116,6 @@ export const TaskSubmissionCodeContent = () => {
     const languageValue = submissionDetail.language
         ? mapLanguageToLanguageValue(submissionDetail.language)
         : LANGUAGES.CPP;
-
-    const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
-        () => ({
-            readOnly: true,
-            theme: "dark",
-            fontSize: 14,
-            wordWrap: "on",
-            minimap: { enabled: true },
-        }),
-        [],
-    );
 
     return (
         <div className={styles.container}>

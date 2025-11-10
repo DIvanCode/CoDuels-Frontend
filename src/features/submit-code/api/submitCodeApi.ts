@@ -40,7 +40,10 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                             },
                         ),
                     );
-                } catch {}
+                } catch (error) {
+                    // Silently ignore optimistic cache update failure
+                    console.debug("submitCode onQueryStarted failed", error);
+                }
             },
         }),
 
@@ -115,7 +118,9 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                             },
                         ),
                     );
-                } catch {}
+                } catch (error) {
+                    console.debug("getSubmissionDetail onQueryStarted failed", error);
+                }
             },
         }),
     }),
