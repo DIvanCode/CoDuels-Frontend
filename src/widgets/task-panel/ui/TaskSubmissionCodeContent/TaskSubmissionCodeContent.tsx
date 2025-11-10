@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu } from "shared/ui";
-import { useGetSubmissionDetailQuery } from "widgets/task-panel/api/submissionsApi";
-import { POOLING_INTERVAL } from "features/submit-code/lib/consts";
+import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
 import { LANGUAGES, type LanguageValue } from "shared/config";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import { useMemo, useState, useEffect, useRef } from "react";

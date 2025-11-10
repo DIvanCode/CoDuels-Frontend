@@ -1,11 +1,11 @@
 import { useReducer } from "react";
-import { CodePanel } from "widgets/code-panel";
-import { TaskPanel } from "widgets/task-panel";
-import { CodeEditorProvider } from "widgets/code-panel/model/codeEditorContext";
 import {
+    CodePanel,
+    CodeEditorProvider,
     codeEditorInitialState,
     codeEditorReducer,
-} from "widgets/code-panel/model/codeEditorReducer";
+} from "widgets/code-panel";
+import { TaskPanel } from "widgets/task-panel";
 import type { LanguageValue } from "shared/config";
 import styles from "./DuelPage.module.scss";
 

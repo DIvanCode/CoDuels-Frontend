@@ -3,9 +3,9 @@ import { Loader, ResultTitle, Table } from "shared/ui";
 import {
     useGetSubmissionsQuery,
     useGetSubmissionDetailQuery,
-} from "widgets/task-panel/api/submissionsApi";
-import { SubmissionItem } from "features/submit-code/ui/SubmitCodeButton/types";
-import { POOLING_INTERVAL } from "features/submit-code/lib/consts";
+    POOLING_INTERVAL,
+    type SubmissionItem,
+} from "features/submit-code";
 import {
     formatDate,
     getDisplayText,
