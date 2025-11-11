@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { LanguageValue } from "shared/config";
 import { MonacoEditor } from "shared/ui";
 import { editor } from "monaco-editor";
-import { useCodeEditor } from "widgets/code-panel/model/codeEditorContext";
 import {
     codeEditorInitialState,
     codeEditorReducer,
@@ -15,33 +14,14 @@ function CodeEditor() {
     const { duelId } = useParams();
     const navigate = useNavigate();
 
-    const codeEditorContext = useCodeEditor();
-
-    const [localState, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
-
-    const code = codeEditorContext?.code ?? localState.code;
-    const language = codeEditorContext?.language ?? localState.language;
-
-    const state = {
-        ...localState,
-        code,
-        language,
-    };
+    const [state, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
 
     const onCodeChange = (newCode: string) => {
-        if (codeEditorContext) {
-            codeEditorContext.setCode(newCode);
-        } else {
-            dispatch({ type: "SET_CODE", payload: newCode });
-        }
+        dispatch({ type: "SET_CODE", payload: newCode });
     };
 
     const onLanguageChange = (newLanguage: LanguageValue) => {
-        if (codeEditorContext) {
-            codeEditorContext.setLanguage(newLanguage);
-        } else {
-            dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
-        }
+        dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
     };
 
     const onSubmissionStart = () => {
