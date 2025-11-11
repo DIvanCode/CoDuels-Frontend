@@ -27,9 +27,7 @@ export const FileLoader = ({
             try {
                 const content = e.target?.result as string;
                 onFileLoaded(content, file.name);
-                console.log("File loaded successfully:", file.name);
             } catch (error) {
-                console.error("Error reading file:", error);
                 alert("Error reading file. Please try another file.");
             }
         };
