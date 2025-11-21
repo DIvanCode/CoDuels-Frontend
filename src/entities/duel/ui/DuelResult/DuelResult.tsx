@@ -17,14 +17,14 @@ const classMap: Record<DuelResultChar, string> = {
 };
 
 export const DuelResult = ({ result }: Props) => {
-    const fst = isResultChar(result[0]) ? result[0] : "D";
-    const snd = pair[fst];
+    const me = isResultChar(result[0]) ? result[0] : "D";
+    const other = pair[me];
 
     return (
         <div className={styles.result}>
-            <span className={classMap[fst]}>{fst}</span>
+            <span className={classMap[other]}>{other}</span>
             <span>-</span>
-            <span className={classMap[snd]}>{snd}</span>
+            <span className={classMap[me]}>{me}</span>
         </div>
     );
 };

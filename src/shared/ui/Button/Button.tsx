@@ -1,31 +1,28 @@
 import clsx from "clsx";
 import { ComponentPropsWithoutRef, ReactNode } from "react";
 
-import styles from "./SubmitButton.module.scss";
+import styles from "./Button.module.scss";
 
-interface SubmitButtonProps extends ComponentPropsWithoutRef<"button"> {
+interface ButtonProps extends ComponentPropsWithoutRef<"button"> {
     variant?: "filled" | "outlined";
     leadingIcon?: ReactNode;
     children: ReactNode;
 }
 
-export const SubmitButton = ({
+export const Button = ({
     variant = "filled",
     leadingIcon,
     className,
     disabled,
+    type = "button",
     children,
     ...props
-}: SubmitButtonProps) => {
+}: ButtonProps) => {
     return (
         <button
-            type="submit"
-            className={clsx(
-                styles.submitButton,
-                styles[variant],
-                disabled && styles.disabled,
-                className,
-            )}
+            // eslint-disable-next-line react-dom/no-missing-button-type
+            type={type}
+            className={clsx(styles.button, styles[variant], disabled && styles.disabled, className)}
             disabled={disabled}
             {...props}
         >

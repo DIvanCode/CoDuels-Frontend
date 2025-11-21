@@ -16,19 +16,18 @@ function CodeEditor() {
 
     const [state, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
 
-    const onCodeChange = (newCode: string) => dispatch({ type: "SET_CODE", payload: newCode });
+    const onCodeChange = (newCode: string) => {
+        dispatch({ type: "SET_CODE", payload: newCode });
+    };
 
-    const onLanguageChange = (newLanguage: LanguageValue) =>
+    const onLanguageChange = (newLanguage: LanguageValue) => {
         dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
+    };
 
     const onSubmissionStart = () => {
         if (duelId) {
             navigate(`/duel/${duelId}/submissions`);
         }
-    };
-
-    const onSubmissionComplete = (result?: { verdict: string; message?: string }) => {
-        alert("code result: " + result?.verdict);
     };
 
     const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
@@ -50,7 +49,6 @@ function CodeEditor() {
                 language={state.language}
                 onCodeChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
-                onSubmissionComplete={onSubmissionComplete}
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}
             />

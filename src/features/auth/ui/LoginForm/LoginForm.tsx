@@ -3,7 +3,7 @@ import { loginStruct } from "features/auth/model/authStruct";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
-import { InputField, SubmitButton } from "shared/ui";
+import { InputField, Button } from "shared/ui";
 import { validate } from "superstruct";
 
 import styles from "./LoginForm.module.scss";
@@ -55,7 +55,9 @@ export const LoginForm = () => {
                 disabled={isLoading}
                 autoComplete="current-password"
             />
-            <SubmitButton disabled={isLoading}>Войти</SubmitButton>
+            <Button type="submit" disabled={isLoading}>
+                Войти
+            </Button>
         </form>
     );
 };

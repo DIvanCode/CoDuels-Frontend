@@ -24,4 +24,5 @@ export interface SubmissionDetail {
     solution: string;
     language: string;
     submit_time: string;
+    message?: string | null;
 }

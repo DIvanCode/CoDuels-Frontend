@@ -1,26 +1,42 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { assertIsNode } from "shared/lib/typeAssertions";
+import clsx from "clsx";
 
 import styles from "./DropdownMenu.module.scss";
 
 export interface DropdownItem {
-    icon: ReactNode;
-    label: string;
-    onClick: () => void;
+    id?: string | number;
+    icon?: ReactNode;
+    label: ReactNode;
+    onClick?: () => void;
+    closeOnClick?: boolean;
 }
 
 interface Props {
     trigger: ReactNode; // Element that triggers the dropdown on click
     items: DropdownItem[];
+    dropdownClassName?: string;
+    triggerClassName?: string;
+    menuClassName?: string;
+    itemClassName?: string;
 }
 
-export const DropdownMenu = ({ trigger, items }: Props) => {
+export const DropdownMenu = ({
+    trigger,
+    items,
+    dropdownClassName,
+    triggerClassName,
+    menuClassName,
+    itemClassName,
+}: Props) => {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const handleItemOnClick = ({ onClick: onItemClick }: DropdownItem) => {
-        onItemClick();
-        setOpen(false);
+    const handleItemOnClick = (item: DropdownItem) => {
+        item.onClick?.();
+        if (item.closeOnClick !== false) {
+            setOpen(false);
+        }
     };
 
     const handleClickOutside = ({ target }: MouseEvent) => {
@@ -36,19 +52,22 @@ export const DropdownMenu = ({ trigger, items }: Props) => {
     }, []);
 
     return (
-        <div ref={menuRef} className={styles.dropdown}>
-            <div className={styles.dropdownTrigger} onClick={() => setOpen(!open)}>
+        <div ref={menuRef} className={clsx(styles.dropdown, dropdownClassName)}>
+            <div
+                className={clsx(styles.dropdownTrigger, triggerClassName)}
+                onClick={() => setOpen(!open)}
+            >
                 {trigger}
             </div>
             {open && (
-                <ul className={styles.dropdownMenu}>
-                    {items.map((item) => (
+                <ul className={clsx(styles.dropdownMenu, menuClassName)}>
+                    {items.map((item, index) => (
                         <li
-                            className={styles.dropdownItem}
-                            key={item.label}
+                            className={clsx(styles.dropdownItem, itemClassName)}
+                            key={item.id ?? index}
                             onClick={() => handleItemOnClick(item)}
                         >
-                            {item.icon}
+                            {item.icon && <span className={styles.listIcon}>{item.icon}</span>}
                             {item.label}
                         </li>
                     ))}
