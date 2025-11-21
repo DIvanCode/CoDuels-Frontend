@@ -1,5 +1,5 @@
 export { IconButton } from "./IconButton/IconButton";
-export { SubmitButton } from "./SubmitButton/SubmitButton";
+export { Button } from "./Button/Button";
 export { CopyButton } from "./CopyButton/CopyButton";
 
 export { DropdownMenu } from "./DropdownMenu/DropdownMenu";

@@ -3,7 +3,7 @@ import { selectDuelSession } from "features/duel-session/model/selectors";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
-import { SubmitButton } from "shared/ui";
+import { Button } from "shared/ui";
 
 export const DuelSessionButton = () => {
     const dispatch = useAppDispatch();
@@ -27,8 +27,8 @@ export const DuelSessionButton = () => {
     };
 
     return (
-        <SubmitButton onClick={handleClick}>
+        <Button onClick={handleClick}>
             {phase === "searching" ? "Отменить" : "Начать подбор"}
-        </SubmitButton>
+        </Button>
     );
 };

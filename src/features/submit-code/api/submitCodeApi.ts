@@ -1,10 +1,10 @@
 import { apiSlice } from "shared/api";
 import {
-    SubmitCodeRequestData,
-    SubmitCodeResponse,
     SubmissionDetail,
     SubmissionItem,
-} from "../ui/SubmitCodeButton/types";
+    SubmitCodeRequestData,
+    SubmitCodeResponse,
+} from "../model/types";
 
 export const submitCodeApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

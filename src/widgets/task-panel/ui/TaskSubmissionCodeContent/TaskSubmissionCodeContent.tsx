@@ -1,12 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import {
-    Loader,
-    MonacoEditor,
-    ResultTitle,
-    DropdownMenu,
-    SubmitButton,
-    CopyButton,
-} from "shared/ui";
+import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
 import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
 import { LANGUAGES, type LanguageValue } from "shared/config";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
@@ -93,14 +86,14 @@ export const TaskSubmissionCodeContent = () => {
     return (
         <div className={styles.container}>
             <div className={styles.navigationBar}>
-                <SubmitButton
+                <Button
                     variant="outlined"
                     onClick={handleBackClick}
                     className={styles.backButton}
                     leadingIcon={<KeyboardArrowDownIcon style={{ transform: "rotate(90deg)" }} />}
                 >
                     Все решения
-                </SubmitButton>
+                </Button>
                 <div className={styles.submissionInfo}>
                     {message ? (
                         <DropdownMenu

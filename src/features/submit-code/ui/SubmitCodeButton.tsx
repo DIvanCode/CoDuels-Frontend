@@ -1,4 +1,4 @@
-import { SubmitButton } from "shared/ui";
+import { Button } from "shared/ui";
 import SubmitCodeIcon from "shared/assets/icons/submit-code.svg?react";
 import { useSubmitCodeMutation } from "features/submit-code/api/submitCodeApi";
 import type { LanguageValue } from "shared/config";
@@ -32,13 +32,14 @@ export const SubmitCodeButton = ({ code, language, onSubmissionStart, duelId }: 
     const isDisabled = isCodeEmpty || isSubmitting;
 
     return (
-        <SubmitButton
+        <Button
+            type="submit"
             variant="outlined"
             leadingIcon={<SubmitCodeIcon />}
             onClick={handleSubmit}
             disabled={isDisabled}
         >
             Отправить
-        </SubmitButton>
+        </Button>
     );
 };
