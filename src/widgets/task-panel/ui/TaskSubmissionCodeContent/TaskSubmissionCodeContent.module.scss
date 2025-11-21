@@ -9,63 +9,45 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: 0.5em 0.75em;
     border-bottom: 1px solid var(--card-secondary);
 }
 
 .backButton {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: none;
-    border: none;
+    width: fit-content;
+    padding: 0.5em 0.75em 0.5em 0.25em;
+
+    font-size: 1em;
+    font-weight: 400;
     color: var(--text-primary);
-    cursor: pointer;
-    font-size: 20px;
-    padding: 0;
-    transition: opacity 0.2s ease;
-
-    &:hover {
-        opacity: 0.8;
-    }
-
-    &:active {
-        opacity: 0.6;
-    }
-}
-
-.backIcon {
-    width: 24px;
-    height: 24px;
-    transform: rotate(90deg);
 }
 
 .submissionInfo {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 1em;
 }
 
 .divider {
     width: 1px;
-    height: 24px;
-    background-color: rgba(255, 255, 255, 0.6);
+    height: 2em;
+    background-color: var(--text-secondary);
 }
 
 .metaInfo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.25em;
 }
 
 .language {
-    font-size: 16px;
+    font-size: 1em;
     color: var(--text-primary);
     line-height: 1.2;
 }
 
 .date {
-    font-size: 12px;
+    font-size: 0.75em;
     color: var(--text-secondary);
     line-height: 1.2;
 }
@@ -96,15 +78,15 @@
 
 .messageDropdownMenu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 0.5em);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 99999;
+    z-index: 6;
 
-    min-width: 200px;
-    max-width: 400px;
+    min-width: 12.5em;
+    max-width: 25em;
     width: max-content;
-    max-height: 420px;
+    max-height: 26.25em;
 
     padding: 0;
     display: flex;
@@ -112,7 +94,7 @@
     row-gap: 0;
 
     border-radius: 0.5em;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0.25em 0.75em rgba(0, 0, 0, 0.35);
 
     background: var(--card-primary);
     overflow: hidden;
@@ -120,7 +102,7 @@
 
 .messageDropdownItem {
     padding: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    border-bottom: 1px solid var(--card-secondary);
     cursor: default;
 
     &:last-of-type {
@@ -129,51 +111,27 @@
 }
 
 .messageDropdownHeader {
-    padding: 16px 24px;
+    padding: 1em 1.5em;
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .messageDropdownContent {
+    display: flex;
     position: relative;
-    padding: 20px 56px 20px 24px;
+    padding: 1.25em 0.75em 1.25em 0.75em;
     background: rgba(133, 34, 33, 0.16);
+
+    button {
+        flex-shrink: 0;
+    }
 }
 
 .messageDropdownText {
     white-space: pre-wrap;
     word-wrap: break-word;
-    font-size: 14px;
+    font-size: 0.875em;
     line-height: 1.6;
     color: var(--text-primary);
-}
-
-.messageCopyButton {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--text-primary);
-    transition: opacity 0.2s ease;
-
-    &:hover {
-        opacity: 0.85;
-    }
-
-    &:active {
-        opacity: 0.65;
-    }
-
-    svg {
-        width: 18px;
-        height: 18px;
-    }
 }

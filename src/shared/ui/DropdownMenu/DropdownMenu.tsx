@@ -67,7 +67,7 @@ export const DropdownMenu = ({
                             key={item.id ?? index}
                             onClick={() => handleItemOnClick(item)}
                         >
-                            {item.icon}
+                            {item.icon && <span className={styles.listIcon}>{item.icon}</span>}
                             {item.label}
                         </li>
                     ))}

@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 import SuccessIcon from "shared/assets/icons/success.svg?react";
 import FailureIcon from "shared/assets/icons/failure.svg?react";
@@ -11,17 +11,10 @@ interface Props {
 }
 
 export const ResultTitle = ({ variant, children }: PropsWithChildren<Props>) => {
-    const getIcon = () => {
-        switch (variant) {
-            case "success":
-                return <SuccessIcon />;
-            case "failure":
-                return <FailureIcon />;
-            case "testing":
-                return <TestingIcon />;
-            default:
-                return <FailureIcon />;
-        }
+    const iconsMap: Record<Props["variant"], ReactNode> = {
+        success: <SuccessIcon />,
+        failure: <FailureIcon />,
+        testing: <TestingIcon />,
     };
 
     const getClassName = () => {
@@ -33,7 +26,7 @@ export const ResultTitle = ({ variant, children }: PropsWithChildren<Props>) => 
 
     return (
         <div className={getClassName()}>
-            {getIcon()}
+            {iconsMap[variant]}
             {children}
         </div>
     );

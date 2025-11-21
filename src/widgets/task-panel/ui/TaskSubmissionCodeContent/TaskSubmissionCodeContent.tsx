@@ -1,12 +1,17 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader, MonacoEditor, ResultTitle, DropdownMenu } from "shared/ui";
+import {
+    Loader,
+    MonacoEditor,
+    ResultTitle,
+    DropdownMenu,
+    SubmitButton,
+    CopyButton,
+} from "shared/ui";
 import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
 import { LANGUAGES, type LanguageValue } from "shared/config";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { editor } from "monaco-editor";
-import CopyIcon from "shared/assets/icons/copy.svg?react";
-import CopySuccessIcon from "shared/assets/icons/copy-success.svg?react";
 import {
     formatDate,
     getDisplayText,
@@ -33,8 +38,6 @@ export const TaskSubmissionCodeContent = () => {
     const { duelId, submissionId } = useParams<{ duelId: string; submissionId: string }>();
     const navigate = useNavigate();
     const [shouldPoll, setShouldPoll] = useState(true);
-    const [isCopied, setIsCopied] = useState(false);
-    const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const {
         data: submissionDetail,
@@ -54,14 +57,6 @@ export const TaskSubmissionCodeContent = () => {
         }
     }, [submissionDetail?.status]);
 
-    useEffect(() => {
-        return () => {
-            if (copyTimeoutRef.current) {
-                clearTimeout(copyTimeoutRef.current);
-            }
-        };
-    }, []);
-
     const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
         () => ({
             readOnly: true,
@@ -72,22 +67,6 @@ export const TaskSubmissionCodeContent = () => {
         }),
         [],
     );
-
-    const handleCopyMessage = async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.stopPropagation();
-        if (!message) return;
-
-        try {
-            await navigator.clipboard.writeText(message);
-            setIsCopied(true);
-            if (copyTimeoutRef.current) {
-                clearTimeout(copyTimeoutRef.current);
-            }
-            copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 1500);
-        } catch (error) {
-            console.error("Failed to copy submission message", error);
-        }
-    };
 
     const handleBackClick = () => {
         navigate(`/duel/${duelId}/submissions`);
@@ -105,25 +84,23 @@ export const TaskSubmissionCodeContent = () => {
         return <div>Ошибка: не указан ID дуэли или посылки</div>;
     }
 
-    const status = submissionDetail.status;
-    const verdict = submissionDetail.verdict;
-    const message = submissionDetail.message;
+    const { status, verdict, message } = submissionDetail;
     const displayText = getDisplayText(status, verdict, message);
     const variant = getVerdictVariant(verdict, status, message);
-    const language = submissionDetail.language || "—";
-    const displayDate = submissionDetail.submit_time;
-    const solution = submissionDetail.solution || "";
-    const languageValue = submissionDetail.language
-        ? mapLanguageToLanguageValue(submissionDetail.language)
-        : LANGUAGES.CPP;
+    const { language, submit_time: displayDate, solution } = submissionDetail;
+    const languageValue = mapLanguageToLanguageValue(submissionDetail.language);
 
     return (
         <div className={styles.container}>
             <div className={styles.navigationBar}>
-                <button className={styles.backButton} onClick={handleBackClick}>
-                    <KeyboardArrowDownIcon className={styles.backIcon} />
-                    <span>Все решения</span>
-                </button>
+                <SubmitButton
+                    variant="outlined"
+                    onClick={handleBackClick}
+                    className={styles.backButton}
+                    leadingIcon={<KeyboardArrowDownIcon style={{ transform: "rotate(90deg)" }} />}
+                >
+                    Все решения
+                </SubmitButton>
                 <div className={styles.submissionInfo}>
                     {message ? (
                         <DropdownMenu
@@ -145,13 +122,7 @@ export const TaskSubmissionCodeContent = () => {
                                             <span className={styles.messageDropdownText}>
                                                 {message}
                                             </span>
-                                            <button
-                                                type="button"
-                                                className={styles.messageCopyButton}
-                                                onClick={handleCopyMessage}
-                                            >
-                                                {isCopied ? <CopySuccessIcon /> : <CopyIcon />}
-                                            </button>
+                                            <CopyButton textToCopy={message ?? ""} />
                                         </div>
                                     ),
                                     closeOnClick: false,

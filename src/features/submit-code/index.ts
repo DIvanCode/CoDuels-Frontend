@@ -1,4 +1,4 @@
-export { SubmitCodeButton } from "./ui/SubmitCodeButton/SubmitCodeButton";
+export { SubmitCodeButton } from "./ui/SubmitCodeButton";
 export { FileLoader } from "shared/ui";
 
 export {
@@ -14,4 +14,4 @@ export type {
     SubmissionDetail,
     SubmitCodeRequestData,
     SubmitCodeResponse,
-} from "./ui/SubmitCodeButton/types";
+} from "./model/types";
