@@ -1,27 +1,42 @@
 import { useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LanguageValue } from "shared/config";
+import { LANGUAGES } from "shared/config";
 import { MonacoEditor } from "shared/ui";
 import { editor } from "monaco-editor";
 import {
     codeEditorInitialState,
     codeEditorReducer,
 } from "widgets/code-panel/model/codeEditorReducer";
+import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
+import { useAppSelector, useAppDispatch } from "shared/lib/storeHooks";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
 function CodeEditor() {
     const { duelId } = useParams();
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
-    const [state, dispatch] = useReducer(codeEditorReducer, codeEditorInitialState);
+    const [editorSettings] = useReducer(codeEditorReducer, codeEditorInitialState);
+
+    const codeForDuel = useAppSelector((state) =>
+        duelId ? state.codeEditor.codesByDuelId[duelId] : null,
+    );
+
+    const code = codeForDuel?.code ?? "";
+    const language = codeForDuel?.language ?? LANGUAGES.CPP;
 
     const onCodeChange = (newCode: string) => {
-        dispatch({ type: "SET_CODE", payload: newCode });
+        if (duelId) {
+            dispatch(setCode({ duelId, code: newCode }));
+        }
     };
 
     const onLanguageChange = (newLanguage: LanguageValue) => {
-        dispatch({ type: "SET_LANGUAGE", payload: newLanguage });
+        if (duelId) {
+            dispatch(setLanguage({ duelId, language: newLanguage }));
+        }
     };
 
     const onSubmissionStart = () => {
@@ -32,12 +47,17 @@ function CodeEditor() {
 
     const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
         () => ({
-            theme: state.theme,
-            fontSize: state.fontSize,
-            wordWrap: state.wordWrap ? "on" : "off",
-            minimap: { enabled: state.minimap },
+            theme: editorSettings.theme,
+            fontSize: editorSettings.fontSize,
+            wordWrap: editorSettings.wordWrap ? "on" : "off",
+            minimap: { enabled: editorSettings.minimap },
         }),
-        [state.theme, state.fontSize, state.wordWrap, state.minimap],
+        [
+            editorSettings.theme,
+            editorSettings.fontSize,
+            editorSettings.wordWrap,
+            editorSettings.minimap,
+        ],
     );
 
     if (!duelId) return null;
@@ -45,8 +65,8 @@ function CodeEditor() {
     return (
         <div className={styles.codeEditor}>
             <EditorHeader
-                code={state.code}
-                language={state.language}
+                code={code}
+                language={language}
                 onCodeChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
                 onSubmissionStart={onSubmissionStart}
@@ -54,10 +74,10 @@ function CodeEditor() {
             />
             <MonacoEditor
                 height="100%"
-                value={state.code}
+                value={code}
                 onValueChange={onCodeChange}
-                language={state.language}
-                theme={state.theme}
+                language={language}
+                theme={editorSettings.theme}
                 options={editorConfig}
                 className={styles.editor}
             />

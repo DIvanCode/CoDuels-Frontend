@@ -58,6 +58,9 @@ importers:
             redux:
                 specifier: ^5.0.1
                 version: 5.0.1
+            redux-persist:
+                specifier: ^6.0.0
+                version: 6.0.0(react@19.1.1)(redux@5.0.1)
             rehype-katex:
                 specifier: ^7.0.1
                 version: 7.0.1
@@ -4317,6 +4320,18 @@ packages:
             }
         engines: { node: ">= 14.18.0" }
 
+    redux-persist@6.0.0:
+        resolution:
+            {
+                integrity: sha512-71LLMbUq2r02ng2We9S215LtPu3fY0KgaGE0k8WRgl6RkqxtGfl7HUozz1Dftwsb0D/5mZ8dwAaPbtnzfvbEwQ==,
+            }
+        peerDependencies:
+            react: ">=16"
+            redux: ">4.0.0"
+        peerDependenciesMeta:
+            react:
+                optional: true
+
     redux-thunk@3.1.0:
         resolution:
             {
@@ -8027,6 +8042,12 @@ snapshots:
     react@19.1.1: {}
 
     readdirp@4.1.2: {}
+
+    redux-persist@6.0.0(react@19.1.1)(redux@5.0.1):
+        dependencies:
+            redux: 5.0.1
+        optionalDependencies:
+            react: 19.1.1
 
     redux-thunk@3.1.0(redux@5.0.1):
         dependencies:
