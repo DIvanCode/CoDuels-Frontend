@@ -2,6 +2,7 @@ import { duelApiSlice } from "entities/duel";
 import { apiSlice, refreshAuthToken } from "shared/api";
 
 import { SSE } from "sse.js";
+import { clearCodeForDuel } from "widgets/code-panel/model/codeEditorSlice";
 import {
     setActiveDuelId,
     setPhase,
@@ -9,7 +10,6 @@ import {
     clearDuelSession,
 } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
-import { clearCodeForDuel } from "widgets/code-panel/model/codeEditorSlice";
 
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

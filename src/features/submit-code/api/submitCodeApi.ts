@@ -17,7 +17,7 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
-            async onQueryStarted({ duelId }, { dispatch, queryFulfilled }) {
+            async onQueryStarted({ duelId, data }, { dispatch, queryFulfilled }) {
                 try {
                     const { data: result } = await queryFulfilled;
 
@@ -33,6 +33,7 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                     const newSubmission: SubmissionItem = {
                                         submission_id: String(result.submission_id),
                                         status: "Queued",
+                                        language: data.language,
                                         created_at: new Date().toISOString(),
                                     };
                                     draft.unshift(newSubmission);
@@ -111,7 +112,8 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                         submission_id: String(data.submission_id),
                                         status: data.status,
                                         verdict: data.verdict,
-                                        created_at: data.submit_time,
+                                        created_at: data.created_at,
+                                        language: data.language,
                                     };
                                     draft.unshift(newSubmission);
                                 }

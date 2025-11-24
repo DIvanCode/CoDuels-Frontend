@@ -7,22 +7,17 @@ export interface SubmitCodeResponse {
     submission_id: string;
 }
 
-// TODO: блять, там submit_time, тут created_at вы там с дуба ебнулись или где
-// это просто полный пиздец у меня так горит нахуй
-// какого хуя тут нет language, почему просто почему нахуууууууууууй
+export type SubmissionStatus = "Queued" | "Running" | "Done";
+
 export interface SubmissionItem {
     submission_id: string;
-    status: string;
-    verdict?: string;
+    status: SubmissionStatus;
+    language: string;
     created_at: string;
+    verdict?: string;
 }
 
-export interface SubmissionDetail {
-    submission_id: string;
-    status: "Queued" | "Running" | "Done";
-    verdict?: string;
+export interface SubmissionDetail extends SubmissionItem {
     solution: string;
-    language: string;
-    submit_time: string;
-    message?: string | null;
+    message?: string | null; // TODO: странное поведение, что message может быть null; дела бэка
 }

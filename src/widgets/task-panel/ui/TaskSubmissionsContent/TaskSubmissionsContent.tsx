@@ -1,75 +1,18 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { Loader, ResultTitle, Table } from "shared/ui";
-import {
-    useGetSubmissionsQuery,
-    useGetSubmissionDetailQuery,
-    POOLING_INTERVAL,
-    type SubmissionItem,
-} from "features/submit-code";
-import {
-    formatDate,
-    getDisplayText,
-    getVerdictVariant,
-} from "widgets/task-panel/lib/submissionUtils";
+import { useParams } from "react-router-dom";
+import { Loader, Table } from "shared/ui";
+import { useGetSubmissionsQuery, POOLING_INTERVAL } from "features/submit-code";
 
+import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
-interface SubmissionRowProps {
-    submission: SubmissionItem;
-    duelId: string;
-}
-
-const SubmissionRow = ({ submission, duelId }: SubmissionRowProps) => {
-    const navigate = useNavigate();
-    const initialStatus = submission.status?.toLowerCase();
-    const isDone = initialStatus === "done";
-
-    const { data: submissionDetail } = useGetSubmissionDetailQuery(
-        { duelId, submissionId: String(submission.submission_id) },
-        {
-            pollingInterval: !isDone ? POOLING_INTERVAL : 0,
-        },
-    );
-
-    const status = submissionDetail?.status || submission.status;
-    const verdict = submissionDetail?.verdict || submission.verdict;
-    const message = submissionDetail?.message;
-    const displayLanguage = submissionDetail?.language || "—";
-    const displayDate = submissionDetail?.submit_time || submission.created_at;
-
-    const displayText = getDisplayText(status, verdict, message);
-    const variant = getVerdictVariant(verdict, status, message);
-
-    const handleRowClick = () => {
-        navigate(`/duel/${duelId}/submissions/${submission.submission_id}`);
-    };
-
-    const isClickable = Boolean(submissionDetail?.solution && submissionDetail?.language);
-
-    return (
-        <tr
-            onClick={handleRowClick}
-            className={isClickable ? styles.clickableRow : undefined}
-            style={{ cursor: isClickable ? "pointer" : "default" }}
-        >
-            <td>
-                <ResultTitle variant={variant}>{displayText}</ResultTitle>
-            </td>
-            <td>{displayLanguage}</td>
-            <td>{formatDate(displayDate)}</td>
-        </tr>
-    );
-};
-
 export const TaskSubmissionsContent = () => {
-    const { duelId } = useParams<{ duelId: string }>();
+    const { duelId } = useParams();
+
     const {
         data: submissions,
         isLoading,
         isError,
-    } = useGetSubmissionsQuery(duelId ?? "", {
-        skip: !duelId,
-    });
+    } = useGetSubmissionsQuery(duelId ?? "", { skip: !duelId, pollingInterval: POOLING_INTERVAL });
 
     if (isLoading) {
         return <Loader />;
@@ -105,7 +48,7 @@ export const TaskSubmissionsContent = () => {
 
             <tbody>
                 {sortedSubmissions.map((submission) => (
-                    <SubmissionRow
+                    <TaskSubmissionRow
                         key={submission.submission_id}
                         submission={submission}
                         duelId={duelId}

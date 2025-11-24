@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
 import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
-import { LANGUAGES, type LanguageValue } from "shared/config";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import { useMemo, useState, useEffect } from "react";
 import { editor } from "monaco-editor";
@@ -9,23 +8,10 @@ import {
     formatDate,
     getDisplayText,
     getVerdictVariant,
+    mapLanguageToLanguageValue,
 } from "widgets/task-panel/lib/submissionUtils";
 
 import styles from "./TaskSubmissionCodeContent.module.scss";
-
-const mapLanguageToLanguageValue = (language: string): LanguageValue => {
-    const normalized = language.toLowerCase().trim();
-    if (normalized === "c++" || normalized === "cpp") {
-        return LANGUAGES.CPP;
-    }
-    if (normalized === "c#" || normalized === "csharp") {
-        return LANGUAGES.CSHARP;
-    }
-    if (normalized === "python") {
-        return LANGUAGES.PYTHON;
-    }
-    return LANGUAGES.CPP;
-};
 
 export const TaskSubmissionCodeContent = () => {
     const { duelId, submissionId } = useParams<{ duelId: string; submissionId: string }>();
@@ -80,7 +66,8 @@ export const TaskSubmissionCodeContent = () => {
     const { status, verdict, message } = submissionDetail;
     const displayText = getDisplayText(status, verdict, message);
     const variant = getVerdictVariant(verdict, status, message);
-    const { language, submit_time: displayDate, solution } = submissionDetail;
+
+    const { language, created_at, solution } = submissionDetail;
     const languageValue = mapLanguageToLanguageValue(submissionDetail.language);
 
     return (
@@ -132,7 +119,7 @@ export const TaskSubmissionCodeContent = () => {
                     <div className={styles.divider} />
                     <div className={styles.metaInfo}>
                         <div className={styles.language}>{language}</div>
-                        <div className={styles.date}>{formatDate(displayDate)}</div>
+                        <div className={styles.date}>{formatDate(created_at)}</div>
                     </div>
                 </div>
             </div>

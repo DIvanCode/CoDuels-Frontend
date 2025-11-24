@@ -1,3 +1,6 @@
+import { SubmissionStatus } from "features/submit-code";
+import { LANGUAGES, LanguageValue } from "shared/config";
+
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, "0");
@@ -10,7 +13,7 @@ const formatDate = (dateString: string): string => {
     return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
 };
 
-const isTestingStatus = (status?: string, message?: string | null): boolean => {
+const isTestingStatus = (status?: SubmissionStatus, message?: string | null): boolean => {
     if (!status) return false;
 
     const normalizedStatus = status.toLowerCase();
@@ -38,7 +41,7 @@ const isTestingStatus = (status?: string, message?: string | null): boolean => {
 
 const getVerdictVariant = (
     verdict?: string,
-    status?: string,
+    status?: SubmissionStatus,
     message?: string | null,
 ): "success" | "failure" | "testing" => {
     if (status === "Done" && verdict === "Accepted") {
@@ -52,7 +55,11 @@ const getVerdictVariant = (
     return "failure";
 };
 
-const getDisplayText = (status?: string, verdict?: string, message?: string | null): string => {
+const getDisplayText = (
+    status?: SubmissionStatus,
+    verdict?: string,
+    message?: string | null,
+): string => {
     if (!status) return "—";
 
     if (status === "Queued") {
@@ -70,4 +77,24 @@ const getDisplayText = (status?: string, verdict?: string, message?: string | nu
     return status;
 };
 
-export { formatDate, getDisplayText, getVerdictVariant, isTestingStatus };
+const mapLanguageToLanguageValue = (language: string): LanguageValue => {
+    const normalized = language.toLowerCase().trim();
+    if (normalized === "c++" || normalized === "cpp") {
+        return LANGUAGES.CPP;
+    }
+    if (normalized === "c#" || normalized === "csharp") {
+        return LANGUAGES.CSHARP;
+    }
+    if (normalized === "python") {
+        return LANGUAGES.PYTHON;
+    }
+    return LANGUAGES.CPP;
+};
+
+export {
+    formatDate,
+    getDisplayText,
+    getVerdictVariant,
+    isTestingStatus,
+    mapLanguageToLanguageValue,
+};

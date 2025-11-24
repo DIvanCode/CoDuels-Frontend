@@ -14,4 +14,5 @@ export type {
     SubmissionDetail,
     SubmitCodeRequestData,
     SubmitCodeResponse,
+    SubmissionStatus,
 } from "./model/types";
