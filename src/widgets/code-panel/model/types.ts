@@ -1,6 +1,6 @@
 import { LanguageValue } from "shared/config";
 
 export interface CodeEditorState {
-    code: string;
-    language: LanguageValue;
+    codeByDuelId: Record<number, string>;
+    languageByDuelId: Record<number, LanguageValue>;
 }

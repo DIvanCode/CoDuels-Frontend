@@ -24,7 +24,7 @@ const codeEditorPersistConfig = {
     key: "codeEditor",
     storage,
     version: 1,
-    whitelist: ["codesByDuelId"],
+    whitelist: ["codeByDuelId", "languageByDuelId"],
 };
 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);

@@ -73,6 +73,9 @@ importers:
             superstruct:
                 specifier: ^2.0.2
                 version: 2.0.2
+            use-debounce:
+                specifier: ^10.0.6
+                version: 10.0.6(react@19.1.1)
         devDependencies:
             "@eslint/js":
                 specifier: ^9.36.0
@@ -95,6 +98,9 @@ importers:
             "@vitejs/plugin-react":
                 specifier: ^5.0.3
                 version: 5.0.3(vite@7.1.7(sass@1.93.2)(yaml@2.8.1))
+            baseline-browser-mapping:
+                specifier: ^2.8.31
+                version: 2.8.31
             eslint:
                 specifier: ^9.36.0
                 version: 9.36.0
@@ -1936,10 +1942,10 @@ packages:
                 integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==,
             }
 
-    baseline-browser-mapping@2.8.7:
+    baseline-browser-mapping@2.8.31:
         resolution:
             {
-                integrity: sha512-bxxN2M3a4d1CRoQC//IqsR5XrLh0IJ8TCv2x6Y9N0nckNz/rTjZB3//GGscZziZOxmjP55rzxg/ze7usFI9FqQ==,
+                integrity: sha512-a28v2eWrrRWPpJSzxc+mKwm0ZtVx/G8SepdQZDArnXYU/XS+IF6mp8aB/4E+hH1tyGCoDo3KlUCdlSxGDsRkAw==,
             }
         hasBin: true
 
@@ -5047,6 +5053,15 @@ packages:
                 integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==,
             }
 
+    use-debounce@10.0.6:
+        resolution:
+            {
+                integrity: sha512-C5OtPyhAZgVoteO9heXMTdW7v/IbFI+8bSVKYCJrSmiWWCLsbUxiBSp4t9v0hNBTGY97bT72ydDIDyGSFWfwXg==,
+            }
+        engines: { node: ">= 16.0.0" }
+        peerDependencies:
+            react: "*"
+
     use-sync-external-store@1.5.0:
         resolution:
             {
@@ -6365,7 +6380,7 @@ snapshots:
 
     balanced-match@1.0.2: {}
 
-    baseline-browser-mapping@2.8.7: {}
+    baseline-browser-mapping@2.8.31: {}
 
     birecord@0.1.1: {}
 
@@ -6384,7 +6399,7 @@ snapshots:
 
     browserslist@4.26.2:
         dependencies:
-            baseline-browser-mapping: 2.8.7
+            baseline-browser-mapping: 2.8.31
             caniuse-lite: 1.0.30001745
             electron-to-chromium: 1.5.224
             node-releases: 2.0.21
@@ -8585,6 +8600,10 @@ snapshots:
     uri-js@4.4.1:
         dependencies:
             punycode: 2.3.1
+
+    use-debounce@10.0.6(react@19.1.1):
+        dependencies:
+            react: 19.1.1
 
     use-sync-external-store@1.5.0(react@19.1.1):
         dependencies:

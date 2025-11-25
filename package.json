@@ -35,7 +35,8 @@
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
         "sse.js": "^2.7.2",
-        "superstruct": "^2.0.2"
+        "superstruct": "^2.0.2",
+        "use-debounce": "^10.0.6"
     },
     "devDependencies": {
         "@eslint/js": "^9.36.0",
@@ -45,6 +46,7 @@
         "@typescript-eslint/eslint-plugin": "^8.44.1",
         "@typescript-eslint/parser": "^8.44.1",
         "@vitejs/plugin-react": "^5.0.3",
+        "baseline-browser-mapping": "^2.8.31",
         "eslint": "^9.36.0",
         "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-import": "^2.32.0",
