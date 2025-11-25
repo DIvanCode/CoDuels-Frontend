@@ -5,14 +5,13 @@
         "lib": ["ES2020", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "skipLibCheck": true,
-        "baseUrl": "src",
         "paths": {
-            "app/*": ["app/*"],
-            "entities/*": ["entities/*"],
-            "features/*": ["features/*"],
-            "pages/*": ["pages/*"],
-            "shared/*": ["shared/*"],
-            "widgets/*": ["widgets/*"]
+            "app/*": ["./src/app/*"],
+            "entities/*": ["./src/entities/*"],
+            "features/*": ["./src/features/*"],
+            "pages/*": ["./src/pages/*"],
+            "shared/*": ["./src/shared/*"],
+            "widgets/*": ["./src/widgets/*"]
         },
         /* Bundler mode */
         "moduleResolution": "bundler",

@@ -21,7 +21,9 @@ export const TaskPanel = () => {
         {
             label: "Посылки",
             leadingIcon: <SubmissionsIcon />,
-            active: matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null,
+            active:
+                matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null ||
+                matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null,
             onClick: () => navigate("submissions"),
         },
     ];

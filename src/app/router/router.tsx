@@ -7,7 +7,11 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { Fallback, Loader } from "shared/ui";
 
-import { TaskInfoContent, TaskSubmissionsContent } from "widgets/task-panel";
+import {
+    TaskInfoContent,
+    TaskSubmissionsContent,
+    TaskSubmissionCodeContent,
+} from "widgets/task-panel";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -54,6 +58,10 @@ export const router = createBrowserRouter([
                     {
                         path: "submissions",
                         element: <TaskSubmissionsContent />,
+                    },
+                    {
+                        path: "submissions/:submissionId",
+                        element: <TaskSubmissionCodeContent />,
                     },
                 ],
             },

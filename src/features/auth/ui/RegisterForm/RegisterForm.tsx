@@ -3,7 +3,7 @@ import { registrationStruct } from "features/auth/model/authStruct";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
-import { InputField, SubmitButton } from "shared/ui";
+import { InputField, Button } from "shared/ui";
 import { validate } from "superstruct";
 
 import styles from "./RegisterForm.module.scss";
@@ -68,7 +68,9 @@ export const RegisterForm = () => {
                 disabled={isLoading}
                 autoComplete="new-password"
             />
-            <SubmitButton disabled={isLoading}>Регистрация</SubmitButton>
+            <Button type="submit" disabled={isLoading}>
+                Регистрация
+            </Button>
         </form>
     );
 };

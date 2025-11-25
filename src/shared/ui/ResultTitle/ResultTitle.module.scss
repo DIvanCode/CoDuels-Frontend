@@ -6,4 +6,15 @@
     svg {
         flex-shrink: 0;
     }
+
+    &.success {
+        column-gap: 0.75em;
+    }
+
+    &.testing {
+        svg {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+    }
 }

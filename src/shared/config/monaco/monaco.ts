@@ -242,8 +242,12 @@ export const initializeMonaco = (monaco: Monaco) => {
         monaco.languages.register({ id: language });
         monaco.languages.setLanguageConfiguration(language, config);
     });
+};
 
-    console.log("Monaco Editor initialized");
+export const baseEditorConfig: monaco.editor.IStandaloneEditorConstructionOptions = {
+    fontSize: 16,
+    wordWrap: "on",
+    minimap: { enabled: true },
 };
 
 export default {
@@ -251,5 +255,6 @@ export default {
     customThemes,
     languageConfigs,
     defaultEditorOptions,
+    baseEditorConfig,
     initializeMonaco,
 };

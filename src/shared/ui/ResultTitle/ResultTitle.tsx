@@ -1,18 +1,32 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 import SuccessIcon from "shared/assets/icons/success.svg?react";
 import FailureIcon from "shared/assets/icons/failure.svg?react";
+import TestingIcon from "shared/assets/icons/testing.svg?react";
 
 import styles from "./ResultTitle.module.scss";
 
 interface Props {
-    variant: "success" | "failure";
+    variant: "success" | "failure" | "testing";
 }
 
 export const ResultTitle = ({ variant, children }: PropsWithChildren<Props>) => {
+    const iconsMap: Record<Props["variant"], ReactNode> = {
+        success: <SuccessIcon />,
+        failure: <FailureIcon />,
+        testing: <TestingIcon />,
+    };
+
+    const getClassName = () => {
+        const baseClass = styles.resultTitle;
+        const variantClass =
+            variant === "testing" ? styles.testing : variant === "success" ? styles.success : "";
+        return `${baseClass} ${variantClass}`.trim();
+    };
+
     return (
-        <div className={styles.resultTitle}>
-            {variant === "success" ? <SuccessIcon /> : <FailureIcon />}
+        <div className={getClassName()}>
+            {iconsMap[variant]}
             {children}
         </div>
     );
