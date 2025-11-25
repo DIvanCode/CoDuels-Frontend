@@ -31,14 +31,14 @@ const duelSessionSlice = createSlice({
         setLastEventId: (state, action: PayloadAction<string | null>) => {
             state.lastEventId = action.payload;
         },
-        clearDuelSession: (state) => {
+        resetDuelSession: (state) => {
             state.activeDuelId = null;
-            state.lastEventId = null;
             state.phase = "idle";
+            state.lastEventId = null;
         },
     },
 });
 
-export const { setPhase, setActiveDuelId, setLastEventId, clearDuelSession } =
+export const { setPhase, setActiveDuelId, setLastEventId, resetDuelSession } =
     duelSessionSlice.actions;
 export default duelSessionSlice.reducer;

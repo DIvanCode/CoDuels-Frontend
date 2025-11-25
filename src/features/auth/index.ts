@@ -1,6 +1,4 @@
-import authReducer from "./model/authSlice";
-
-export { authReducer };
+export { default as authReducer } from "./model/authSlice";
 
 export { authActions } from "./model/authSlice";
 

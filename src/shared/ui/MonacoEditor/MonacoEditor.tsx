@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { defaultEditorOptions, initializeMonaco } from "shared/config/monaco/monaco";

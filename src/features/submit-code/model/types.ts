@@ -19,5 +19,5 @@ export interface SubmissionItem {
 
 export interface SubmissionDetail extends SubmissionItem {
     solution: string;
-    message?: string | null; // TODO: странное поведение, что message может быть null; дела бэка
+    message?: string | null;
 }

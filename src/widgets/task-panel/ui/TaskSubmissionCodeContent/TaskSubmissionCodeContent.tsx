@@ -2,8 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
 import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
-import { useMemo, useState, useEffect } from "react";
-import { editor } from "monaco-editor";
+import { useState, useEffect } from "react";
 import {
     formatDate,
     getDisplayText,
@@ -11,6 +10,7 @@ import {
     mapLanguageToLanguageValue,
 } from "widgets/task-panel/lib/submissionUtils";
 
+import { baseEditorConfig } from "shared/config";
 import styles from "./TaskSubmissionCodeContent.module.scss";
 
 export const TaskSubmissionCodeContent = () => {
@@ -35,17 +35,6 @@ export const TaskSubmissionCodeContent = () => {
             setShouldPoll(false);
         }
     }, [submissionDetail?.status]);
-
-    const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
-        () => ({
-            readOnly: true,
-            theme: "dark",
-            fontSize: 14,
-            wordWrap: "on",
-            minimap: { enabled: true },
-        }),
-        [],
-    );
 
     const handleBackClick = () => {
         navigate(`/duel/${duelId}/submissions`);
@@ -127,10 +116,10 @@ export const TaskSubmissionCodeContent = () => {
                 <MonacoEditor
                     height="100%"
                     value={solution}
+                    theme="dark"
                     onValueChange={() => {}}
                     language={languageValue}
-                    theme="dark"
-                    options={editorConfig}
+                    options={{ ...baseEditorConfig, readOnly: true }}
                 />
             </div>
         </div>

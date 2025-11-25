@@ -1,15 +1,11 @@
-import { useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { LanguageValue } from "shared/config";
-import { LANGUAGES } from "shared/config";
+import { baseEditorConfig } from "shared/config";
 import { MonacoEditor } from "shared/ui";
-import { editor } from "monaco-editor";
-import {
-    codeEditorInitialState,
-    codeEditorReducer,
-} from "widgets/code-panel/model/codeEditorReducer";
+
 import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
 import { useAppSelector, useAppDispatch } from "shared/lib/storeHooks";
+import { selectCodeEditorCode, selectCodeEditorLanguage } from "widgets/code-panel/model/selector";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
@@ -18,24 +14,19 @@ function CodeEditor() {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const [editorSettings] = useReducer(codeEditorReducer, codeEditorInitialState);
-
-    const codeForDuel = useAppSelector((state) =>
-        duelId ? state.codeEditor.codesByDuelId[duelId] : null,
-    );
-
-    const code = codeForDuel?.code ?? "";
-    const language = codeForDuel?.language ?? LANGUAGES.CPP;
+    // TODO: не забудь, что мутировать глобальный стейт плохо без дебаунса
+    const code = useAppSelector(selectCodeEditorCode);
+    const language = useAppSelector(selectCodeEditorLanguage);
 
     const onCodeChange = (newCode: string) => {
         if (duelId) {
-            dispatch(setCode({ duelId, code: newCode }));
+            dispatch(setCode({ code: newCode }));
         }
     };
 
     const onLanguageChange = (newLanguage: LanguageValue) => {
         if (duelId) {
-            dispatch(setLanguage({ duelId, language: newLanguage }));
+            dispatch(setLanguage({ language: newLanguage }));
         }
     };
 
@@ -44,21 +35,6 @@ function CodeEditor() {
             navigate(`/duel/${duelId}/submissions`);
         }
     };
-
-    const editorConfig = useMemo<editor.IStandaloneEditorConstructionOptions>(
-        () => ({
-            theme: editorSettings.theme,
-            fontSize: editorSettings.fontSize,
-            wordWrap: editorSettings.wordWrap ? "on" : "off",
-            minimap: { enabled: editorSettings.minimap },
-        }),
-        [
-            editorSettings.theme,
-            editorSettings.fontSize,
-            editorSettings.wordWrap,
-            editorSettings.minimap,
-        ],
-    );
 
     if (!duelId) return null;
 
@@ -77,8 +53,8 @@ function CodeEditor() {
                 value={code}
                 onValueChange={onCodeChange}
                 language={language}
-                theme={editorSettings.theme}
-                options={editorConfig}
+                theme="dark"
+                options={baseEditorConfig}
                 className={styles.editor}
             />
         </div>

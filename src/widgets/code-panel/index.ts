@@ -1,2 +1,2 @@
 export { CodePanel } from "./ui/CodePanel/CodePanel";
-export { codeEditorInitialState, codeEditorReducer } from "./model/codeEditorReducer";
+export { default as codeEditorReducer } from "./model/codeEditorSlice";

@@ -244,10 +244,17 @@ export const initializeMonaco = (monaco: Monaco) => {
     });
 };
 
+export const baseEditorConfig: monaco.editor.IStandaloneEditorConstructionOptions = {
+    fontSize: 16,
+    wordWrap: "on",
+    minimap: { enabled: true },
+};
+
 export default {
     loader,
     customThemes,
     languageConfigs,
     defaultEditorOptions,
+    baseEditorConfig,
     initializeMonaco,
 };

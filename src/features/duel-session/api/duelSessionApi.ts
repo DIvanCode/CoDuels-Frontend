@@ -2,15 +2,15 @@ import { duelApiSlice } from "entities/duel";
 import { apiSlice, refreshAuthToken } from "shared/api";
 
 import { SSE } from "sse.js";
-import { clearCodeForDuel } from "widgets/code-panel/model/codeEditorSlice";
 import {
     setActiveDuelId,
     setPhase,
     setLastEventId,
-    clearDuelSession,
+    resetDuelSession,
 } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
 
+// TODO: чет она еебать разрослать надо порефакторить будет я уже путаюсь
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         subscribeToDuelStates: builder.query<void, void>({
@@ -62,8 +62,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         }
 
                         dispatch(setPhase("idle"));
-                        dispatch(clearDuelSession());
-                        dispatch(clearCodeForDuel(String(duelMessage.duel_id)));
+                        dispatch(resetDuelSession());
 
                         dispatch(
                             duelApiSlice.util.invalidateTags([

@@ -3,7 +3,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { authReducer } from "features/auth";
 import { duelSessionReducer } from "features/duel-session";
-import codeEditorReducer from "widgets/code-panel/model/codeEditorSlice";
+import { codeEditorReducer } from "widgets/code-panel";
 import { apiSlice } from "shared/api";
 
 const authPersistConfig = {

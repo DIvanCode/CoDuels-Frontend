@@ -1,54 +1,32 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { LANGUAGES, type LanguageValue } from "shared/config";
-
-interface CodeForDuel {
-    code: string;
-    language: LanguageValue;
-}
-
-interface CodeEditorState {
-    codesByDuelId: Record<string, CodeForDuel>;
-}
+import { resetDuelSession } from "features/duel-session";
+import { CodeEditorState } from "./types";
 
 const initialState: CodeEditorState = {
-    codesByDuelId: {},
+    code: "",
+    language: LANGUAGES.CPP,
 };
 
 const codeEditorSlice = createSlice({
     name: "codeEditor",
     initialState,
     reducers: {
-        setCode: (state, action: PayloadAction<{ duelId: string; code: string }>) => {
-            const { duelId, code } = action.payload;
-            if (!state.codesByDuelId[duelId]) {
-                state.codesByDuelId[duelId] = {
-                    code: "",
-                    language: LANGUAGES.CPP,
-                };
-            }
-            state.codesByDuelId[duelId].code = code;
+        setCode: (state, action: PayloadAction<{ code: string }>) => {
+            state.code = action.payload.code;
         },
-        setLanguage: (
-            state,
-            action: PayloadAction<{ duelId: string; language: LanguageValue }>,
-        ) => {
-            const { duelId, language } = action.payload;
-            if (!state.codesByDuelId[duelId]) {
-                state.codesByDuelId[duelId] = {
-                    code: "",
-                    language: LANGUAGES.CPP,
-                };
-            }
-            state.codesByDuelId[duelId].language = language;
+        setLanguage: (state, action: PayloadAction<{ language: LanguageValue }>) => {
+            state.language = action.payload.language;
         },
-        clearCodeForDuel: (state, action: PayloadAction<string>) => {
-            delete state.codesByDuelId[action.payload];
-        },
-        clearAllCodes: (state) => {
-            state.codesByDuelId = {};
-        },
+    },
+
+    extraReducers: (builder) => {
+        builder.addCase(resetDuelSession, (state) => {
+            state.code = initialState.code;
+            state.language = initialState.language;
+        });
     },
 });
 
-export const { setCode, setLanguage, clearCodeForDuel, clearAllCodes } = codeEditorSlice.actions;
+export const { setCode, setLanguage } = codeEditorSlice.actions;
 export default codeEditorSlice.reducer;

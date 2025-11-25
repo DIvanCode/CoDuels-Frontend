@@ -17,6 +17,9 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
+            invalidatesTags: (_result, _error, { duelId }) => [
+                { type: "Submission", id: `LIST-${duelId}` },
+            ],
             async onQueryStarted({ duelId, data }, { dispatch, queryFulfilled }) {
                 try {
                     const { data: result } = await queryFulfilled;
