@@ -1,5 +1,6 @@
 import { Layout } from "app/layout/Layout";
 import { AuthPage } from "pages/auth";
+import { ProfilePage } from "pages/profile";
 import { DuelPage } from "pages/duel";
 import { HomePage } from "pages/home";
 import { Suspense } from "react";
@@ -35,6 +36,16 @@ export const router = createBrowserRouter([
                             <HomePage />
                         </Suspense>
                     </ProtectedRoute>
+                ),
+            },
+            {
+                path: AppRoutes.PROFILE,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <ProfilePage />
+                        </ProtectedRoute>
+                    </Suspense>
                 ),
             },
             {

@@ -8,6 +8,8 @@ import { useAppSelector, useAppDispatch } from "shared/lib/storeHooks";
 import { selectDuelCode, selectDuelLanguage } from "widgets/code-panel/model/selector";
 import { useDebouncedCallback } from "use-debounce";
 import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
+import { useGetDuelQuery } from "entities/duel";
+import { selectCurrentUser } from "entities/user";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
@@ -16,6 +18,11 @@ function CodeEditor() {
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+
+    // Only duel participants can write and submit code
+    const currentUser = useAppSelector(selectCurrentUser);
+    const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId));
+    const canEdit = !isDuelLoading && duel?.participants.some((p) => p.id === currentUser?.id);
 
     const initialCode = useAppSelector((state) =>
         duelId ? selectDuelCode(state, Number(duelId)) : "",
@@ -71,7 +78,7 @@ function CodeEditor() {
                 onValueChange={onCodeChange}
                 language={localLanguage}
                 theme="dark"
-                options={baseEditorConfig}
+                options={{ ...baseEditorConfig, readOnly: !canEdit }}
                 className={styles.editor}
             />
         </div>

@@ -1,4 +1,4 @@
-import { DuelResult, useGetDuelQuery, type DuelResultType } from "entities/duel";
+import { DuelResult, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
@@ -20,26 +20,11 @@ export const DuelInfo = ({ duelId }: Props) => {
         [user1, user2] = [user2, user1];
     }
 
-    // TODO: не особо хочется это писать. Хочу чтобы бэк поправил сигнатуру на дельты
-    let newRating1: number | undefined;
-    let newRating2: number | undefined;
-    let delta1: number | undefined;
-    let delta2: number | undefined;
-
+    let [delta1, delta2]: [number | undefined, number | undefined] = [undefined, undefined];
     if (duel.status === "Finished" && duel.winner_id !== undefined) {
-        const result1: DuelResultType =
-            duel.winner_id === user1.id ? "Win" : duel.winner_id === user2.id ? "Lose" : "Draw";
-
-        const result2: DuelResultType =
-            duel.winner_id === user2.id ? "Win" : duel.winner_id === user1.id ? "Lose" : "Draw";
-
-        newRating1 = duel.rating_changes[user1.id]?.[result1];
-        newRating2 = duel.rating_changes[user2.id]?.[result2];
-
-        delta1 = newRating1 - user1.rating;
-        delta2 = newRating2 - user2.rating;
+        delta1 = duel.rating_changes[user1.id][getDuelResultForUser(duel, user1.id)];
+        delta2 = duel.rating_changes[user2.id][getDuelResultForUser(duel, user2.id)];
     }
-    // TODO: -------------------
 
     return (
         <div className={styles.duelInfo}>

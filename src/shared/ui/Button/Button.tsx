@@ -20,7 +20,6 @@ export const Button = ({
 }: ButtonProps) => {
     return (
         <button
-            // eslint-disable-next-line react-dom/no-missing-button-type
             type={type}
             className={clsx(styles.button, styles[variant], disabled && styles.disabled, className)}
             disabled={disabled}

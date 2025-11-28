@@ -11,7 +11,7 @@ import {
 } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
 
-// TODO: чет она еебать разрослать надо порефакторить будет я уже путаюсь
+// TODO: надо порефакторить будет я уже путаюсь
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         subscribeToDuelStates: builder.query<void, void>({

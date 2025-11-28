@@ -1,0 +1,27 @@
+.profilePage {
+    height: 100%;
+
+    padding: 1em;
+}
+
+.profileCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 2em;
+    padding: 1em;
+
+    border-radius: 0.5em;
+    background-color: var(--card-primary);
+}
+
+.profileInfo {
+    min-width: 60%;
+
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    row-gap: 2em;
+
+    margin-top: 1em;
+}

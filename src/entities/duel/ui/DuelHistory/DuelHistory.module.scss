@@ -1,0 +1,47 @@
+.duelHistoryTable {
+    width: 100%;
+
+    tbody tr {
+        font-weight: 500;
+
+        td {
+            padding: 0.75em 1em;
+        }
+    }
+}
+
+.positiveDelta {
+    color: var(--positive);
+}
+
+.negativeDelta {
+    color: var(--error);
+}
+
+.neutralDelta {
+    color: var(--text-secondary);
+}
+
+.ratingWithIcon {
+    display: inline-flex;
+    align-items: center;
+
+    margin-left: 0.25em;
+
+    color: var(--text-secondary);
+
+    &::before {
+        content: "(";
+    }
+
+    &::after {
+        content: ")";
+    }
+
+    svg {
+        height: 1em;
+        width: 1em;
+
+        margin-left: 0.25em;
+    }
+}

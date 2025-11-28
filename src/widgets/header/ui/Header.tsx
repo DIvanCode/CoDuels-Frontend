@@ -1,5 +1,5 @@
 import { selectCurrentUser, UserCard } from "entities/user";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
@@ -14,6 +14,7 @@ import styles from "./Header.module.scss";
 
 export const Header = () => {
     const { duelId } = useParams();
+    const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
     const user = useAppSelector(selectCurrentUser);
@@ -22,7 +23,7 @@ export const Header = () => {
         {
             icon: <ProfileIcon />,
             label: "Профиль",
-            onClick: () => {},
+            onClick: () => navigate(AppRoutes.PROFILE.replace(":userId", String(user?.id))),
         },
         {
             icon: <ExitIcon />,

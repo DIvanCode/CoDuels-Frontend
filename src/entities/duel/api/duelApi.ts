@@ -8,7 +8,17 @@ export const duelApiSlice = apiSlice.injectEndpoints({
             query: (duelId: number) => `/duels/${duelId}`,
             providesTags: (_result, _error, arg) => [{ type: "Duel", id: arg }],
         }),
+        getAllUserDuels: builder.query<Duel[], number>({
+            query: (userId) => `/duels?userId=${userId}`,
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "Duel" as const, id })),
+                          { type: "Duel", id: "LIST" },
+                      ]
+                    : [{ type: "Duel", id: "LIST" }],
+        }),
     }),
 });
 
-export const { useGetDuelQuery } = duelApiSlice;
+export const { useGetDuelQuery, useGetAllUserDuelsQuery } = duelApiSlice;
