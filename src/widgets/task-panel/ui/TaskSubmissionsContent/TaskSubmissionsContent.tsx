@@ -2,17 +2,28 @@ import { useParams } from "react-router-dom";
 import { Loader, Table } from "shared/ui";
 import { useGetSubmissionsQuery, POOLING_INTERVAL } from "features/submit-code";
 
+import { useEffect, useState } from "react";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
+    const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
 
     const {
         data: submissions,
         isLoading,
         isError,
-    } = useGetSubmissionsQuery(duelId ?? "", { skip: !duelId, pollingInterval: POOLING_INTERVAL });
+    } = useGetSubmissionsQuery(duelId ?? "", {
+        skip: !duelId,
+        pollingInterval: shouldPollSubmissions ? POOLING_INTERVAL : 0,
+    });
+
+    useEffect(() => {
+        if (submissions?.every((s) => s.status === "Done")) {
+            setShouldPollSubmissions(false);
+        }
+    }, [submissions]);
 
     if (isLoading) {
         return <Loader />;

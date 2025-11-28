@@ -9,7 +9,7 @@ export const userApiSlice = apiSlice.injectEndpoints({
         }),
         getMe: builder.query<UserData, void>({
             query: () => `/users/iam`,
-            providesTags: ["User"],
+            providesTags: [{ type: "User", id: "ME" }],
         }),
     }),
 });

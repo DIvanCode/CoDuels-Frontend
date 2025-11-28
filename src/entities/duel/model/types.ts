@@ -1,12 +1,21 @@
+export interface DuelParticipant {
+    id: number;
+    nickname: string;
+    rating: number;
+}
+
 export interface Duel {
     id: number;
-    status: "InProgress" | "Finished";
-    opponent_id: number;
-    result?: DuelResultType;
     task_id: string;
+    participants: [DuelParticipant, DuelParticipant];
+    winner_id?: number;
+    status: "InProgress" | "Finished";
     start_time: string;
     deadline_time: string;
     end_time?: number;
+    rating_changes: Record<number, DeltaInfo>;
 }
+
+export type DeltaInfo = Record<DuelResultType, number>;
 
 export type DuelResultType = "Win" | "Lose" | "Draw";

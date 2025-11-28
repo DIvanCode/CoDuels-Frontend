@@ -1,24 +1,29 @@
-import type { DuelResultType } from "../../model/types";
 import styles from "./DuelResult.module.scss";
 
-type DuelResultChar = "W" | "L" | "D";
+type Res = "W" | "L" | "D";
 
 interface Props {
-    result: DuelResultType;
+    winnerId: number | null;
+    meId: number;
+    otherId: number;
 }
 
-const isResultChar = (char: string): char is DuelResultChar => ["W", "L", "D"].includes(char);
+export const DuelResult = ({ winnerId, meId, otherId }: Props) => {
+    let [me, other]: Res[] = ["D", "D"];
 
-const pair: Record<DuelResultChar, DuelResultChar> = { W: "L", L: "W", D: "D" };
-const classMap: Record<DuelResultChar, string> = {
-    W: styles.win,
-    L: styles.loss,
-    D: styles.draw,
-};
+    if (winnerId !== null) {
+        if (winnerId === meId) {
+            [me, other] = ["W", "L"];
+        } else if (winnerId === otherId) {
+            [me, other] = ["L", "W"];
+        }
+    }
 
-export const DuelResult = ({ result }: Props) => {
-    const me = isResultChar(result[0]) ? result[0] : "D";
-    const other = pair[me];
+    const classMap: Record<Res, string> = {
+        W: styles.win,
+        L: styles.loss,
+        D: styles.draw,
+    };
 
     return (
         <div className={styles.result}>

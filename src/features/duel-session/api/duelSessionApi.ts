@@ -2,6 +2,7 @@ import { duelApiSlice } from "entities/duel";
 import { apiSlice, refreshAuthToken } from "shared/api";
 
 import { SSE } from "sse.js";
+import { userApiSlice } from "entities/user";
 import {
     setActiveDuelId,
     setPhase,
@@ -69,6 +70,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 { type: "Duel", id: duelMessage.duel_id },
                             ]),
                         );
+
+                        dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
                     };
 
                     const errorListener = async (event: MessageEvent) => {

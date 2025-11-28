@@ -10,6 +10,9 @@ importers:
             "@monaco-editor/react":
                 specifier: ^4.7.0
                 version: 4.7.0(monaco-editor@0.53.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+            "@react-spring/web":
+                specifier: ^10.0.3
+                version: 10.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
             "@reduxjs/toolkit":
                 specifier: ^2.11.0
                 version: 2.11.0(react-redux@9.2.0(@types/react@19.2.7)(react@19.2.0)(redux@5.0.1))(react@19.2.0)
@@ -978,6 +981,51 @@ packages:
                 integrity: sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg==,
             }
         engines: { node: ">= 10.0.0" }
+
+    "@react-spring/animated@10.0.3":
+        resolution:
+            {
+                integrity: sha512-7MrxADV3vaUADn2V9iYhaIL6iOWRx9nCJjYrsk2AHD2kwPr6fg7Pt0v+deX5RnCDmCKNnD6W5fasiyM8D+wzJQ==,
+            }
+        peerDependencies:
+            react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+    "@react-spring/core@10.0.3":
+        resolution:
+            {
+                integrity: sha512-D4DwNO68oohDf/0HG2G0Uragzb9IA1oXblxrd6MZAcBcUQG2EHUWXewjdECMPLNmQvlYVyyBRH6gPxXM5DX7DQ==,
+            }
+        peerDependencies:
+            react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+    "@react-spring/rafz@10.0.3":
+        resolution:
+            {
+                integrity: sha512-Ri2/xqt8OnQ2iFKkxKMSF4Nqv0LSWnxXT4jXFzBDsHgeeH/cHxTLupAWUwmV9hAGgmEhBmh5aONtj3J6R/18wg==,
+            }
+
+    "@react-spring/shared@10.0.3":
+        resolution:
+            {
+                integrity: sha512-geCal66nrkaQzUVhPkGomylo+Jpd5VPK8tPMEDevQEfNSWAQP15swHm+MCRG4wVQrQlTi9lOzKzpRoTL3CA84Q==,
+            }
+        peerDependencies:
+            react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+    "@react-spring/types@10.0.3":
+        resolution:
+            {
+                integrity: sha512-H5Ixkd2OuSIgHtxuHLTt7aJYfhMXKXT/rK32HPD/kSrOB6q6ooeiWAXkBy7L8F3ZxdkBb9ini9zP9UwnEFzWgQ==,
+            }
+
+    "@react-spring/web@10.0.3":
+        resolution:
+            {
+                integrity: sha512-ndU+kWY81rHsT7gTFtCJ6mrVhaJ6grFmgTnENipzmKqot4HGf5smPNK+cZZJqoGeDsj9ZsiWPW4geT/NyD484A==,
+            }
+        peerDependencies:
+            react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+            react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
     "@reduxjs/toolkit@2.11.0":
         resolution:
@@ -5693,6 +5741,38 @@ snapshots:
             "@parcel/watcher-win32-ia32": 2.5.1
             "@parcel/watcher-win32-x64": 2.5.1
         optional: true
+
+    "@react-spring/animated@10.0.3(react@19.2.0)":
+        dependencies:
+            "@react-spring/shared": 10.0.3(react@19.2.0)
+            "@react-spring/types": 10.0.3
+            react: 19.2.0
+
+    "@react-spring/core@10.0.3(react@19.2.0)":
+        dependencies:
+            "@react-spring/animated": 10.0.3(react@19.2.0)
+            "@react-spring/shared": 10.0.3(react@19.2.0)
+            "@react-spring/types": 10.0.3
+            react: 19.2.0
+
+    "@react-spring/rafz@10.0.3": {}
+
+    "@react-spring/shared@10.0.3(react@19.2.0)":
+        dependencies:
+            "@react-spring/rafz": 10.0.3
+            "@react-spring/types": 10.0.3
+            react: 19.2.0
+
+    "@react-spring/types@10.0.3": {}
+
+    "@react-spring/web@10.0.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)":
+        dependencies:
+            "@react-spring/animated": 10.0.3(react@19.2.0)
+            "@react-spring/core": 10.0.3(react@19.2.0)
+            "@react-spring/shared": 10.0.3(react@19.2.0)
+            "@react-spring/types": 10.0.3
+            react: 19.2.0
+            react-dom: 19.2.0(react@19.2.0)
 
     "@reduxjs/toolkit@2.11.0(react-redux@9.2.0(@types/react@19.2.7)(react@19.2.0)(redux@5.0.1))(react@19.2.0)":
         dependencies:
