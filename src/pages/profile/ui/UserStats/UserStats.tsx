@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Duel, getDuelResultForUser } from "entities/duel";
 import { UserData } from "entities/user";
+import { AnimatedNumber } from "shared/ui";
 import styles from "./UserStats.module.scss";
 
 interface UserStatsProps {
@@ -42,10 +43,18 @@ export const UserStats = ({ user, userDuels }: UserStatsProps) => {
 
             <tbody>
                 <tr>
-                    <td>{rating}</td>
-                    <td>{wins}</td>
-                    <td>{losses}</td>
-                    <td>{draws}</td>
+                    <td>
+                        <AnimatedNumber value={rating} from={0} />
+                    </td>
+                    <td>
+                        <AnimatedNumber value={wins} from={0} />
+                    </td>
+                    <td>
+                        <AnimatedNumber value={losses} from={0} />
+                    </td>
+                    <td>
+                        <AnimatedNumber value={draws} from={0} />
+                    </td>
                 </tr>
             </tbody>
         </table>

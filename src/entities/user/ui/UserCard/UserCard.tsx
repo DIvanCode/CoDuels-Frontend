@@ -3,7 +3,7 @@ import CupIcon from "shared/assets/icons/cup.svg?react";
 import UserIcon from "shared/assets/icons/user.svg?react";
 
 import clsx from "clsx";
-import { animated, useSpring } from "@react-spring/web";
+import { AnimatedNumber } from "shared/ui";
 import styles from "./UserCard.module.scss";
 
 interface Props {
@@ -14,12 +14,6 @@ interface Props {
 }
 
 export const UserCard = ({ user, hideInfo, reversed, ratingDelta }: Props) => {
-    const ratingAnimation = useSpring({
-        number: ratingDelta !== undefined ? user.rating + ratingDelta : user.rating,
-        from: { number: user.rating },
-        config: { duration: 500 },
-    });
-
     return (
         <div className={clsx(styles.user, reversed && styles.reversed)}>
             {!hideInfo && (
@@ -28,9 +22,12 @@ export const UserCard = ({ user, hideInfo, reversed, ratingDelta }: Props) => {
                     <div className={styles.rating}>
                         <CupIcon />
 
-                        <animated.span>
-                            {ratingAnimation.number.to((n) => Math.floor(n))}
-                        </animated.span>
+                        <AnimatedNumber
+                            value={
+                                ratingDelta !== undefined ? user.rating + ratingDelta : user.rating
+                            }
+                            from={user.rating}
+                        />
 
                         {ratingDelta !== undefined && (
                             <span className={styles.ratingDelta}>

@@ -8,6 +8,7 @@ import styles from "./TaskSubmissionsContent.module.scss";
 
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
+    // TODO: баг
     const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
 
     const {

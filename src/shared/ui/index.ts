@@ -27,3 +27,4 @@ export { Table } from "./Table/Table";
 export { ResultTitle } from "./ResultTitle/ResultTitle";
 
 export { MonacoEditor } from "./MonacoEditor/MonacoEditor";
+export { AnimatedNumber } from "./AnimatedNumber/AnimatedNumber";
