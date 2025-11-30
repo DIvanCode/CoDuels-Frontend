@@ -2,15 +2,18 @@ import { useState } from "react";
 import CopySuccessIcon from "shared/assets/icons/copy-success.svg?react";
 import CopyIcon from "shared/assets/icons/copy.svg?react";
 import { copyToClipboard } from "shared/lib/copyToClipboard";
+import clsx from "clsx";
 import { IconButton } from "../IconButton/IconButton";
 
 import styles from "./CopyButton.module.scss";
 
 interface Props {
     textToCopy: string;
+    className?: string;
+    size?: "small" | "medium";
 }
 
-export const CopyButton = ({ textToCopy }: Props) => {
+export const CopyButton = ({ textToCopy, className, size = "small" }: Props) => {
     const copyIcons = {
         idleCopy: <CopyIcon />,
         successCopy: <CopySuccessIcon />,
@@ -32,8 +35,8 @@ export const CopyButton = ({ textToCopy }: Props) => {
 
     return (
         <IconButton
-            size="small"
-            className={styles.copyButton}
+            size={size}
+            className={clsx(styles.copyButton, className)}
             onClick={() => handleCopy(textToCopy)}
         >
             {copyIcons[copyIconState]}

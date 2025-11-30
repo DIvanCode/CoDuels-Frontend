@@ -19,10 +19,10 @@
     }
 
     &[data-size="medium"] {
-        --size: 42px;
+        --size: 1.75em;
     }
 
     &[data-size="large"] {
-        --size: 52px;
+        --size: 2em;
     }
 }

@@ -58,6 +58,18 @@
     min-height: 0;
 }
 
+.editorWrapper {
+    position: relative;
+    height: 100%;
+}
+
+.copyCodeButton {
+    position: absolute;
+    top: 1em;
+    right: 1.75em;
+    z-index: 1;
+}
+
 .messageDropdown {
     display: inline-block;
     position: relative;

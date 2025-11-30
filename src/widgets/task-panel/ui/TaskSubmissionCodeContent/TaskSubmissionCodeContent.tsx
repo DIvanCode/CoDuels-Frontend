@@ -113,14 +113,22 @@ export const TaskSubmissionCodeContent = () => {
                 </div>
             </div>
             <div className={styles.editorContainer}>
-                <MonacoEditor
-                    height="100%"
-                    value={solution}
-                    theme="dark"
-                    onValueChange={() => {}}
-                    language={languageValue}
-                    options={{ ...baseEditorConfig, readOnly: true }}
-                />
+                <div className={styles.editorWrapper}>
+                    <CopyButton
+                        textToCopy={solution}
+                        className={styles.copyCodeButton}
+                        size="medium"
+                    />
+
+                    <MonacoEditor
+                        height="100%"
+                        value={solution}
+                        theme="dark"
+                        onValueChange={() => {}}
+                        language={languageValue}
+                        options={{ ...baseEditorConfig, readOnly: true }}
+                    />
+                </div>
             </div>
         </div>
     );

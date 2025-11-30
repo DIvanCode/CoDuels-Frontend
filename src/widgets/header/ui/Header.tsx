@@ -35,7 +35,7 @@ export const Header = () => {
     return (
         <header className={styles.header}>
             <Link to={AppRoutes.INDEX}>
-                <IconButton>
+                <IconButton size="large">
                     <Favicon />
                 </IconButton>
             </Link>
