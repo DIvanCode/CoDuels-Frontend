@@ -11,11 +11,12 @@ interface Props {
     hideInfo?: boolean;
     reversed?: boolean;
     ratingDelta?: number;
+    onClick?: () => void;
 }
 
-export const UserCard = ({ user, hideInfo, reversed, ratingDelta }: Props) => {
+export const UserCard = ({ user, hideInfo, reversed, ratingDelta, onClick }: Props) => {
     return (
-        <div className={clsx(styles.user, reversed && styles.reversed)}>
+        <div className={clsx(styles.user, reversed && styles.reversed)} onClick={onClick}>
             {!hideInfo && (
                 <div className={styles.userInfo}>
                     <p className={styles.nickname}>{user.nickname}</p>

@@ -1,6 +1,7 @@
 import { DuelResult, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
+import { useNavigate } from "react-router-dom";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export const DuelInfo = ({ duelId }: Props) => {
+    const navigate = useNavigate();
+
     const currentUser = useAppSelector(selectCurrentUser);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
@@ -26,9 +29,16 @@ export const DuelInfo = ({ duelId }: Props) => {
         delta2 = duel.rating_changes[user2.id][getDuelResultForUser(duel, user2.id)];
     }
 
+    const handleOnUserClick = (userId: number) =>
+        userId !== currentUser?.id && navigate(`/profile/${userId}`);
+
     return (
         <div className={styles.duelInfo}>
-            <UserCard user={user1} ratingDelta={delta1} />
+            <UserCard
+                user={user1}
+                ratingDelta={delta1}
+                onClick={() => handleOnUserClick(user1.id)}
+            />
             <div className={styles.duelContent}>
                 {duel.status === "InProgress" ? (
                     <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
@@ -40,7 +50,12 @@ export const DuelInfo = ({ duelId }: Props) => {
                     />
                 )}
             </div>
-            <UserCard user={user2} reversed ratingDelta={delta2} />
+            <UserCard
+                user={user2}
+                reversed
+                ratingDelta={delta2}
+                onClick={() => handleOnUserClick(user2.id)}
+            />
         </div>
     );
 };
