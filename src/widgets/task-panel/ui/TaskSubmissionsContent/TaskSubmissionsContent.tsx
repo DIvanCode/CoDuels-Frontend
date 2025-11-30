@@ -8,7 +8,6 @@ import styles from "./TaskSubmissionsContent.module.scss";
 
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
-    // TODO: баг
     const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
 
     const {
@@ -21,9 +20,7 @@ export const TaskSubmissionsContent = () => {
     });
 
     useEffect(() => {
-        if (submissions?.every((s) => s.status === "Done")) {
-            setShouldPollSubmissions(false);
-        }
+        setShouldPollSubmissions(!submissions?.every((s) => s.status === "Done"));
     }, [submissions]);
 
     if (isLoading) {
