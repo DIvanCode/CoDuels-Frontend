@@ -3,6 +3,7 @@ import { Loader, Table } from "shared/ui";
 import { useGetSubmissionsQuery, POOLING_INTERVAL } from "features/submit-code";
 
 import { useEffect, useState } from "react";
+import { useGetDuelQuery } from "entities/duel";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
@@ -10,9 +11,13 @@ export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
     const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
 
+    const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId!), {
+        skip: !duelId,
+    });
+
     const {
         data: submissions,
-        isLoading,
+        isLoading: isSubmissionsLoading,
         isError,
     } = useGetSubmissionsQuery(duelId ?? "", {
         skip: !duelId,
@@ -23,7 +28,7 @@ export const TaskSubmissionsContent = () => {
         setShouldPollSubmissions(!submissions?.every((s) => s.status === "Done"));
     }, [submissions]);
 
-    if (isLoading) {
+    if (isSubmissionsLoading || isDuelLoading) {
         return <Loader />;
     }
 
@@ -61,6 +66,11 @@ export const TaskSubmissionsContent = () => {
                         key={submission.submission_id}
                         submission={submission}
                         duelId={duelId}
+                        afterDuelEnd={
+                            submission?.created_at && duel?.end_time
+                                ? new Date(submission.created_at) > new Date(duel.end_time)
+                                : false
+                        }
                     />
                 ))}
             </tbody>

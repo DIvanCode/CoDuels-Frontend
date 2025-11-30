@@ -1,6 +1,6 @@
 import { SubmissionItem } from "features/submit-code";
 import { useNavigate } from "react-router-dom";
-import { ResultTitle } from "shared/ui";
+import { ResultTitle, Badge } from "shared/ui";
 import { formatDate, getDisplayText, getVerdictVariant } from "../../lib/submissionUtils";
 
 import styles from "./TaskSubmissionRow.module.scss";
@@ -8,9 +8,10 @@ import styles from "./TaskSubmissionRow.module.scss";
 interface SubmissionRowProps {
     submission: SubmissionItem;
     duelId: string;
+    afterDuelEnd: boolean;
 }
 
-export const TaskSubmissionRow = ({ submission, duelId }: SubmissionRowProps) => {
+export const TaskSubmissionRow = ({ submission, duelId, afterDuelEnd }: SubmissionRowProps) => {
     const navigate = useNavigate();
 
     const { status, verdict, language, created_at } = submission;
@@ -27,7 +28,10 @@ export const TaskSubmissionRow = ({ submission, duelId }: SubmissionRowProps) =>
                 </ResultTitle>
             </td>
             <td>{language ?? "—"}</td>
-            <td>{formatDate(created_at)}</td>
+            <td className={styles.submissionDate}>
+                {formatDate(created_at)}
+                {afterDuelEnd && <Badge severity="warning">после дуэли</Badge>}
+            </td>
         </tr>
     );
 };

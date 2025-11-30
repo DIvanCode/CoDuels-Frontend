@@ -1,0 +1,13 @@
+.badge {
+    padding: 0.1em 0.6em;
+
+    border-radius: 5em;
+    white-space: nowrap;
+}
+
+.warning {
+    border: 1px solid var(--warning);
+
+    color: var(--text-primary);
+    background-color: var(--on-warning);
+}
