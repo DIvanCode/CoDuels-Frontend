@@ -82,8 +82,8 @@ const mapLanguageToLanguageValue = (language: string): LanguageValue => {
     if (normalized === "c++" || normalized === "cpp") {
         return LANGUAGES.CPP;
     }
-    if (normalized === "c#" || normalized === "csharp") {
-        return LANGUAGES.CSHARP;
+    if (normalized === "go" || normalized === "golang") {
+        return LANGUAGES.GO;
     }
     if (normalized === "python") {
         return LANGUAGES.PYTHON;

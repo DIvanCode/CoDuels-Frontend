@@ -1,0 +1,46 @@
+.button {
+    width: 2.5em;
+    height: 2.5em;
+    background: var(--card-primary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:focus-visible {
+        outline: 0.125em solid var(--accent-secondary);
+        outline-offset: 0.125em;
+    }
+}
+
+.buttonLight {
+    background: var(--card-primary);
+}
+
+.buttonDark {
+    background: var(--card-primary);
+}
+
+.icon {
+    width: 1.5em;
+    height: 1.5em;
+    color: var(--text-primary);
+
+    path,
+    circle,
+    rect,
+    line {
+        fill: currentColor !important;
+        stroke: currentColor !important;
+    }
+}
+
+.iconLight {
+    color: var(--accent-primary);
+}
+
+.iconDark {
+    color: var(--accent-primary);
+}

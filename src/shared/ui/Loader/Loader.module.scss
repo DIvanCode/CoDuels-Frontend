@@ -1,0 +1,35 @@
+.loaderWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75em;
+
+    width: 100%;
+    min-height: 12em;
+
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.spinner {
+    width: 3em;
+    height: 3em;
+    border-radius: 50%;
+    border: 0.35em solid rgba(255, 255, 255, 0.15);
+    border-top-color: var(--accent-primary);
+
+    animation: spin 0.8s linear infinite;
+}
+
+.label {
+    font-size: 0.875em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

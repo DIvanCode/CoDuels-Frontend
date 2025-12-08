@@ -10,4 +10,32 @@
     &:active {
         transform: scale(0.95);
     }
+
+    svg {
+        width: 1.1em;
+        height: 1.1em;
+    }
+}
+
+.copyIdle {
+    color: var(--icon-secondary);
+
+    path,
+    circle,
+    rect,
+    line polyline {
+        stroke: currentColor !important;
+    }
+}
+
+.copySuccess {
+    color: var(--positive);
+
+    path,
+    circle,
+    rect,
+    line,
+    polyline {
+        stroke: currentColor !important;
+    }
 }

@@ -6,8 +6,7 @@
 }
 
 .warning {
-    border: 1px solid var(--warning);
-
-    color: var(--text-primary);
-    background-color: var(--on-warning);
+    border: 1px solid var(--badge-warning-border);
+    color: var(--badge-warning-text);
+    background-color: var(--badge-warning-bg);
 }

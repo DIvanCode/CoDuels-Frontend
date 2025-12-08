@@ -29,8 +29,10 @@ export const TaskPanel = () => {
     ];
 
     return (
-        <TabbedCard tabs={tabs} contentClassName={styles.taskPanelContent}>
-            <Outlet />
-        </TabbedCard>
+        <div className={styles.taskPanel}>
+            <TabbedCard tabs={tabs} contentClassName={styles.taskPanelContent}>
+                <Outlet />
+            </TabbedCard>
+        </div>
     );
 };

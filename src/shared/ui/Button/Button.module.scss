@@ -24,6 +24,8 @@
     gap: 6px;
 
     &.filled {
+        --btn-text-color: #ffffff;
+
         &:hover:not(.disabled) {
             background-color: color-mix(in srgb, var(--btn-bg-color) 85%, white);
         }

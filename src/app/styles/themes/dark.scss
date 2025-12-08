@@ -1,7 +1,13 @@
-.app {
+.app[data-theme="dark"],
+.app--dark {
     --background: #1e1e1e;
     --text-primary: #fff;
     --text-secondary: rgba(255, 255, 255, 0.6);
     --card-primary: #292929;
     --card-secondary: #494949;
+    --icon-primary: rgba(255, 255, 255, 0.85);
+    --icon-secondary: rgba(255, 255, 255, 0.6);
+    --badge-warning-border: var(--warning);
+    --badge-warning-text: var(--text-primary);
+    --badge-warning-bg: var(--on-warning);
 }

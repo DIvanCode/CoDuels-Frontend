@@ -7,9 +7,70 @@
 
 .duelContent {
     justify-self: center;
-
-    font-size: 1.5em;
-    font-weight: 600;
-
     user-select: none;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+
+    text-align: center;
+}
+
+.resultOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2em;
+
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+}
+
+.resultModal {
+    position: relative;
+    width: min(90vw, 28rem);
+
+    padding: 2.5em 2em;
+
+    background: var(--card-primary);
+    border-radius: 1.25em;
+    box-shadow: 0 2.5em 4em rgba(0, 0, 0, 0.3);
+
+    text-align: center;
+}
+
+.resultTitle {
+    margin: 0 0 0.75em;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.resultDescription {
+    margin: 0;
+    font-size: 1em;
+    color: var(--text-secondary);
+}
+
+.resultClose {
+    position: absolute;
+    top: 0.75em;
+    right: 0.75em;
+
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.5em;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: var(--text-primary);
+    }
 }

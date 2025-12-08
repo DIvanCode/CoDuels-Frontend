@@ -29,3 +29,5 @@ export { ResultTitle } from "./ResultTitle/ResultTitle";
 export { MonacoEditor } from "./MonacoEditor/MonacoEditor";
 export { AnimatedNumber } from "./AnimatedNumber/AnimatedNumber";
 export { Badge } from "./Badge/Badge";
+export { StatusCard } from "./StatusCard/StatusCard";
+export type { StatusVariant } from "./StatusCard/StatusCard";
