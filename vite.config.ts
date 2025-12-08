@@ -4,6 +4,9 @@ import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
 export default defineConfig({
+    build: {
+        sourcemap: true,
+    },
     plugins: [react(), svgr()],
     server: {
         host: "127.0.0.1",
