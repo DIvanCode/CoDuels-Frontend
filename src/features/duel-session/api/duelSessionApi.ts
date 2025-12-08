@@ -10,6 +10,7 @@ import {
     resetDuelSession,
 } from "../model/duelSessionSlice";
 import { DuelMessage } from "../model/types";
+import { SSE_RETRY_TIMEOUT } from "../lib/const";
 
 // TODO: надо порефакторить будет я уже путаюсь
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
@@ -75,37 +76,40 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                     };
 
                     const errorListener = async (event: MessageEvent) => {
-                        console.warn("SSE error:", event);
-                        console.log("Retrying SSE connection...");
+                        const sseReconnect = async () => {
+                            const state = getState() as RootState;
 
-                        const newAccessToken = await refreshAuthToken(
-                            getState() as RootState,
-                            dispatch,
-                        );
+                            if (state.duelSession.phase === "idle") return;
 
-                        if (newAccessToken) {
-                            eventSource.close();
+                            console.warn("SSE error:", event);
+                            console.log("Retrying SSE connection...");
 
-                            const currentState = getState() as RootState;
-                            const lastEventId = currentState.duelSession.lastEventId;
-                            const reconnectHeaders: Record<string, string> = {
-                                Authorization: `Bearer ${newAccessToken}`,
-                            };
+                            const newAccessToken = await refreshAuthToken(state, dispatch);
 
-                            if (lastEventId) {
-                                reconnectHeaders["Last-Event-ID"] = lastEventId;
+                            if (newAccessToken) {
+                                eventSource.close();
+
+                                const currentState = getState() as RootState;
+                                const lastEventId = currentState.duelSession.lastEventId;
+                                const reconnectHeaders: Record<string, string> = {
+                                    Authorization: `Bearer ${newAccessToken}`,
+                                };
+
+                                if (lastEventId) {
+                                    reconnectHeaders["Last-Event-ID"] = lastEventId;
+                                }
+
+                                eventSource = new SSE(
+                                    `${import.meta.env.VITE_BASE_URL}/duels/connect`,
+                                    {
+                                        headers: reconnectHeaders,
+                                    },
+                                );
+                                setupListeners();
                             }
+                        };
 
-                            eventSource = new SSE(
-                                `${import.meta.env.VITE_BASE_URL}/duels/connect`,
-                                {
-                                    headers: reconnectHeaders,
-                                },
-                            );
-                            setupListeners();
-
-                            console.log("SSE Connection re-established");
-                        }
+                        setTimeout(sseReconnect, SSE_RETRY_TIMEOUT);
                     };
 
                     const setupListeners = () => {

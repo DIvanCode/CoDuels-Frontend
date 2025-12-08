@@ -15,7 +15,7 @@ export const DuelSessionManager = () => {
     const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
 
     useEffect(() => {
-        // If user logged in and  he has an active duel but phase is idle, try to restore session
+        // If user logged in and he has an active duel but phase is idle, try to restore session
         if (user && activeDuelId && phase === "idle") {
             dispatch(restoreDuelSession(activeDuelId));
         }

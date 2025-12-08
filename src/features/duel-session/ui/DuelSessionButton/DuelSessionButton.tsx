@@ -1,3 +1,4 @@
+import { useGetCurrentDuelQuery } from "entities/duel";
 import { setPhase } from "features/duel-session/model/duelSessionSlice";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { DuelSessionPhase } from "features/duel-session/model/types";
@@ -10,6 +11,8 @@ export const DuelSessionButton = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
+
+    useGetCurrentDuelQuery();
 
     const { phase, activeDuelId } = useAppSelector(selectDuelSession);
     const prevPhaseRef = useRef<DuelSessionPhase>(phase);

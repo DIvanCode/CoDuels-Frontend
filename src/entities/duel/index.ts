@@ -1,6 +1,6 @@
 export { duelApiSlice } from "./api/duelApi";
 
-export { useGetDuelQuery, useGetAllUserDuelsQuery } from "./api/duelApi";
+export { useGetDuelQuery, useGetAllUserDuelsQuery, useGetCurrentDuelQuery } from "./api/duelApi";
 
 export { DuelResult } from "./ui/DuelResult/DuelResult";
 export { DuelHistory } from "./ui/DuelHistory/DuelHistory";
