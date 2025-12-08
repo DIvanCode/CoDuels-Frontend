@@ -27,9 +27,9 @@ export const DuelResult = ({ winnerId, meId, otherId }: Props) => {
 
     return (
         <div className={styles.result}>
-            <span className={classMap[other]}>{other}</span>
-            <span>-</span>
             <span className={classMap[me]}>{me}</span>
+            <span>-</span>
+            <span className={classMap[other]}>{other}</span>
         </div>
     );
 };
