@@ -5,12 +5,10 @@ import styles from "./DuelPage.module.scss";
 
 const DuelPage = () => {
     return (
-        <div className={styles.duelPage}>
-            <Split direction="horizontal" sizes={[50, 50]} minSize={300} className={styles.split}>
-                <CodePanel />
-                <TaskPanel />
-            </Split>
-        </div>
+        <Split direction="horizontal" sizes={[50, 50]} minSize={300} className={styles.duelPage}>
+            <CodePanel />
+            <TaskPanel />
+        </Split>
     );
 };
 
