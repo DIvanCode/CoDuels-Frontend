@@ -7,3 +7,24 @@
     background: var(--background);
     color: var(--text-primary);
 }
+
+// Gutter for resizing panels
+.gutter {
+    width: 1em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: col-resize;
+
+    &::before {
+        content: "\22EE"; // Three vertical dots
+
+        font-size: 1.25em;
+        font-weight: 700;
+
+        pointer-events: none;
+        color: var(--card-secondary);
+    }
+}

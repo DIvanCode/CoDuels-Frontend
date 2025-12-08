@@ -25,8 +25,12 @@ export const TaskSubmissionsContent = () => {
     });
 
     useEffect(() => {
-        setShouldPollSubmissions(!submissions?.every((s) => s.status === "Done"));
-    }, [submissions]);
+        if (submissions?.every((s) => s.status === "Done") || isError) {
+            setShouldPollSubmissions(false);
+        } else {
+            setShouldPollSubmissions(true);
+        }
+    }, [submissions, isError]);
 
     if (isSubmissionsLoading || isDuelLoading) {
         return <Loader />;
