@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { useRef } from "react";
 import { IconButton } from "shared/ui";
 import LoadIcon from "shared/assets/icons/load-file.svg?react";
@@ -8,13 +7,11 @@ import styles from "./FileLoader.module.scss";
 interface Props {
     onFileLoaded: (content: string, fileName: string) => void;
     acceptedFileTypes?: string;
-    className?: string;
 }
 
 export const FileLoader = ({
     onFileLoaded,
     acceptedFileTypes = ".cpp,.cs,.py,.js,.ts,.java,.txt",
-    className,
 }: Props) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,7 +47,7 @@ export const FileLoader = ({
     };
 
     return (
-        <div className={clsx("file-loader", styles.container, className)}>
+        <div>
             <input
                 type="file"
                 ref={fileInputRef}

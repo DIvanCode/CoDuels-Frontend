@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useCallback } from "react";
 
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { IconButton } from "shared/ui";
 
 import SunIcon from "shared/assets/icons/sun.svg?react";
 import MoonIcon from "shared/assets/icons/moon.svg?react";
@@ -22,8 +23,7 @@ export const ThemeSwitch = () => {
     }, [dispatch]);
 
     return (
-        <button
-            type="button"
+        <IconButton
             className={clsx(styles.button, isLight ? styles.buttonLight : styles.buttonDark)}
             aria-pressed={isLight}
             aria-label={isLight ? "Включена светлая тема" : "Включена тёмная тема"}
@@ -35,6 +35,6 @@ export const ThemeSwitch = () => {
             ) : (
                 <MoonIcon className={clsx(styles.icon, styles.iconDark)} />
             )}
-        </button>
+        </IconButton>
     );
 };

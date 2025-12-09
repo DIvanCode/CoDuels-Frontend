@@ -38,25 +38,6 @@
     font-weight: 400;
 
     .listIcon {
-        width: 1.5em;
-        height: 1.5em;
-        color: var(--icon-primary);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-
-        svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        svg path,
-        svg circle,
-        svg rect,
-        svg line,
-        svg polyline {
-            fill: currentColor !important;
-            stroke: currentColor !important;
-        }
+        color: var(--text-primary);
     }
 }

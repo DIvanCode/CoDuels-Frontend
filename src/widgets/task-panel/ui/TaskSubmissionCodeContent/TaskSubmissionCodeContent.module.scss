@@ -24,18 +24,6 @@
 
 .backButtonIcon {
     transform: rotate(90deg);
-    width: 1.25em;
-    height: 1.25em;
-    color: var(--icon-primary);
-
-    path,
-    circle,
-    rect,
-    line,
-    polyline {
-        fill: currentColor !important;
-        stroke: currentColor !important;
-    }
 }
 
 .submissionInfo {

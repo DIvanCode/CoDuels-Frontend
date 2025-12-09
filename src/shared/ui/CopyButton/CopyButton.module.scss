@@ -18,24 +18,9 @@
 }
 
 .copyIdle {
-    color: var(--icon-secondary);
-
-    path,
-    circle,
-    rect,
-    line polyline {
-        stroke: currentColor !important;
-    }
+    color: var(--text-primary);
 }
 
 .copySuccess {
     color: var(--positive);
-
-    path,
-    circle,
-    rect,
-    line,
-    polyline {
-        stroke: currentColor !important;
-    }
 }

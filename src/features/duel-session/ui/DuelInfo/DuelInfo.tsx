@@ -1,6 +1,7 @@
 import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
+import { ResultModal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
@@ -68,13 +69,6 @@ export const DuelInfo = ({ duelId }: Props) => {
         delta2 = duel.rating_changes[user2.id][getDuelResultForUser(duel, user2.id)];
     }
 
-    const renderDuelStatus = () => {
-        if (duel.status === "InProgress") {
-            return <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />;
-        }
-        return null;
-    };
-
     const duelResult = duel.status === "Finished" ? getDuelResultForUser(duel, user1.id) : null;
 
     const resultTitleMap: Record<DuelResultType, string> = {
@@ -88,7 +82,7 @@ export const DuelInfo = ({ duelId }: Props) => {
     const resultDescription =
         duelResult !== null
             ? `Изменение рейтинга: ${changeText} (${user1.rating} → ${user1.rating + delta})`
-            : "";
+            : null;
 
     const handleOnUserClick = (userId: number) =>
         userId !== currentUser?.id && navigate(`/profile/${userId}`);
@@ -102,8 +96,9 @@ export const DuelInfo = ({ duelId }: Props) => {
                     onClick={() => handleOnUserClick(user1.id)}
                 />
                 <div className={styles.duelContent}>
-                    {renderDuelStatus()}
-                    {duel.status === "Finished" && (
+                    {duel.status === "InProgress" ? (
+                        <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
+                    ) : (
                         <DuelResult
                             winnerId={duel?.winner_id ?? null}
                             meId={user1.id}
@@ -119,29 +114,11 @@ export const DuelInfo = ({ duelId }: Props) => {
                 />
             </div>
             {showResult && duelResult !== null && (
-                <div
-                    className={styles.resultOverlay}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-live="assertive"
-                    onClick={handleCloseResult}
-                >
-                    <div
-                        className={styles.resultModal}
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className={styles.resultClose}
-                            aria-label="Закрыть"
-                            onClick={handleCloseResult}
-                        >
-                            ×
-                        </button>
-                        <h3 className={styles.resultTitle}>{resultTitleMap[duelResult]}</h3>
-                        <p className={styles.resultDescription}>{resultDescription}</p>
-                    </div>
-                </div>
+                <ResultModal
+                    title={resultTitleMap[duelResult]}
+                    description={resultDescription}
+                    onClose={handleCloseResult}
+                />
             )}
         </>
     );

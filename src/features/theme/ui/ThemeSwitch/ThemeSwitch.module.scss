@@ -23,20 +23,6 @@
     background: var(--card-primary);
 }
 
-.icon {
-    width: 1.5em;
-    height: 1.5em;
-    color: var(--text-primary);
-
-    path,
-    circle,
-    rect,
-    line {
-        fill: currentColor !important;
-        stroke: currentColor !important;
-    }
-}
-
 .iconLight {
     color: var(--accent-primary);
 }
