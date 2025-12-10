@@ -17,9 +17,11 @@
 }
 
 .center {
-    flex: 1;
     display: flex;
     justify-content: center;
+    flex: 1;
+
+    margin-left: -2.5em;
 }
 
 .right {

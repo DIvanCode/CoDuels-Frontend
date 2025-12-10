@@ -1,9 +1,9 @@
 import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
-import { ResultModal } from "shared/ui";
+import { Button, ResultModal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useLocalStorage } from "shared/lib/useLocalStorage";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -17,44 +17,9 @@ export const DuelInfo = ({ duelId }: Props) => {
     const currentUser = useAppSelector(selectCurrentUser);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
-    const [showResult, setShowResult] = useState(false);
-    const dismissedRef = useRef(false);
-    const duelStatus = duel?.status;
 
-    useEffect(() => {
-        const storageKey = `duel:${duelId}:resultDismissed`;
-        const isDismissed = (() => {
-            try {
-                return window.localStorage.getItem(storageKey) === "true";
-            } catch {
-                return false;
-            }
-        })();
-
-        dismissedRef.current = isDismissed;
-
-        if (isDismissed) {
-            setShowResult(false);
-            return;
-        }
-
-        if (duelStatus === "Finished") {
-            setShowResult(true);
-        } else {
-            setShowResult(false);
-        }
-    }, [duelStatus, duelId]);
-
-    const handleCloseResult = () => {
-        setShowResult(false);
-        dismissedRef.current = true;
-        const storageKey = `duel:${duelId}:resultDismissed`;
-        try {
-            window.localStorage.setItem(storageKey, "true");
-        } catch {
-            // ignore storage errors
-        }
-    };
+    const [isDismissed, setIsDismissed] = useLocalStorage(`duel:${duelId}:resultDismissed`, false);
+    const showResultModal = duel?.status === "Finished" && !isDismissed;
 
     if (!duel || isDuelLoading) return <div>...</div>;
 
@@ -79,10 +44,6 @@ export const DuelInfo = ({ duelId }: Props) => {
 
     const delta = delta1 ?? 0;
     const changeText = delta > 0 ? `+${delta}` : delta;
-    const resultDescription =
-        duelResult !== null
-            ? `Изменение рейтинга: ${changeText} (${user1.rating} → ${user1.rating + delta})`
-            : null;
 
     const handleOnUserClick = (userId: number) =>
         userId !== currentUser?.id && navigate(`/profile/${userId}`);
@@ -113,12 +74,23 @@ export const DuelInfo = ({ duelId }: Props) => {
                     onClick={() => handleOnUserClick(user2.id)}
                 />
             </div>
-            {showResult && duelResult !== null && (
+            {showResultModal && duelResult !== null && (
                 <ResultModal
                     title={resultTitleMap[duelResult]}
-                    description={resultDescription}
-                    onClose={handleCloseResult}
-                />
+                    onClose={() => setIsDismissed(true)}
+                >
+                    {duelResult && (
+                        <div className={styles.resultContent}>
+                            <p className={styles.description}>
+                                Изменение рейтинга: {changeText}
+                                <span className={styles.ratingChange}>
+                                    ({user1.rating} → {user1.rating + delta})
+                                </span>
+                            </p>
+                            <Button onClick={() => setIsDismissed(true)}>Назад к дуэли</Button>
+                        </div>
+                    )}
+                </ResultModal>
             )}
         </>
     );

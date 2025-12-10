@@ -14,9 +14,9 @@
 
 .modal {
     position: relative;
-    width: min(90vw, 28rem);
+    min-width: 25em;
 
-    padding: 2.5em 2em;
+    padding: 2em;
 
     background: var(--card-primary);
     border-radius: 1.25em;
@@ -30,12 +30,6 @@
     font-size: 1.5em;
     font-weight: 700;
     color: var(--text-primary);
-}
-
-.description {
-    margin: 0;
-    font-size: 1em;
-    color: var(--text-secondary);
 }
 
 .closeButton {
