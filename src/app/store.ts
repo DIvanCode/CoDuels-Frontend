@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 import { authReducer } from "features/auth";
 import { duelSessionReducer } from "features/duel-session";
 import { codeEditorReducer } from "widgets/code-panel";
+import { themeReducer } from "features/theme";
 import { apiSlice } from "shared/api";
 
 const authPersistConfig = {
@@ -27,9 +28,17 @@ const codeEditorPersistConfig = {
     whitelist: ["codeByDuelId", "languageByDuelId"],
 };
 
+const themePersistConfig = {
+    key: "theme",
+    storage,
+    version: 1,
+    whitelist: ["mode"],
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedDuelSessionReducer = persistReducer(duelSessionPersistConfig, duelSessionReducer);
 const persistedCodeEditorReducer = persistReducer(codeEditorPersistConfig, codeEditorReducer);
+const persistedThemeReducer = persistReducer(themePersistConfig, themeReducer);
 
 const store = configureStore({
     reducer: {
@@ -37,6 +46,7 @@ const store = configureStore({
         auth: persistedAuthReducer,
         duelSession: persistedDuelSessionReducer,
         codeEditor: persistedCodeEditorReducer,
+        theme: persistedThemeReducer,
     },
     middleware: (getDefaultMiddleWare) =>
         getDefaultMiddleWare({

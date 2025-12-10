@@ -15,8 +15,8 @@ interface Props {
 
 export const CopyButton = ({ textToCopy, className, size = "small" }: Props) => {
     const copyIcons = {
-        idleCopy: <CopyIcon />,
-        successCopy: <CopySuccessIcon />,
+        idleCopy: <CopyIcon className={styles.copyIdle} />,
+        successCopy: <CopySuccessIcon className={styles.copySuccess} />,
     };
     const [copyIconState, setCopyIconState] = useState<keyof typeof copyIcons>("idleCopy");
     const [isCopyCoolDown, setIsCopyCoolDown] = useState(false);

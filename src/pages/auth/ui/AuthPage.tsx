@@ -1,32 +1,67 @@
 import { LoginForm, RegisterForm } from "features/auth";
 import { useState } from "react";
-import { MainCard, TabPanel } from "shared/ui";
+import { MainCard, TabPanel, StatusCard, type StatusVariant, type ITab } from "shared/ui";
 
-import type { ITab } from "shared/ui";
+import type { StatusPayload } from "features/auth";
 
 import styles from "./AuthPage.module.scss";
 
+type AuthStatus = StatusPayload & { variant: StatusVariant };
+
 const AuthPage = () => {
     const [activeAuthTab, setActiveAuthTab] = useState<"login" | "register">("login");
+    const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
+
+    const handleStatusChange = (payload: StatusPayload | null) => {
+        if (!payload) {
+            setAuthStatus(null);
+            return;
+        }
+        setAuthStatus({ variant: "error", ...payload });
+    };
+
+    const switchToLogin = () => {
+        setActiveAuthTab("login");
+        setAuthStatus(null);
+    };
+
+    const switchToRegister = () => {
+        setActiveAuthTab("register");
+        setAuthStatus(null);
+    };
 
     const authTabs: ITab[] = [
         {
             label: "Вход",
             active: activeAuthTab === "login",
-            onClick: () => setActiveAuthTab("login"),
+            onClick: switchToLogin,
         },
         {
             label: "Регистрация",
             active: activeAuthTab === "register",
-            onClick: () => setActiveAuthTab("register"),
+            onClick: switchToRegister,
         },
     ];
 
     return (
-        <MainCard className={styles.authCard}>
-            <TabPanel tabs={authTabs} tabClassName={styles.authTab} />
-            {activeAuthTab === "login" ? <LoginForm /> : <RegisterForm />}
-        </MainCard>
+        <div className={styles.authPage}>
+            {authStatus && (
+                <StatusCard
+                    variant={authStatus.variant}
+                    title={authStatus.title}
+                    description={authStatus.description}
+                    className={styles.statusBanner}
+                />
+            )}
+            <MainCard className={styles.authCard}>
+                <TabPanel tabs={authTabs} tabClassName={styles.authTab} />
+                {activeAuthTab === "login" ? (
+                    <LoginForm onStatusChange={handleStatusChange} />
+                ) : (
+                    <RegisterForm onStatusChange={handleStatusChange} />
+                )}
+            </MainCard>
+        </div>
     );
 };
 

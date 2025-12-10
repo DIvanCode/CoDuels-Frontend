@@ -22,6 +22,10 @@
     color: var(--text-primary);
 }
 
+.backButtonIcon {
+    transform: rotate(90deg);
+}
+
 .submissionInfo {
     display: flex;
     align-items: center;

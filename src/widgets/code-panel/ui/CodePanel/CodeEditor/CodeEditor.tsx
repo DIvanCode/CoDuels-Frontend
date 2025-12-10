@@ -10,6 +10,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
 import { useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
+import { selectThemeMode } from "features/theme";
 import styles from "./CodeEditor.module.scss";
 import EditorHeader from "./EditorHeader/EditorHeader";
 
@@ -31,17 +32,18 @@ function CodeEditor() {
     const initialLanguage = useAppSelector((state) =>
         duelId ? selectDuelLanguage(state, Number(duelId)) : LANGUAGES.CPP,
     );
+    const theme = useAppSelector(selectThemeMode);
 
     const [localCode, setLocalCode] = useState<string>(initialCode);
     const [localLanguage, setLocalLanguage] = useState<LANGUAGES>(initialLanguage);
 
     const debouncedCodeCb = useDebouncedCallback(
-        (code) => dispatch(setCode({ duelId: Number(duelId), code })),
+        (code: string) => dispatch(setCode({ duelId: Number(duelId), code })),
         DEBOUNCE_DELAY,
     );
 
     const debouncedLanguageCb = useDebouncedCallback(
-        (language) => dispatch(setLanguage({ duelId: Number(duelId), language })),
+        (language: LANGUAGES) => dispatch(setLanguage({ duelId: Number(duelId), language })),
         DEBOUNCE_DELAY,
     );
 
@@ -77,7 +79,7 @@ function CodeEditor() {
                 value={localCode}
                 onValueChange={onCodeChange}
                 language={localLanguage}
-                theme="dark"
+                theme={theme}
                 options={{ ...baseEditorConfig, readOnly: !canEdit }}
                 className={styles.editor}
             />

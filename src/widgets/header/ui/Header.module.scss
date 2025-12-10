@@ -5,7 +5,27 @@
     justify-content: space-between;
     align-items: center;
 
-    padding: 10px 20px;
+    padding: 0.75em 1.25em;
 
     background: var(--card-primary);
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+
+    margin-left: -2.5em;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
 }

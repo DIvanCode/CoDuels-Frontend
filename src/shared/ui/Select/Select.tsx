@@ -54,7 +54,7 @@ export const Select = <T extends string>({
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <span className={styles.arrow}>
-                    <Arrow />
+                    <Arrow className={styles.arrowIcon} />
                 </span>
             </div>
 

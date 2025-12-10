@@ -11,6 +11,8 @@ import {
 } from "widgets/task-panel/lib/submissionUtils";
 
 import { baseEditorConfig } from "shared/config";
+import { useAppSelector } from "shared/lib/storeHooks";
+import { selectThemeMode } from "features/theme";
 import styles from "./TaskSubmissionCodeContent.module.scss";
 
 export const TaskSubmissionCodeContent = () => {
@@ -29,6 +31,7 @@ export const TaskSubmissionCodeContent = () => {
             pollingInterval: shouldPoll ? POOLING_INTERVAL : 0,
         },
     );
+    const theme = useAppSelector(selectThemeMode);
 
     useEffect(() => {
         if (submissionDetail?.status?.toLowerCase() === "done") {
@@ -66,7 +69,7 @@ export const TaskSubmissionCodeContent = () => {
                     variant="outlined"
                     onClick={handleBackClick}
                     className={styles.backButton}
-                    leadingIcon={<KeyboardArrowDownIcon style={{ transform: "rotate(90deg)" }} />}
+                    leadingIcon={<KeyboardArrowDownIcon className={styles.backButtonIcon} />}
                 >
                     Все решения
                 </Button>
@@ -123,7 +126,7 @@ export const TaskSubmissionCodeContent = () => {
                     <MonacoEditor
                         height="100%"
                         value={solution}
-                        theme="dark"
+                        theme={theme}
                         onValueChange={() => {}}
                         language={languageValue}
                         options={{ ...baseEditorConfig, readOnly: true }}

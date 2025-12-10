@@ -1,3 +1,21 @@
 .submissionsTable {
     width: 100%;
 }
+
+.centeredState {
+    width: 100%;
+    height: 100%;
+    min-height: 18em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 2em;
+}
+
+.emptyStateText {
+    font-size: 1em;
+    color: var(--text-secondary);
+    text-align: center;
+}

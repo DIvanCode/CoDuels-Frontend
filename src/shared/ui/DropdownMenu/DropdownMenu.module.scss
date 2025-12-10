@@ -19,7 +19,7 @@
 
     margin-top: 0.75em;
     padding: 0.75em;
-    border: 2px solid var(--background);
+    border: 0.125em solid var(--background);
     border-radius: 0.5em;
 
     background: var(--card-primary);
@@ -38,7 +38,6 @@
     font-weight: 400;
 
     .listIcon {
-        width: 1.5em;
-        height: 1.5em;
+        color: var(--text-primary);
     }
 }

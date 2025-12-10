@@ -33,19 +33,23 @@ export const TaskSubmissionsContent = () => {
     }, [submissions, isError]);
 
     if (isSubmissionsLoading || isDuelLoading) {
-        return <Loader />;
+        return <Loader className={styles.centeredState} />;
     }
 
     if (isError || !submissions) {
         return <div>Ошибка при загрузке посылок</div>;
     }
 
-    if (submissions.length === 0) {
-        return <div>Посылок пока нет</div>;
-    }
-
     if (!duelId) {
         return <div>Ошибка: не указан ID дуэли</div>;
+    }
+
+    if (submissions.length === 0) {
+        return (
+            <div className={styles.centeredState}>
+                <span className={styles.emptyStateText}>Посылок пока нет</span>
+            </div>
+        );
     }
 
     const sortedSubmissions = [...submissions].sort((a, b) => {

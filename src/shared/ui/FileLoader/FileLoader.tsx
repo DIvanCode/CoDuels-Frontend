@@ -7,13 +7,11 @@ import styles from "./FileLoader.module.scss";
 interface Props {
     onFileLoaded: (content: string, fileName: string) => void;
     acceptedFileTypes?: string;
-    className?: string;
 }
 
 export const FileLoader = ({
     onFileLoaded,
     acceptedFileTypes = ".cpp,.cs,.py,.js,.ts,.java,.txt",
-    className = styles.button,
 }: Props) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +47,7 @@ export const FileLoader = ({
     };
 
     return (
-        <div className={`file-loader ${className}`}>
+        <div>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -60,7 +58,7 @@ export const FileLoader = ({
             <IconButton
                 onClick={handleButtonClick}
                 size="small"
-                className="file-loader-button"
+                className={styles.trigger}
                 title="Load code from file"
             >
                 <LoadIcon />

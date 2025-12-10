@@ -1,6 +1,8 @@
 import { TaskDescription } from "entities/task";
 import { useParams } from "react-router-dom";
+import { Loader } from "shared/ui";
 import { useTaskInfo } from "widgets/task-panel/lib/useTaskInfo";
+import styles from "./TaskInfoContent.module.scss";
 
 export const TaskInfoContent = () => {
     const { duelId } = useParams();
@@ -8,7 +10,9 @@ export const TaskInfoContent = () => {
     const { data, isLoading, isError, error } = useTaskInfo(Number(duelId));
     const { task, statement, testCases } = data;
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) {
+        return <Loader className={styles.loader} />;
+    }
 
     if (isError) {
         return <p>Something went wrong: {JSON.stringify(error)}</p>;

@@ -1,14 +1,20 @@
 import { useLoginMutation } from "features/auth/api/authApi";
 import { loginStruct } from "features/auth/model/authStruct";
+import { mapAuthApiError, mapValidationError } from "features/auth/lib/mapAuthError";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { InputField, Button } from "shared/ui";
 import { validate } from "superstruct";
+import type { StatusPayload } from "../../lib/mapAuthError";
 
 import styles from "./LoginForm.module.scss";
 
-export const LoginForm = () => {
+interface LoginFormProps {
+    onStatusChange?: (status: StatusPayload | null) => void;
+}
+
+export const LoginForm = ({ onStatusChange }: LoginFormProps) => {
     const [nickname, setNickname] = useState("");
     const [password, setPassword] = useState("");
 
@@ -19,15 +25,25 @@ export const LoginForm = () => {
     const onSubmit: FormEventHandler<HTMLFormElement> = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
+        onStatusChange?.(null);
+
         const loginData = { nickname, password };
 
         const [error, result] = validate(loginData, loginStruct);
 
         if (error) {
-            alert(error.message);
-        } else {
-            await login(result);
+            const payload = mapValidationError(error);
+            onStatusChange?.(payload);
+            return;
+        }
+
+        try {
+            await login(result).unwrap();
+            onStatusChange?.(null);
             navigate(AppRoutes.INDEX);
+        } catch (err) {
+            const payload = mapAuthApiError(err);
+            onStatusChange?.(payload);
         }
     };
 

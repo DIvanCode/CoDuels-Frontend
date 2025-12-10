@@ -14,13 +14,22 @@ loader.config({
     },
 });
 
-const colors = {
+const darkPalette = {
     cardPrimary: "#292929",
     comment: "#29992a",
-    keyword: "#C586C0",
-    string: "#CE9178",
+    keyword: "#c586c0",
+    string: "#ce9178",
     textPrimary: "#ffffff",
     cardSecondary: "#494949",
+};
+
+const lightPalette = {
+    cardPrimary: "#ffffff",
+    cardSecondary: "#e5e7eb",
+    comment: "#22863a",
+    keyword: "#1d4ed8",
+    string: "#b45309",
+    textPrimary: "#1f2933",
 };
 
 export const customThemes: Record<string, monaco.editor.IStandaloneThemeData> = {
@@ -28,14 +37,28 @@ export const customThemes: Record<string, monaco.editor.IStandaloneThemeData> = 
         base: "vs-dark",
         inherit: true,
         rules: [
-            { token: "comment", foreground: colors.comment, fontStyle: "italic" },
-            { token: "keyword", foreground: colors.keyword },
-            { token: "string", foreground: colors.string },
+            { token: "comment", foreground: darkPalette.comment, fontStyle: "italic" },
+            { token: "keyword", foreground: darkPalette.keyword },
+            { token: "string", foreground: darkPalette.string },
         ],
         colors: {
-            "editor.background": colors.cardPrimary,
-            "editor.foreground": colors.textPrimary,
-            "editor.lineHighlightBackground": colors.cardSecondary,
+            "editor.background": darkPalette.cardPrimary,
+            "editor.foreground": darkPalette.textPrimary,
+            "editor.lineHighlightBackground": darkPalette.cardSecondary,
+        },
+    },
+    light: {
+        base: "vs",
+        inherit: true,
+        rules: [
+            { token: "comment", foreground: lightPalette.comment, fontStyle: "italic" },
+            { token: "keyword", foreground: lightPalette.keyword },
+            { token: "string", foreground: lightPalette.string },
+        ],
+        colors: {
+            "editor.background": lightPalette.cardPrimary,
+            "editor.foreground": lightPalette.textPrimary,
+            "editor.lineHighlightBackground": lightPalette.cardSecondary,
         },
     },
 };
@@ -51,7 +74,6 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             { open: '"', close: '"' },
             { open: "'", close: "'" },
             { open: "/*", close: "*/" },
-            { open: "<", close: ">" },
         ],
 
         surroundingPairs: [
@@ -60,7 +82,6 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             { open: "(", close: ")" },
             { open: '"', close: '"' },
             { open: "'", close: "'" },
-            { open: "<", close: ">" },
             { open: "/*", close: "*/" },
         ],
 
@@ -79,7 +100,6 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             ["{", "}"],
             ["[", "]"],
             ["(", ")"],
-            ["<", ">"],
         ],
 
         autoCloseBefore: ";:.,=}])` \n\t",
@@ -103,7 +123,7 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
         ],
     },
 
-    csharp: {
+    go: {
         wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}|;:'",.<>/?\s]+)/g,
 
         autoClosingPairs: [
@@ -114,8 +134,6 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             { open: "'", close: "'" },
             { open: "`", close: "`" },
             { open: "/*", close: "*/" },
-            { open: "<", close: ">" },
-            { open: '@"', close: '"' },
         ],
 
         surroundingPairs: [
@@ -125,13 +143,10 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             { open: '"', close: '"' },
             { open: "'", close: "'" },
             { open: "`", close: "`" },
-            { open: "<", close: ">" },
-            { open: '@"', close: '"' },
         ],
 
         indentationRules: {
-            increaseIndentPattern:
-                /^\s*(if|else|for|while|do|switch|case|try|catch|finally|using|lock|namespace|class|struct|interface|enum)\b[^{]*\{\s*$|^\s*\{\s*$/,
+            increaseIndentPattern: /^.*\{\s*$/,
             decreaseIndentPattern: /^\s*\}$/,
         },
 
@@ -144,39 +159,27 @@ export const languageConfigs: Record<string, monaco.languages.LanguageConfigurat
             ["{", "}"],
             ["[", "]"],
             ["(", ")"],
-            ["<", ">"],
         ],
 
         autoCloseBefore: ";:.,=}])` \n\t",
 
         folding: {
             markers: {
-                start: /^\s*#region\b/,
-                end: /^\s*#endregion\b/,
+                start: /^\s*\/\/\s*#?region\b/,
+                end: /^\s*\/\/\s*#?endregion\b/,
             },
         },
 
         onEnterRules: [
             {
-                beforeText: /^\s*#\s*(if|region).*$/,
+                beforeText: /^\s*(case\s+.*|default):\s*$/,
                 action: { indentAction: monaco.languages.IndentAction.Indent },
             },
             {
-                beforeText: /^\s*#\s*(endif|endregion).*$/,
-                action: { indentAction: monaco.languages.IndentAction.Outdent },
-            },
-            {
-                beforeText: /^\s*\/\/\/\s*$/,
-                action: {
-                    indentAction: monaco.languages.IndentAction.None,
-                    appendText: "/// ",
-                },
+                beforeText: /^\s*\/\/\/?\s*$/,
+                action: { indentAction: monaco.languages.IndentAction.None },
             },
         ],
-
-        __electricCharacterSupport: {
-            docComment: { open: "///", close: "" },
-        },
     },
 };
 

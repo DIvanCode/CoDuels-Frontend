@@ -1,7 +1,9 @@
-import { DuelResult, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
+import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
+import { Button, ResultModal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "shared/lib/useLocalStorage";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -16,6 +18,9 @@ export const DuelInfo = ({ duelId }: Props) => {
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
+    const [isDismissed, setIsDismissed] = useLocalStorage(`duel:${duelId}:resultDismissed`, false);
+    const showResultModal = duel?.status === "Finished" && !isDismissed;
+
     if (!duel || isDuelLoading) return <div>...</div>;
 
     let [user1, user2] = duel.participants;
@@ -29,33 +34,64 @@ export const DuelInfo = ({ duelId }: Props) => {
         delta2 = duel.rating_changes[user2.id][getDuelResultForUser(duel, user2.id)];
     }
 
+    const duelResult = duel.status === "Finished" ? getDuelResultForUser(duel, user1.id) : null;
+
+    const resultTitleMap: Record<DuelResultType, string> = {
+        Win: "Вы победили!",
+        Lose: "Вы проиграли",
+        Draw: "Ничья",
+    };
+
+    const delta = delta1 ?? 0;
+    const changeText = delta > 0 ? `+${delta}` : delta;
+
     const handleOnUserClick = (userId: number) =>
         userId !== currentUser?.id && navigate(`/profile/${userId}`);
 
     return (
-        <div className={styles.duelInfo}>
-            <UserCard
-                user={user1}
-                ratingDelta={delta1}
-                onClick={() => handleOnUserClick(user1.id)}
-            />
-            <div className={styles.duelContent}>
-                {duel.status === "InProgress" ? (
-                    <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
-                ) : (
-                    <DuelResult
-                        winnerId={duel?.winner_id ?? null}
-                        meId={user1.id}
-                        otherId={user2.id}
-                    />
-                )}
+        <>
+            <div className={styles.duelInfo}>
+                <UserCard
+                    user={user1}
+                    ratingDelta={delta1}
+                    onClick={() => handleOnUserClick(user1.id)}
+                />
+                <div className={styles.duelContent}>
+                    {duel.status === "InProgress" ? (
+                        <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
+                    ) : (
+                        <DuelResult
+                            winnerId={duel?.winner_id ?? null}
+                            meId={user1.id}
+                            otherId={user2.id}
+                        />
+                    )}
+                </div>
+                <UserCard
+                    user={user2}
+                    reversed
+                    ratingDelta={delta2}
+                    onClick={() => handleOnUserClick(user2.id)}
+                />
             </div>
-            <UserCard
-                user={user2}
-                reversed
-                ratingDelta={delta2}
-                onClick={() => handleOnUserClick(user2.id)}
-            />
-        </div>
+            {showResultModal && duelResult !== null && (
+                <ResultModal
+                    title={resultTitleMap[duelResult]}
+                    onClose={() => setIsDismissed(true)}
+                >
+                    {duelResult && (
+                        <div className={styles.resultContent}>
+                            <p className={styles.description}>
+                                Изменение рейтинга: {changeText}
+                                <span className={styles.ratingChange}>
+                                    ({user1.rating} → {user1.rating + delta})
+                                </span>
+                            </p>
+                            <Button onClick={() => setIsDismissed(true)}>Назад к дуэли</Button>
+                        </div>
+                    )}
+                </ResultModal>
+            )}
+        </>
     );
 };

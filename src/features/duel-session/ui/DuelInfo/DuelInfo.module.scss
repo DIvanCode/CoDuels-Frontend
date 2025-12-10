@@ -7,9 +7,38 @@
 
 .duelContent {
     justify-self: center;
-
-    font-size: 1.5em;
-    font-weight: 600;
-
     user-select: none;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+
+    text-align: center;
+
+    font-size: 1.25em;
+    font-weight: 500;
+}
+
+.resultContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+}
+
+.description {
+    display: flex;
+    align-items: center;
+
+    margin: 0;
+    font-size: 1em;
+
+    .ratingChange {
+        font-size: 1.05em;
+        margin-left: 0.25em;
+
+        font-family: monospace;
+        color: var(--text-secondary);
+    }
 }

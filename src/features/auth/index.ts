@@ -8,3 +8,5 @@ export { RegisterForm } from "./ui/RegisterForm/RegisterForm";
 export { useLoginMutation, useRegisterMutation } from "./api/authApi";
 
 export { selectAuthToken } from "./model/selectors";
+
+export type { StatusPayload } from "./lib/mapAuthError";

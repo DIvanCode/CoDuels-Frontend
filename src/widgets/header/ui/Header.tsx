@@ -10,6 +10,7 @@ import { IconButton, DropdownMenu } from "shared/ui";
 import type { DropdownItem } from "shared/ui";
 import { DuelInfo } from "features/duel-session";
 import { authActions } from "features/auth";
+import { ThemeSwitch } from "features/theme";
 import styles from "./Header.module.scss";
 
 export const Header = () => {
@@ -34,18 +35,23 @@ export const Header = () => {
 
     return (
         <header className={styles.header}>
-            <Link to={AppRoutes.INDEX}>
-                <IconButton size="large">
-                    <Favicon />
-                </IconButton>
-            </Link>
-            {duelId && <DuelInfo duelId={Number(duelId)} />}
-            {user && (
-                <DropdownMenu
-                    trigger={<UserCard user={user} hideInfo={Boolean(duelId)} />}
-                    items={userMenuItems}
-                />
-            )}
+            <div className={styles.left}>
+                <Link to={AppRoutes.INDEX}>
+                    <IconButton size="large">
+                        <Favicon />
+                    </IconButton>
+                </Link>
+                <ThemeSwitch />
+            </div>
+            <div className={styles.center}>{duelId && <DuelInfo duelId={Number(duelId)} />}</div>
+            <div className={styles.right}>
+                {user && (
+                    <DropdownMenu
+                        trigger={<UserCard user={user} hideInfo={Boolean(duelId)} />}
+                        items={userMenuItems}
+                    />
+                )}
+            </div>
         </header>
     );
 };

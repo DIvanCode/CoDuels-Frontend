@@ -1,1 +1,13 @@
-// TODO: белая тема для app.light
+.app[data-theme="light"],
+.app--light {
+    --background: #f5f7fb;
+    --text-primary: #121417;
+    --text-secondary: rgba(18, 20, 23, 0.65);
+    --card-primary: #ffffff;
+    --card-secondary: #e2e8f0;
+    --icon-primary: #1f2933;
+    --icon-secondary: rgba(18, 20, 23, 0.55);
+    --badge-warning-border: color-mix(in srgb, var(--warning) 75%, white 25%);
+    --badge-warning-text: color-mix(in srgb, var(--warning) 60%, black 40%);
+    --badge-warning-bg: color-mix(in srgb, var(--warning) 12%, white 88%);
+}

@@ -10,4 +10,17 @@
     &:active {
         transform: scale(0.95);
     }
+
+    svg {
+        width: 1.1em;
+        height: 1.1em;
+    }
+}
+
+.copyIdle {
+    color: var(--text-primary);
+}
+
+.copySuccess {
+    color: var(--positive);
 }

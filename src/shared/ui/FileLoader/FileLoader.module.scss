@@ -1,4 +1,23 @@
-.button {
-    width: 18px;
-    height: 18px;
+.container {
+    display: flex;
+    align-items: center;
+}
+
+.trigger {
+    color: var(--icon-secondary);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: var(--icon-primary);
+    }
+
+    svg {
+        width: 1.1em;
+        height: 1.1em;
+    }
 }
