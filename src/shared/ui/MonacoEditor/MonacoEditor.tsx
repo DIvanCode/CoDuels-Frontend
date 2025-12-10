@@ -46,20 +46,19 @@ export const MonacoEditor = ({
     }, [theme]);
 
     return (
-        <div className={clsx(styles.codeEditor, className)}>
-            <Editor
-                height={height}
-                language={language}
-                theme={theme}
-                value={value}
-                onChange={handleEditorChange}
-                onMount={handleEditorDidMount}
-                options={{
-                    ...defaultEditorOptions,
-                    ...options,
-                }}
-                loading={<div>Loading editor...</div>}
-            />
-        </div>
+        <Editor
+            height={height}
+            language={language}
+            className={clsx(styles.codeEditor, className)}
+            theme={theme}
+            value={value}
+            onChange={handleEditorChange}
+            onMount={handleEditorDidMount}
+            options={{
+                ...defaultEditorOptions,
+                ...options,
+            }}
+            loading={<div>Loading editor...</div>}
+        />
     );
 };

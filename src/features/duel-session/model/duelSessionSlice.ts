@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+import { duelApiSlice } from "entities/duel";
 import { DuelSessionState, DuelSessionPhase } from "./types";
+import { restoreDuelSession } from "./thunks";
 
 const initialState: DuelSessionState = {
     activeDuelId: null,
@@ -36,6 +38,15 @@ const duelSessionSlice = createSlice({
             state.phase = "idle";
             state.lastEventId = null;
         },
+    },
+    extraReducers: (builder) => {
+        builder.addMatcher(
+            duelApiSlice.endpoints.getCurrentDuel.matchFulfilled,
+            (state, { payload }) => {
+                state.activeDuelId = payload.id;
+                restoreDuelSession(state.activeDuelId);
+            },
+        );
     },
 });
 
