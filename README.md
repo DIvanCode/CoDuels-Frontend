@@ -6,7 +6,7 @@ CoDuels is a platform with sports programming competitions. A "duel" competition
 
 Participants are given one task. The winner is the one who sent the correct solution first.
 
-## Project structure
+## Project structure & design
 
 The project is written in React + Redux Toolkit in accordance with the principles of FSD.
 
