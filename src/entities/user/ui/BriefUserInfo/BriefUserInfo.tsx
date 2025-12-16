@@ -7,7 +7,6 @@ interface Props {
     user: UserData;
 }
 
-// TODO: createdAt пока нет, но тут подставить надо
 export const BriefUserInfo = ({ user }: Props) => {
     return (
         <div className={styles.briefUserInfo}>
@@ -21,7 +20,7 @@ export const BriefUserInfo = ({ user }: Props) => {
 
                 <div className={styles.infoItem}>
                     <h4 className={styles.infoItemTitle}>Дата регистрации</h4>
-                    <p className={styles.infoItemValue}>05.01.2004</p>
+                    <p className={styles.infoItemValue}>{user.created_at}</p>
                 </div>
             </div>
         </div>
