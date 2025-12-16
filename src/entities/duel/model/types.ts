@@ -2,6 +2,7 @@ export interface DuelParticipant {
     id: number;
     nickname: string;
     rating: number;
+    created_at: number;
 }
 
 export interface Duel {
