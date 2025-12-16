@@ -12,7 +12,9 @@ The project is written in React + Redux Toolkit in accordance with the principle
 
 ![Project structure](coduels-structure.png)
 
-You can look at structure details [here](https://excalidraw.com/#json=F4grY8wbl80WWuRZQuLSU,4jQBKNjPxlsvE5fVoOvkJA).
+Project structure details can be found [here](https://excalidraw.com/#json=F4grY8wbl80WWuRZQuLSU,4jQBKNjPxlsvE5fVoOvkJA).
+
+Project design can be found [here](https://www.figma.com/design/YJ4S0iifPlgBkFYNWzMaRA/CoDuels?node-id=55-67&t=EethK5xQ6TGTpnx8-1).
 
 ## Quick start
 
