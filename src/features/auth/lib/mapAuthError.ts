@@ -75,6 +75,6 @@ export const mapAuthApiError = (
 
     return {
         title: "Не удалось выполнить запрос",
-        description: "Попробуйте повторить попытку или обратитесь к админу.",
+        description: "Попробуйте еще раз.",
     };
 };

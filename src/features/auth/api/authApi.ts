@@ -3,7 +3,7 @@ import { AuthCredentials } from "../model/types";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        register: builder.mutation<TokenPair, AuthCredentials>({
+        register: builder.mutation<void, AuthCredentials>({
             query: (credentials: AuthCredentials) => ({
                 url: "/users/register",
                 method: "POST",

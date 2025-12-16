@@ -32,9 +32,6 @@ const slice = createSlice({
             .addMatcher(authApiSlice.endpoints.login.matchFulfilled, (state, { payload }) =>
                 applyTokens(state, payload),
             )
-            .addMatcher(authApiSlice.endpoints.register.matchFulfilled, (state, { payload }) =>
-                applyTokens(state, payload),
-            )
             .addMatcher(userApiSlice.endpoints.getMe.matchFulfilled, (state, { payload }) => {
                 state.user = payload;
             });

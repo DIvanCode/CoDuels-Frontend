@@ -1,4 +1,4 @@
-import { useRegisterMutation } from "features/auth/api/authApi";
+import { useLoginMutation, useRegisterMutation } from "features/auth/api/authApi";
 import { registrationStruct } from "features/auth/model/authStruct";
 import { mapAuthApiError, mapValidationError } from "features/auth/lib/mapAuthError";
 import { FormEvent, FormEventHandler, useState } from "react";
@@ -22,7 +22,10 @@ export const RegisterForm = ({ onStatusChange }: RegisterFormProps) => {
 
     const navigate = useNavigate();
 
-    const [register, { isLoading }] = useRegisterMutation();
+    const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
+    const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+
+    const isLoading = isLoginLoading || isRegisterLoading;
 
     const onSubmit: FormEventHandler<HTMLFormElement> = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -41,9 +44,13 @@ export const RegisterForm = ({ onStatusChange }: RegisterFormProps) => {
 
         try {
             await register(result).unwrap();
+            await login({ nickname, password }).unwrap();
+
             onStatusChange?.(null);
+
             navigate(AppRoutes.INDEX);
         } catch (err) {
+            console.log(err);
             const payload = mapAuthApiError(err);
             onStatusChange?.(payload);
         }
