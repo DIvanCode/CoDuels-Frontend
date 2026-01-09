@@ -8,7 +8,7 @@ import {
     useDeleteDuelConfigurationMutation,
     useUpdateDuelConfigurationMutation,
 } from "entities/duel-configuration";
-import { TASK_TOPICS } from "shared/config";
+import { useGetTaskTopicsQuery } from "entities/task";
 import { useLocalStorage } from "shared/lib/useLocalStorage";
 import { Button, Select } from "shared/ui";
 import inputStyles from "shared/ui/InputField/InputField.module.scss";
@@ -74,6 +74,7 @@ const orderLabels: Record<DuelTasksOrder, string> = {
 };
 
 export const DuelConfigurationManager = () => {
+    const { data: topicsData } = useGetTaskTopicsQuery();
     const [configs, setConfigs] = useLocalStorage<StoredDuelConfiguration[]>(
         "duel-configurations",
         [],
@@ -428,7 +429,11 @@ export const DuelConfigurationManager = () => {
                                     </div>
 
                                     {tasks.map((task) => {
-                                        const availableTopics = TASK_TOPICS.filter(
+                                        const topics =
+                                            topicsData?.status === "OK"
+                                                ? (topicsData.topics ?? [])
+                                                : [];
+                                        const availableTopics = topics.filter(
                                             (topic) => !task.topics.includes(topic),
                                         );
                                         const topicOptions = availableTopics.map((topic) => ({
