@@ -1,3 +1,6 @@
+﻿import { useState } from "react";
+
+import { DuelConfigurationManager } from "features/duel-configuration";
 import { DuelSessionButton, selectDuelSession } from "features/duel-session";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { MainCard, SearchLoader } from "shared/ui";
@@ -33,18 +36,38 @@ const SearchingStateContent = () => {
 
 const HomePage = () => {
     const user = useAppSelector(selectCurrentUser);
-
     const { phase } = useAppSelector(selectDuelSession);
+    const [showConfiguration, setShowConfiguration] = useState(false);
 
     return (
-        <MainCard className={styles.homeCard}>
-            {phase === "searching" ? (
-                <SearchingStateContent />
-            ) : (
-                <IdleStateContent nickname={user?.nickname ?? "Аноним"} />
-            )}
-            <DuelSessionButton />
-        </MainCard>
+        <div className={styles.homePage}>
+            <MainCard className={styles.homeCard}>
+                {phase === "searching" ? (
+                    <SearchingStateContent />
+                ) : (
+                    <IdleStateContent nickname={user?.nickname ?? "Аноним"} />
+                )}
+                <DuelSessionButton />
+
+                <button
+                    type="button"
+                    className={styles.configToggle}
+                    onClick={() => setShowConfiguration((prev) => !prev)}
+                    aria-expanded={showConfiguration}
+                    aria-controls="duel-configuration-panel"
+                >
+                    {showConfiguration ? "Скрыть конфигурации дуэли" : "Настроить дуэль под себя"}
+                </button>
+            </MainCard>
+
+            <div
+                id="duel-configuration-panel"
+                className={styles.configPanel}
+                data-open={showConfiguration}
+            >
+                <DuelConfigurationManager />
+            </div>
+        </div>
     );
 };
 

@@ -1,0 +1,290 @@
+﻿.card {
+    width: 400px;
+    max-width: 100%;
+    padding: 1.75em;
+    border-radius: 0.75em;
+    background-color: var(--card-primary);
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+}
+
+.listHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75em;
+    flex-wrap: wrap;
+}
+
+.listHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.plusIcon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.listHint {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+}
+
+.formRow {
+    display: grid;
+    gap: 1em;
+}
+
+.sectionLabel {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.orderGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.orderOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.orderOption {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    padding: 0.6em 0.75em;
+    border-radius: 0.5em;
+    background-color: var(--card-secondary);
+    cursor: pointer;
+}
+
+.orderOption input {
+    margin-top: 0.2em;
+}
+
+.orderText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.orderHintOnly {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.selectField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.selectLabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.select {
+    width: 100%;
+}
+
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9rem;
+}
+
+.taskList {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.taskHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.taskRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    padding: 0.75em;
+    border-radius: 0.6em;
+    background-color: var(--card-secondary);
+}
+
+.topics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.topicList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+}
+
+.topicChip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+    padding: 0.45em 0.6em;
+    border-radius: 0.5em;
+    background-color: var(--card-primary);
+    font-size: 0.85rem;
+}
+
+.topicRemove {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    padding: 0.2em 0.4em;
+    border-radius: 999px;
+    background-color: transparent;
+    border: 1px solid color-mix(in srgb, var(--card-secondary) 60%, transparent);
+}
+
+.topicRemove:hover {
+    color: var(--text-primary);
+    background-color: var(--card-secondary);
+}
+
+.inlineButton {
+    width: auto;
+    padding: 0.5em 0.75em;
+    font-size: 0.85rem;
+}
+
+.helperText {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.errorText {
+    font-size: 0.85rem;
+    color: #ff5656;
+}
+
+.notice {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+}
+
+.emptyState {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.configList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+}
+
+.configItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    padding: 0.75em;
+    border-radius: 0.6em;
+    background-color: var(--card-secondary);
+}
+
+.configSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.configTitle {
+    font-weight: 600;
+}
+
+.configMeta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.taskSummary {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.actionGroup {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+.actionButton {
+    width: auto;
+    padding: 0.45em 0.65em;
+    font-size: 0.8rem;
+}
+
+.mutedLabel {
+    cursor: default;
+    color: var(--text-secondary);
+}
+
+.modalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--background) 0%, var(--text-primary) 10%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5em;
+    z-index: 1000;
+}
+
+.modalCard {
+    width: min(600px, 100%);
+    max-height: calc(100vh - 3em);
+    overflow: auto;
+    padding: 1.75em;
+    border-radius: 0.75em;
+    background-color: var(--card-primary);
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+}

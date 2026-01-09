@@ -16,6 +16,12 @@ export interface TaskResponse {
     error?: string;
 }
 
+export interface TaskTopicsResponse {
+    status: "OK" | "Error";
+    topics?: string[];
+    error?: string;
+}
+
 export const TestCaseStruct = object({
     order: number(),
     input: string(),

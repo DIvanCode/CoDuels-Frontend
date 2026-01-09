@@ -1,4 +1,4 @@
-import { useGetCurrentDuelQuery } from "entities/duel";
+﻿import { useGetCurrentDuelQuery } from "entities/duel";
 import { setPhase } from "features/duel-session/model/duelSessionSlice";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { DuelSessionPhase } from "features/duel-session/model/types";
@@ -37,13 +37,13 @@ export const DuelSessionButton = () => {
 
     const duelButtonText = () => {
         if (phase === "idle") {
-            return "Начать подбор";
+            return "Начать поиск";
         } else if (phase === "searching") {
-            return "Отменить";
+            return "Отменить поиск";
         } else if (phase === "active") {
-            return "Вернуться к дуэли";
+            return "Перейти к дуэли";
         }
-        return "Начать подбор";
+        return "Начать поиск";
     };
 
     return <Button onClick={handleClick}>{duelButtonText()}</Button>;

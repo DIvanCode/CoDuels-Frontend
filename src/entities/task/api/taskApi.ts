@@ -2,7 +2,7 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiSlice } from "shared/api";
 import { StructError } from "superstruct";
 
-import { Task, TaskResponse, TestCase, TestCaseStruct } from "../model/types";
+import { Task, TaskResponse, TaskTopicsResponse, TestCase, TestCaseStruct } from "../model/types";
 
 const buildTaskFileRequest = (taskId: string, filename: string) => ({
     url: `/task/${encodeURIComponent(taskId)}/${encodeURIComponent(filename)}`,
@@ -53,7 +53,11 @@ export const taskApiSlice = apiSlice.injectEndpoints({
                 }
             },
         }),
+        getTaskTopics: builder.query<TaskTopicsResponse, void>({
+            query: () => "/task/topics",
+        }),
     }),
 });
 
-export const { useGetTaskQuery, useGetTaskFileQuery, useGetTaskTestsQuery } = taskApiSlice;
+export const { useGetTaskQuery, useGetTaskFileQuery, useGetTaskTestsQuery, useGetTaskTopicsQuery } =
+    taskApiSlice;
