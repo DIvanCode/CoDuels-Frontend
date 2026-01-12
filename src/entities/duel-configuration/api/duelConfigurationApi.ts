@@ -13,6 +13,16 @@ interface UpdateDuelConfigurationArgs {
 
 export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getDuelConfigurations: builder.query<DuelConfiguration[], void>({
+            query: () => "/configurations",
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "DuelConfiguration" as const, id })),
+                          { type: "DuelConfiguration", id: "LIST" },
+                      ]
+                    : [{ type: "DuelConfiguration", id: "LIST" }],
+        }),
         createDuelConfiguration: builder.mutation<
             DuelConfiguration,
             CreateDuelConfigurationRequest
@@ -53,6 +63,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+    useGetDuelConfigurationsQuery,
     useCreateDuelConfigurationMutation,
     useUpdateDuelConfigurationMutation,
     useDeleteDuelConfigurationMutation,

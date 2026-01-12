@@ -34,18 +34,17 @@ export const DuelSessionManager = () => {
 
     // Manage SSE subscription based on duel session phase
     useEffect(() => {
+        if (phase === "idle" && subscriptionRef.current) {
+            subscriptionRef.current.unsubscribe();
+            subscriptionRef.current = null;
+            return;
+        }
+
         if ((phase === "searching" || phase === "active") && !subscriptionRef.current) {
             subscriptionRef.current = dispatch(
                 duelSessionApiSlice.endpoints.subscribeToDuelStates.initiate(),
             );
         }
-
-        return () => {
-            if (subscriptionRef.current && phase === "idle") {
-                subscriptionRef.current.unsubscribe();
-                subscriptionRef.current = null;
-            }
-        };
     }, [phase, user, dispatch]);
 
     return null;

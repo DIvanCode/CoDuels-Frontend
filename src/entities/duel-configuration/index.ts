@@ -1,6 +1,7 @@
 export {
     useCreateDuelConfigurationMutation,
     useDeleteDuelConfigurationMutation,
+    useGetDuelConfigurationsQuery,
     useGetDuelConfigurationQuery,
     useUpdateDuelConfigurationMutation,
 } from "./api/duelConfigurationApi";

@@ -10,6 +10,19 @@
     gap: 1.25em;
 }
 
+.cardFlat {
+    width: 100%;
+    padding: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+    gap: 0.9em;
+}
+
+.cardFlat .configList {
+    gap: 0.5em;
+}
+
 .listHeader {
     display: flex;
     align-items: flex-start;
@@ -18,10 +31,36 @@
     flex-wrap: wrap;
 }
 
+.listHeaderStack {
+    flex-direction: column;
+    align-items: center;
+}
+
+.listHeaderActions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5em;
+}
+
+.listHeaderActionsCentered {
+    align-items: center;
+}
+
+.listHeaderActionsLeft {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .listHeaderText {
     display: flex;
     flex-direction: column;
     gap: 0.35em;
+}
+
+.listHeaderCentered {
+    align-items: center;
+    text-align: center;
 }
 
 .plusIcon {
@@ -218,6 +257,31 @@
     background-color: var(--card-secondary);
 }
 
+.configItemSelectable {
+    width: 100%;
+    border: 1px solid transparent;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.configItemSelectable:hover {
+    background-color: color-mix(in srgb, var(--card-secondary) 90%, white);
+}
+
+.configItemSelected {
+    border-color: var(--accent-primary);
+    background-color: color-mix(in srgb, var(--card-secondary) 80%, white);
+}
+
+.defaultConfigItem {
+    margin-bottom: 0.25em;
+}
+
 .configSummary {
     display: flex;
     flex-direction: column;
@@ -251,6 +315,18 @@
     width: auto;
     padding: 0.45em 0.65em;
     font-size: 0.8rem;
+}
+
+.deleteHint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.deleteActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75em;
+    margin-top: 1em;
 }
 
 .mutedLabel {

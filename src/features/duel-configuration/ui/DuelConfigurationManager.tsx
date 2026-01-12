@@ -1,4 +1,4 @@
-﻿import { FormEvent, useMemo, useState } from "react";
+﻿import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -73,7 +73,21 @@ const orderLabels: Record<DuelTasksOrder, string> = {
     Parallel: "Все задачи доступны сразу.",
 };
 
-export const DuelConfigurationManager = () => {
+interface Props {
+    mode?: "full" | "modalOnly";
+    forceFormOpen?: boolean;
+    onForceFormClose?: () => void;
+    editConfig?: DuelConfiguration | null;
+    onCreated?: (config: DuelConfiguration) => void;
+}
+
+export const DuelConfigurationManager = ({
+    mode = "full",
+    forceFormOpen,
+    onForceFormClose,
+    editConfig,
+    onCreated,
+}: Props) => {
     const { data: topicsData } = useGetTaskTopicsQuery();
     const [configs, setConfigs] = useLocalStorage<StoredDuelConfiguration[]>(
         "duel-configurations",
@@ -95,7 +109,7 @@ export const DuelConfigurationManager = () => {
 
     const taskCount = tasks.length;
 
-    const headerLabel = editingId ? "Редактирование конфигурации" : "Создать новую конфигурацию";
+    const headerLabel = editingId ? "Редактирование правил" : "Создать новые правила";
 
     const formTaskSummary = useMemo(() => {
         return tasks.map((task, index) => {
@@ -114,17 +128,29 @@ export const DuelConfigurationManager = () => {
         setFormError(null);
     };
 
+    useEffect(() => {
+        if (forceFormOpen) {
+            resetForm();
+        }
+    }, [forceFormOpen]);
+
     const closeForm = () => {
         resetForm();
+        if (forceFormOpen !== undefined) {
+            onForceFormClose?.();
+            return;
+        }
         setIsFormOpen(false);
     };
 
     const handleCreateClick = () => {
         resetForm();
-        setIsFormOpen(true);
+        if (forceFormOpen === undefined) {
+            setIsFormOpen(true);
+        }
     };
 
-    const handleEdit = (config: StoredDuelConfiguration) => {
+    const applyConfigToForm = (config: StoredDuelConfiguration) => {
         const entries = Object.entries(config.tasks_configurations ?? {});
         const sortedEntries = entries.sort(
             ([leftKey], [rightKey]) => Number(leftKey) - Number(rightKey),
@@ -142,11 +168,17 @@ export const DuelConfigurationManager = () => {
         setShouldShowOpponentCode(config.should_show_opponent_code);
         setTasks(nextTasks.length > 0 ? nextTasks : [createTask()]);
         setFormError(null);
-        setIsFormOpen(true);
+    };
+
+    const handleEdit = (config: StoredDuelConfiguration) => {
+        applyConfigToForm(config);
+        if (forceFormOpen === undefined) {
+            setIsFormOpen(true);
+        }
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm("Удалить конфигурацию дуэли?")) {
+        if (!window.confirm("Удалить правила дуэли?")) {
             return;
         }
 
@@ -154,7 +186,7 @@ export const DuelConfigurationManager = () => {
             await deleteConfiguration(id).unwrap();
             setConfigs((prev) => prev.filter((config) => config.id !== id));
         } catch {
-            setFormError("Не удалось удалить конфигурацию. Попробуйте снова.");
+            setFormError("Не удалось удалить правила. Попробуйте снова.");
         }
     };
 
@@ -227,111 +259,135 @@ export const DuelConfigurationManager = () => {
                         tasks_configurations: taskConfigurations,
                     },
                 ]);
+                onCreated?.(response);
             }
 
             closeForm();
         } catch {
-            setFormError("Не удалось сохранить конфигурацию. Попробуйте снова.");
+            setFormError("Не удалось сохранить правила. Попробуйте снова.");
         }
     };
 
+    useEffect(() => {
+        if (!editConfig) return;
+
+        const mappedConfig: StoredDuelConfiguration = {
+            id: editConfig.id,
+            should_show_opponent_code: editConfig.should_show_opponent_code,
+            max_duration_minutes: editConfig.max_duration_minutes,
+            tasks_count: editConfig.task_count,
+            tasks_order: editConfig.task_order,
+            tasks_configurations: editConfig.tasks ?? {},
+        };
+
+        setEditingId(editConfig.id);
+        applyConfigToForm(mappedConfig);
+        setIsFormOpen(true);
+    }, [editConfig]);
+
+    const isFormVisible = forceFormOpen ?? isFormOpen;
     const portalTarget: Element | DocumentFragment | null =
         typeof document !== "undefined" ? (document.querySelector(".app") ?? document.body) : null;
 
     return (
         <>
-            <div className={styles.card}>
-                <div className={styles.listHeader}>
-                    <div className={styles.listHeaderText}>
-                        <h2>Ваши конфигурации</h2>
-                        <p className={styles.listHint}>
-                            Здесь можно управлять своими параметрами дуэли.
-                        </p>
+            {mode === "full" && (
+                <div className={styles.card}>
+                    <div className={styles.listHeader}>
+                        <div className={styles.listHeaderText}>
+                            <h2>Ваши правила</h2>
+                            <p className={styles.listHint}>
+                                Здесь можно управлять своими параметрами дуэли.
+                            </p>
+                        </div>
+                        <Button
+                            variant="outlined"
+                            className={styles.inlineButton}
+                            onClick={handleCreateClick}
+                            type="button"
+                            leadingIcon={<span className={styles.plusIcon}>+</span>}
+                        >
+                            Новые правила
+                        </Button>
                     </div>
-                    <Button
-                        variant="outlined"
-                        className={styles.inlineButton}
-                        onClick={handleCreateClick}
-                        type="button"
-                        leadingIcon={<span className={styles.plusIcon}>+</span>}
-                    >
-                        Новая конфигурация
-                    </Button>
-                </div>
 
-                {configs.length === 0 ? (
-                    <p className={styles.emptyState}>Пока нет созданных конфигураций.</p>
-                ) : (
-                    <div className={styles.configList}>
-                        {configs.map((config) => {
-                            const orderLabel =
-                                orderLabels[config.tasks_order] ?? `Порядок: ${config.tasks_order}`;
-                            const tasksEntries = Object.entries(
-                                config.tasks_configurations ?? {},
-                            ).sort(([leftKey], [rightKey]) => Number(leftKey) - Number(rightKey));
-                            const taskSummary = tasksEntries.map(([, task], index) => {
-                                const taskKey = String.fromCharCode(65 + index);
-                                const topics =
-                                    task.topics && task.topics.length > 0
-                                        ? ` | ${task.topics.join(", ")}`
-                                        : "";
-                                return `${taskKey}: уровень ${task.level}${topics}`;
-                            });
+                    {configs.length === 0 ? (
+                        <p className={styles.emptyState}>Пока нет созданных правил.</p>
+                    ) : (
+                        <div className={styles.configList}>
+                            {configs.map((config) => {
+                                const orderLabel =
+                                    orderLabels[config.tasks_order] ??
+                                    `Порядок: ${config.tasks_order}`;
+                                const tasksEntries = Object.entries(
+                                    config.tasks_configurations ?? {},
+                                ).sort(
+                                    ([leftKey], [rightKey]) => Number(leftKey) - Number(rightKey),
+                                );
+                                const taskSummary = tasksEntries.map(([, task], index) => {
+                                    const taskKey = String.fromCharCode(65 + index);
+                                    const topics =
+                                        task.topics && task.topics.length > 0
+                                            ? ` | ${task.topics.join(", ")}`
+                                            : "";
+                                    return `${taskKey}: уровень ${task.level}${topics}`;
+                                });
 
-                            return (
-                                <div key={config.id} className={styles.configItem}>
-                                    <div className={styles.configSummary}>
-                                        <div className={styles.configMeta}>
-                                            Длительность: {config.max_duration_minutes} мин
-                                        </div>
-                                        <div className={styles.configMeta}>
-                                            {config.should_show_opponent_code
-                                                ? "Показывать код соперника во время дуэли"
-                                                : "Не показывать код соперника во время дуэли"}
-                                        </div>
-                                        <div className={styles.configMeta}>{orderLabel}</div>
-                                        {taskSummary.length > 0 && (
-                                            <div className={styles.taskSummary}>
-                                                {taskSummary.map((item) => (
-                                                    <div key={item}>{item}</div>
-                                                ))}
+                                return (
+                                    <div key={config.id} className={styles.configItem}>
+                                        <div className={styles.configSummary}>
+                                            <div className={styles.configMeta}>
+                                                Длительность: {config.max_duration_minutes} мин
                                             </div>
-                                        )}
-                                    </div>
+                                            <div className={styles.configMeta}>
+                                                {config.should_show_opponent_code
+                                                    ? "Показывать код соперника во время дуэли"
+                                                    : "Не показывать код соперника во время дуэли"}
+                                            </div>
+                                            <div className={styles.configMeta}>{orderLabel}</div>
+                                            {taskSummary.length > 0 && (
+                                                <div className={styles.taskSummary}>
+                                                    {taskSummary.map((item) => (
+                                                        <div key={item}>{item}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <div className={styles.actionGroup}>
-                                        <Button
-                                            variant="outlined"
-                                            className={styles.actionButton}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleEdit(config);
-                                            }}
-                                            type="button"
-                                        >
-                                            Изменить
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            className={styles.actionButton}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleDelete(config.id);
-                                            }}
-                                            type="button"
-                                            disabled={isDeleting}
-                                        >
-                                            Удалить
-                                        </Button>
+                                        <div className={styles.actionGroup}>
+                                            <Button
+                                                variant="outlined"
+                                                className={styles.actionButton}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleEdit(config);
+                                                }}
+                                                type="button"
+                                            >
+                                                Изменить
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                className={styles.actionButton}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleDelete(config.id);
+                                                }}
+                                                type="button"
+                                                disabled={isDeleting}
+                                            >
+                                                Удалить
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
 
-            {isFormOpen &&
+            {isFormVisible &&
                 portalTarget &&
                 createPortal(
                     <div className={styles.modalBackdrop} onClick={closeForm}>
@@ -352,7 +408,7 @@ export const DuelConfigurationManager = () => {
                             </div>
 
                             <p className={styles.notice}>
-                                Созданная конфигурация подходит только для нерейтинговых дуэлей.
+                                Созданные правила подходят только для нерейтинговых дуэлей.
                             </p>
 
                             <form className={styles.form} onSubmit={handleSubmit}>
@@ -530,7 +586,11 @@ export const DuelConfigurationManager = () => {
                                                         }}
                                                         options={topicOptions}
                                                         className={styles.select}
-                                                        placeholder={"Любая тема"}
+                                                        placeholder={
+                                                            task.topics.length > 0
+                                                                ? "выбрать тему"
+                                                                : "любая тема"
+                                                        }
                                                     />
                                                 </div>
 
@@ -565,7 +625,7 @@ export const DuelConfigurationManager = () => {
                                 {formError && <p className={styles.errorText}>{formError}</p>}
 
                                 <Button type="submit" disabled={isSubmitting}>
-                                    {editingId ? "Сохранить изменения" : "Создать конфигурацию"}
+                                    {editingId ? "Сохранить изменения" : "Создать правила"}
                                 </Button>
                             </form>
                         </div>

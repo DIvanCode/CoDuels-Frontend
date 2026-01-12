@@ -39,7 +39,7 @@ export const DuelSessionButton = () => {
         if (phase === "idle") {
             return "Начать поиск";
         } else if (phase === "searching") {
-            return "Отменить поиск";
+            return "Отменить";
         } else if (phase === "active") {
             return "Перейти к дуэли";
         }
