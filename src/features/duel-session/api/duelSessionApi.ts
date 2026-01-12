@@ -1,10 +1,12 @@
-import { duelApiSlice } from "entities/duel";
+﻿import { duelApiSlice } from "entities/duel";
 import { apiSlice, refreshAuthToken } from "shared/api";
 
 import { SSE } from "sse.js";
 import { userApiSlice } from "entities/user";
 import {
     setActiveDuelId,
+    setDuelCanceled,
+    setDuelCanceledOpponentNickname,
     setPhase,
     setLastEventId,
     resetDuelSession,
@@ -12,7 +14,23 @@ import {
 import { DuelMessage } from "../model/types";
 import { SSE_RETRY_TIMEOUT } from "../lib/const";
 
-// TODO: надо порефакторить будет я уже путаюсь
+const buildDuelStartUrl = (nickname?: string | null, configurationId?: number | null) => {
+    const baseUrl = `${import.meta.env.VITE_BASE_URL}/duels/start`;
+    const params = new URLSearchParams();
+
+    if (nickname) {
+        params.set("nickname", nickname);
+    }
+
+    if (configurationId) {
+        params.set("configurationId", String(configurationId));
+    }
+
+    const query = params.toString();
+    return query ? `${baseUrl}?${query}` : baseUrl;
+};
+
+// TODO: Надо пересмотреть запросы дуэли и работу с SSE.
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         subscribeToDuelStates: builder.query<void, void>({
@@ -27,15 +45,20 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                 if (!token) return;
 
                 const lastEventId = state.duelSession.lastEventId;
+                const searchNickname = state.duelSession.searchNickname;
+                const searchConfigurationId = state.duelSession.searchConfigurationId;
                 const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
 
                 if (lastEventId) {
                     headers["Last-Event-ID"] = lastEventId;
                 }
 
-                let eventSource = new SSE(`${import.meta.env.VITE_BASE_URL}/duels/connect`, {
-                    headers,
-                });
+                let eventSource = new SSE(
+                    buildDuelStartUrl(searchNickname, searchConfigurationId),
+                    {
+                        headers,
+                    },
+                );
 
                 try {
                     await cacheDataLoaded;
@@ -75,6 +98,24 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
                     };
 
+                    const duelCanceledListener = (event: MessageEvent) => {
+                        const payload =
+                            event.data && typeof event.data === "string"
+                                ? (JSON.parse(event.data) as { opponent_nickname?: string | null })
+                                : null;
+
+                        if (event.lastEventId) {
+                            dispatch(setLastEventId(event.lastEventId));
+                        }
+
+                        dispatch(setPhase("idle"));
+                        dispatch(resetDuelSession());
+                        dispatch(
+                            setDuelCanceledOpponentNickname(payload?.opponent_nickname ?? null),
+                        );
+                        dispatch(setDuelCanceled(true));
+                    };
+
                     const errorListener = async (event: MessageEvent) => {
                         const sseReconnect = async () => {
                             const state = getState() as RootState;
@@ -91,6 +132,10 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                                 const currentState = getState() as RootState;
                                 const lastEventId = currentState.duelSession.lastEventId;
+                                const currentSearchNickname =
+                                    currentState.duelSession.searchNickname;
+                                const currentSearchConfigurationId =
+                                    currentState.duelSession.searchConfigurationId;
                                 const reconnectHeaders: Record<string, string> = {
                                     Authorization: `Bearer ${newAccessToken}`,
                                 };
@@ -100,7 +145,10 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 }
 
                                 eventSource = new SSE(
-                                    `${import.meta.env.VITE_BASE_URL}/duels/connect`,
+                                    buildDuelStartUrl(
+                                        currentSearchNickname,
+                                        currentSearchConfigurationId,
+                                    ),
                                     {
                                         headers: reconnectHeaders,
                                     },
@@ -116,6 +164,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         eventSource.addEventListener("error", errorListener);
                         eventSource.addEventListener("DuelStarted", duelStartedListener);
                         eventSource.addEventListener("DuelFinished", duelFinishedListener);
+                        eventSource.addEventListener("duel_canceled", duelCanceledListener);
+                        eventSource.addEventListener("DuelCanceled", duelCanceledListener);
 
                         eventSource.addEventListener("message", (event: MessageEvent) => {
                             if (event.lastEventId) {

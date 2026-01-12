@@ -3,11 +3,25 @@
     flex-direction: column;
     align-items: center;
     gap: 1.25em;
-    padding: 2em 0 3em;
+    padding: 2em 1.5em 3em;
     width: 100%;
 }
 
+.homeContent {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 1.5em;
+}
+
 .homeCard {
+    width: 400px;
+    max-width: 100%;
+    flex: 0 0 auto;
+    justify-self: center;
+    margin: 1em 0;
+    grid-column: 2;
     justify-content: space-between;
     align-items: center;
 
@@ -16,6 +30,74 @@
 
     font-weight: 600;
     gap: 1.25em;
+}
+
+.requestsList {
+    position: fixed;
+    top: calc(70px + 2em);
+    right: 1.5em;
+    z-index: 30;
+    width: 100%;
+    max-width: 320px;
+    margin: 1em 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.duelAction {
+    width: 100%;
+}
+
+.duelActionHidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.requestItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    padding: 1em;
+    border-radius: 0.75em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+}
+
+.requestInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.requestLabel {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.requestActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5em;
+}
+
+.acceptButton {
+    --btn-bg-color: #1f8d4d;
+    --btn-text-color: #ffffff;
+}
+
+.denyButton {
+    --btn-bg-color: #d14b42;
+    --btn-text-color: #ffffff;
+}
+
+.duelCanceledText {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.duelCanceledButton {
+    margin-top: 1em;
 }
 
 .cardHeading {
@@ -30,36 +112,204 @@
     color: var(--accent-primary);
 }
 
-.configToggle {
-    font-size: 0.8rem;
+.startOverlay {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--background);
+    z-index: 20;
+}
+
+.startPanel {
+    position: relative;
+    width: min(100%, 520px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    padding: 1.75em;
+    background: var(--card-primary);
+    border-radius: 0.75em;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.startPanelHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    text-align: center;
+    padding: 0 2.25em 0 2.25em;
+}
+
+.startPanelHeading h2 {
+    font-size: 1.4rem;
+}
+
+.startPanelHeading p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+    margin-bottom: 1.2em;
+}
+
+.closeIconButton {
+    position: absolute;
+    top: 0.75em;
+    right: 0.75em;
+    width: 1.75em;
+    height: 1.75em;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--card-secondary) 60%, transparent);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.closeIconButton:hover {
     color: var(--text-primary);
     background-color: var(--card-secondary);
-    padding: 0.5em 1em;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--card-secondary) 70%, black);
-    transition: all 0.2s ease;
+    border-color: color-mix(in srgb, var(--card-secondary) 80%, transparent);
 }
 
-.configToggle:hover {
-    background-color: color-mix(in srgb, var(--card-secondary) 85%, white);
+.startButtons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1em;
+    width: 100%;
 }
 
-.configPanel {
+.startButtons > * {
+    flex: 1;
+}
+
+.configPickerPanel {
+    position: relative;
+    width: min(100%, 520px);
+    max-height: calc(100vh - 3em);
+    overflow: auto;
+    padding: 1.75em;
+    background: var(--card-primary);
+    border-radius: 0.75em;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+}
+
+.configPickerActions {
     width: 100%;
     display: flex;
-    justify-content: center;
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transform: translateY(-8px);
-    transition:
-        max-height 0.35s ease,
-        opacity 0.2s ease,
-        transform 0.2s ease;
+    justify-content: space-between;
+    gap: 1em;
 }
 
-.configPanel[data-open="true"] {
-    max-height: 5000px;
-    opacity: 1;
-    transform: translateY(0);
+.configPickerActions > * {
+    flex: 1;
+}
+
+.friendlyForm {
+    width: min(100%, 520px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1em;
+}
+
+.friendlyHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    text-align: center;
+}
+
+.friendlyHeading h2 {
+    font-size: 1.3rem;
+}
+
+.friendlyHeading p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.selectedConfig {
+    width: min(100%, 520px);
+}
+
+.friendlyDescription {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.friendlyInputField {
+    width: min(100%, 520px);
+}
+
+.friendlyInputLabelHidden {
+    display: none;
+}
+
+.selectedConfigSummary {
+    text-align: left;
+    align-items: flex-start;
+}
+
+.friendlyInput {
+    background-color: color-mix(in srgb, var(--card-secondary) 85%, black);
+    border: 1px solid color-mix(in srgb, var(--card-secondary) 65%, black);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.friendlyInput::placeholder {
+    font-size: 0.85rem;
+}
+
+.friendlyInput:focus {
+    background-color: color-mix(in srgb, var(--card-secondary) 90%, white);
+}
+
+.friendlyButtons {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.75em;
+}
+
+.friendlySubmit:disabled {
+    cursor: default;
+    opacity: 0.75;
+    background-color: color-mix(in srgb, var(--accent-primary) 30%, var(--card-secondary));
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 40%, var(--card-secondary));
+}
+
+@media (max-width: 900px) {
+    .homeContent {
+        grid-template-columns: 1fr;
+        row-gap: 1.5em;
+    }
+
+    .homeCard {
+        grid-column: auto;
+    }
+
+    .requestsList {
+        max-width: none;
+        position: static;
+        margin: 1em 0;
+    }
 }

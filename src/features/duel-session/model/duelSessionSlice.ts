@@ -8,6 +8,10 @@ const initialState: DuelSessionState = {
     activeDuelId: null,
     phase: "idle",
     lastEventId: null,
+    searchNickname: null,
+    searchConfigurationId: null,
+    duelCanceled: false,
+    duelCanceledOpponentNickname: null,
 };
 
 const duelSessionSlice = createSlice({
@@ -18,7 +22,18 @@ const duelSessionSlice = createSlice({
             state.phase = action.payload;
             if (action.payload === "idle") {
                 state.activeDuelId = null;
+                state.searchNickname = null;
+                state.searchConfigurationId = null;
             }
+        },
+        setDuelCanceled: (state, action: PayloadAction<boolean>) => {
+            state.duelCanceled = action.payload;
+            if (!action.payload) {
+                state.duelCanceledOpponentNickname = null;
+            }
+        },
+        setDuelCanceledOpponentNickname: (state, action: PayloadAction<string | null>) => {
+            state.duelCanceledOpponentNickname = action.payload;
         },
         setActiveDuelId: (state, action: PayloadAction<number | null>) => {
             state.activeDuelId = action.payload;
@@ -26,6 +41,8 @@ const duelSessionSlice = createSlice({
                 if (state.phase === "searching" || state.phase === "idle") {
                     state.phase = "active";
                 }
+                state.searchNickname = null;
+                state.searchConfigurationId = null;
             } else {
                 state.lastEventId = null;
             }
@@ -33,10 +50,20 @@ const duelSessionSlice = createSlice({
         setLastEventId: (state, action: PayloadAction<string | null>) => {
             state.lastEventId = action.payload;
         },
+        setSearchNickname: (state, action: PayloadAction<string | null>) => {
+            state.searchNickname = action.payload;
+        },
+        setSearchConfigurationId: (state, action: PayloadAction<number | null>) => {
+            state.searchConfigurationId = action.payload;
+        },
         resetDuelSession: (state) => {
             state.activeDuelId = null;
             state.phase = "idle";
             state.lastEventId = null;
+            state.searchNickname = null;
+            state.searchConfigurationId = null;
+            state.duelCanceled = false;
+            state.duelCanceledOpponentNickname = null;
         },
     },
     extraReducers: (builder) => {
@@ -50,6 +77,14 @@ const duelSessionSlice = createSlice({
     },
 });
 
-export const { setPhase, setActiveDuelId, setLastEventId, resetDuelSession } =
-    duelSessionSlice.actions;
+export const {
+    setPhase,
+    setDuelCanceled,
+    setDuelCanceledOpponentNickname,
+    setActiveDuelId,
+    setLastEventId,
+    setSearchNickname,
+    setSearchConfigurationId,
+    resetDuelSession,
+} = duelSessionSlice.actions;
 export default duelSessionSlice.reducer;

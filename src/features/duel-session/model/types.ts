@@ -6,6 +6,10 @@ export interface DuelSessionState {
     activeDuelId: number | null;
     phase: DuelSessionPhase;
     lastEventId: string | null;
+    searchNickname: string | null;
+    searchConfigurationId: number | null;
+    duelCanceled: boolean;
+    duelCanceledOpponentNickname: string | null;
 }
 
 export type DuelSessionPhase = "idle" | "searching" | "active";
