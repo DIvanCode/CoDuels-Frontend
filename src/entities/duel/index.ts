@@ -5,6 +5,7 @@ export { useGetDuelQuery, useGetAllUserDuelsQuery, useGetCurrentDuelQuery } from
 export { DuelResult } from "./ui/DuelResult/DuelResult";
 export { DuelHistory } from "./ui/DuelHistory/DuelHistory";
 
-export type { DuelResultType, Duel } from "./model/types";
+export type { DuelResultType, Duel, DuelTaskRef } from "./model/types";
 
 export { getDuelResultForUser } from "./lib/duelResultHelpers";
+export { useDuelTaskSelection } from "./lib/useDuelTaskSelection";

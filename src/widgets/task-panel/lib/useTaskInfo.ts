@@ -1,10 +1,11 @@
 import { skipToken } from "@reduxjs/toolkit/query";
-import { useGetDuelQuery } from "entities/duel";
+import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { useGetTaskFileQuery, useGetTaskQuery, useGetTaskTestsQuery } from "entities/task";
 
 export function useTaskInfo(duelId?: number) {
     const duelQuery = useGetDuelQuery(duelId ?? skipToken);
-    const taskQuery = useGetTaskQuery(duelQuery.data?.task_id ?? skipToken);
+    const { selectedTaskId } = useDuelTaskSelection(duelQuery.data);
+    const taskQuery = useGetTaskQuery(selectedTaskId ?? skipToken);
     const statementQuery = useGetTaskFileQuery(
         taskQuery?.data?.task
             ? { taskId: taskQuery.data.task.id, filename: taskQuery.data.task.statement }

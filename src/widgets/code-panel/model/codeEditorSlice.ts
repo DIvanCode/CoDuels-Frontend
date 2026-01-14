@@ -4,24 +4,24 @@ import { authActions } from "features/auth";
 import { CodeEditorState } from "./types";
 
 const initialState: CodeEditorState = {
-    codeByDuelId: {},
-    languageByDuelId: {},
+    codeByTaskKey: {},
+    languageByTaskKey: {},
 };
 
 const codeEditorSlice = createSlice({
     name: "codeEditor",
     initialState,
     reducers: {
-        setCode: (state, action: PayloadAction<{ duelId: number; code: string }>) => {
-            const { duelId, code } = action.payload;
-            state.codeByDuelId[duelId] = code;
+        setCode: (state, action: PayloadAction<{ taskKey: string; code: string }>) => {
+            const { taskKey, code } = action.payload;
+            state.codeByTaskKey[taskKey] = code;
         },
         setLanguage: (
             state,
-            action: PayloadAction<{ duelId: number; language: LanguageValue }>,
+            action: PayloadAction<{ taskKey: string; language: LanguageValue }>,
         ) => {
-            const { duelId, language } = action.payload;
-            state.languageByDuelId[duelId] = language;
+            const { taskKey, language } = action.payload;
+            state.languageByTaskKey[taskKey] = language;
         },
     },
 

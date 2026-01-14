@@ -10,6 +10,7 @@ interface EditorHeaderProps {
     onLanguageChange: (language: LanguageValue) => void;
     onSubmissionStart: () => void;
     duelId: string;
+    taskKey?: string | null;
 }
 
 export const EditorHeader = ({
@@ -19,6 +20,7 @@ export const EditorHeader = ({
     onLanguageChange,
     duelId,
     onSubmissionStart,
+    taskKey,
 }: EditorHeaderProps) => {
     const handleFileLoaded = (content: string) => onCodeChange(content);
 
@@ -33,6 +35,7 @@ export const EditorHeader = ({
                     language={language}
                     onSubmissionStart={onSubmissionStart}
                     duelId={duelId}
+                    taskKey={taskKey}
                 />
             </div>
         </header>

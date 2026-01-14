@@ -1,22 +1,31 @@
-import type { ITab } from "shared/ui";
+﻿import clsx from "clsx";
+import { matchPath, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+
+import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import DescriptionIcon from "shared/assets/icons/document.svg?react";
 import SubmissionsIcon from "shared/assets/icons/inbox.svg?react";
-import { matchPath, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { TabbedCard } from "shared/ui";
-
 import { AppRoutes } from "shared/config";
+import type { ITab } from "shared/ui";
+import { Button, TabbedCard } from "shared/ui";
 import styles from "./TaskPanel.module.scss";
 
 export const TaskPanel = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { duelId } = useParams();
+    const { data: duel } = useGetDuelQuery(duelId ? Number(duelId) : NaN, {
+        skip: !duelId,
+    });
+    const { tasks, selectedTaskKey, setSelectedTaskKey } = useDuelTaskSelection(duel);
+    const selectedTaskValue = selectedTaskKey ?? tasks[0]?.key ?? "";
+    const showTaskSelect = tasks.length > 0 && Boolean(selectedTaskValue);
 
     const tabs: ITab[] = [
         {
-            label: "Описание",
+            label: "Условие",
             leadingIcon: <DescriptionIcon />,
             active: matchPath(AppRoutes.DUEL_TASK_DESCRIPTION, location.pathname) !== null,
-            onClick: () => navigate("description"),
+            onClick: () => navigate({ pathname: "description", search: location.search }),
         },
         {
             label: "Посылки",
@@ -24,12 +33,32 @@ export const TaskPanel = () => {
             active:
                 matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null ||
                 matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null,
-            onClick: () => navigate("submissions"),
+            onClick: () => navigate({ pathname: "submissions", search: location.search }),
         },
     ];
 
     return (
         <div className={styles.taskPanel}>
+            {showTaskSelect ? (
+                <div className={styles.taskPicker}>
+                    <span className={styles.taskLabel}>Задача</span>
+                    <div className={styles.taskButtons}>
+                        {tasks.map((task) => (
+                            <Button
+                                key={task.key}
+                                variant="outlined"
+                                className={clsx(
+                                    styles.taskButton,
+                                    selectedTaskValue === task.key && styles.taskButtonActive,
+                                )}
+                                onClick={() => setSelectedTaskKey(task.key)}
+                            >
+                                {task.key}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
             <TabbedCard tabs={tabs} contentClassName={styles.taskPanelContent}>
                 <Outlet />
             </TabbedCard>

@@ -1,4 +1,4 @@
-import type { ITab } from "shared/ui";
+﻿import type { ITab } from "shared/ui";
 import { TabbedCard } from "shared/ui";
 import CodeIcon from "shared/assets/icons/code.svg?react";
 import styles from "./CodePanel.module.scss";

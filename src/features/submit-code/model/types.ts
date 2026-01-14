@@ -1,6 +1,7 @@
 export interface SubmitCodeRequestData {
     solution: string;
     language: string;
+    task_key?: string | null;
 }
 
 export interface SubmitCodeResponse {

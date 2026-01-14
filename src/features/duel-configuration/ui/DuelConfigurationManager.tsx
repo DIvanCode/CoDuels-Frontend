@@ -2,6 +2,7 @@
 import { createPortal } from "react-dom";
 
 import {
+    DuelConfiguration,
     DuelTaskConfiguration,
     DuelTasksOrder,
     useCreateDuelConfigurationMutation,
@@ -59,13 +60,30 @@ const createTask = (): TaskFormState => ({
 
 const buildTaskConfigurations = (tasks: TaskFormState[]) => {
     return tasks.reduce<Record<string, DuelTaskConfiguration>>((acc, task, index) => {
-        acc[String(index + 1)] = {
+        const taskKey = String.fromCharCode(65 + index);
+        acc[taskKey] = {
             level: Number(task.level),
             topics: task.topics.length > 0 ? task.topics : [],
         };
 
         return acc;
     }, {});
+};
+
+const taskKeyToIndex = (key: string) => {
+    const normalizedKey = key.trim().toUpperCase();
+    const asNumber = Number(normalizedKey);
+
+    if (Number.isFinite(asNumber)) {
+        return asNumber;
+    }
+
+    const code = normalizedKey.charCodeAt(0);
+    if (code >= 65 && code <= 90) {
+        return code - 64;
+    }
+
+    return Number.MAX_SAFE_INTEGER;
 };
 
 const orderLabels: Record<DuelTasksOrder, string> = {
@@ -153,7 +171,7 @@ export const DuelConfigurationManager = ({
     const applyConfigToForm = (config: StoredDuelConfiguration) => {
         const entries = Object.entries(config.tasks_configurations ?? {});
         const sortedEntries = entries.sort(
-            ([leftKey], [rightKey]) => Number(leftKey) - Number(rightKey),
+            ([leftKey], [rightKey]) => taskKeyToIndex(leftKey) - taskKeyToIndex(rightKey),
         );
 
         const nextTasks = sortedEntries.map(([key, task]) => ({
@@ -322,7 +340,8 @@ export const DuelConfigurationManager = ({
                                 const tasksEntries = Object.entries(
                                     config.tasks_configurations ?? {},
                                 ).sort(
-                                    ([leftKey], [rightKey]) => Number(leftKey) - Number(rightKey),
+                                    ([leftKey], [rightKey]) =>
+                                        taskKeyToIndex(leftKey) - taskKeyToIndex(rightKey),
                                 );
                                 const taskSummary = tasksEntries.map(([, task], index) => {
                                     const taskKey = String.fromCharCode(65 + index);
