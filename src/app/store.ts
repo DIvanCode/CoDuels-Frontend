@@ -25,7 +25,7 @@ const codeEditorPersistConfig = {
     key: "codeEditor",
     storage,
     version: 1,
-    whitelist: ["codeByDuelId", "languageByDuelId"],
+    whitelist: ["codeByTaskKey", "languageByTaskKey"],
 };
 
 const themePersistConfig = {

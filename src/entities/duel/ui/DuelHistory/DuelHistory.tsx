@@ -33,13 +33,23 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
 
             <tbody>
                 {duels.map((duel) => {
-                    const opponent = duel.participants.find((p) => p.id !== currentUserId)!;
-
-                    const duelResult = getDuelResultForUser(duel, currentUserId);
-                    const delta = duel.rating_changes[currentUserId][duelResult];
+                    const isParticipant = duel.participants.some((p) => p.id === currentUserId);
+                    const opponent = isParticipant
+                        ? (duel.participants.find((p) => p.id !== currentUserId) ??
+                          duel.participants[0])
+                        : duel.participants[0];
+                    const duelResult = isParticipant
+                        ? getDuelResultForUser(duel, currentUserId)
+                        : null;
+                    const delta = duelResult
+                        ? duel.rating_changes[currentUserId]?.[duelResult]
+                        : null;
 
                     return (
-                        <tr key={duel.id} onClick={() => navigate(`/duel/${duel.id}`)}>
+                        <tr
+                            key={duel.id}
+                            onClick={isParticipant ? () => navigate(`/duel/${duel.id}`) : undefined}
+                        >
                             <td className={styles.opponentCell}>
                                 {opponent.nickname}
                                 <span className={styles.ratingWithIcon}>
@@ -55,8 +65,16 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
                                 )}
                             </td>
 
-                            <td className={deltaClassName[duelResult]}>
-                                {delta > 0 ? `+${delta}` : delta}
+                            <td
+                                className={
+                                    duelResult ? deltaClassName[duelResult] : styles.neutralDelta
+                                }
+                            >
+                                {delta !== null && delta !== undefined
+                                    ? delta > 0
+                                        ? `+${delta}`
+                                        : delta
+                                    : "-"}
                             </td>
 
                             <td>{new Date(duel.start_time).toLocaleDateString("ru-RU")}</td>

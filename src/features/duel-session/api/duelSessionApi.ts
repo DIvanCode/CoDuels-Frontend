@@ -116,6 +116,26 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         dispatch(setDuelCanceled(true));
                     };
 
+                    const duelChangedListener = (event: MessageEvent) => {
+                        const duelMessage =
+                            event.data && typeof event.data === "string"
+                                ? (JSON.parse(event.data) as DuelMessage)
+                                : null;
+                        const duelId =
+                            duelMessage?.duel_id ??
+                            (getState() as RootState).duelSession.activeDuelId;
+
+                        if (event.lastEventId) {
+                            dispatch(setLastEventId(event.lastEventId));
+                        }
+
+                        if (duelId) {
+                            dispatch(
+                                duelApiSlice.util.invalidateTags([{ type: "Duel", id: duelId }]),
+                            );
+                        }
+                    };
+
                     const errorListener = async (event: MessageEvent) => {
                         const sseReconnect = async () => {
                             const state = getState() as RootState;
@@ -166,6 +186,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         eventSource.addEventListener("DuelFinished", duelFinishedListener);
                         eventSource.addEventListener("duel_canceled", duelCanceledListener);
                         eventSource.addEventListener("DuelCanceled", duelCanceledListener);
+                        eventSource.addEventListener("duel_changed", duelChangedListener);
+                        eventSource.addEventListener("DuelChanged", duelChangedListener);
 
                         eventSource.addEventListener("message", (event: MessageEvent) => {
                             if (event.lastEventId) {

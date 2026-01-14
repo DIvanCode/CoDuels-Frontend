@@ -1,28 +1,50 @@
-import { useParams } from "react-router-dom";
+﻿import { skipToken } from "@reduxjs/toolkit/query";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Loader, Table } from "shared/ui";
 import { useGetSubmissionsQuery, POOLING_INTERVAL } from "features/submit-code";
 
 import { useEffect, useState } from "react";
-import { useGetDuelQuery } from "entities/duel";
+import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
+    const [searchParams] = useSearchParams();
     const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId!), {
         skip: !duelId,
     });
+    const { selectedTaskKey } = useDuelTaskSelection(duel);
+    const taskKeyFromQuery = searchParams.get("task");
+    const resolvedTaskKey =
+        taskKeyFromQuery ??
+        selectedTaskKey ??
+        (duel?.tasks ? Object.keys(duel.tasks).sort()[0] : null) ??
+        (duel?.task_id ? "A" : null) ??
+        "A";
+
+    const submissionsArg = duelId
+        ? {
+              duelId,
+              taskKey: resolvedTaskKey,
+          }
+        : skipToken;
 
     const {
         data: submissions,
         isLoading: isSubmissionsLoading,
         isError,
-    } = useGetSubmissionsQuery(duelId ?? "", {
-        skip: !duelId,
+        refetch,
+    } = useGetSubmissionsQuery(submissionsArg, {
         pollingInterval: shouldPollSubmissions ? POOLING_INTERVAL : 0,
     });
+
+    useEffect(() => {
+        if (!duelId) return;
+        refetch();
+    }, [duelId, resolvedTaskKey, refetch]);
 
     useEffect(() => {
         if (submissions?.every((s) => s.status === "Done") || isError) {

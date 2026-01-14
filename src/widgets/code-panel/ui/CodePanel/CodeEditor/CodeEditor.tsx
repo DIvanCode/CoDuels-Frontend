@@ -1,18 +1,18 @@
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { baseEditorConfig, LANGUAGES } from "shared/config";
-import { MonacoEditor } from "shared/ui";
-
-import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
-import { useAppSelector, useAppDispatch } from "shared/lib/storeHooks";
-import { selectDuelCode, selectDuelLanguage } from "widgets/code-panel/model/selector";
 import { useDebouncedCallback } from "use-debounce";
-import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
-import { useGetDuelQuery } from "entities/duel";
+import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
 import { selectThemeMode } from "features/theme";
-import styles from "./CodeEditor.module.scss";
+import { baseEditorConfig, LANGUAGES } from "shared/config";
+import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { MonacoEditor } from "shared/ui";
+import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
+import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
+import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
+import { selectDuelCode, selectDuelLanguage } from "widgets/code-panel/model/selector";
 import EditorHeader from "./EditorHeader/EditorHeader";
+import styles from "./CodeEditor.module.scss";
 
 function CodeEditor() {
     const { duelId } = useParams();
@@ -24,42 +24,58 @@ function CodeEditor() {
     const currentUser = useAppSelector(selectCurrentUser);
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId));
     const canEdit = !isDuelLoading && duel?.participants.some((p) => p.id === currentUser?.id);
+    const { selectedTaskId, selectedTaskKey } = useDuelTaskSelection(duel);
 
     const initialCode = useAppSelector((state) =>
-        duelId ? selectDuelCode(state, Number(duelId)) : "",
+        duelId ? selectDuelCode(state, Number(duelId), selectedTaskId) : "",
     );
 
     const initialLanguage = useAppSelector((state) =>
-        duelId ? selectDuelLanguage(state, Number(duelId)) : LANGUAGES.CPP,
+        duelId ? selectDuelLanguage(state, Number(duelId), selectedTaskId) : LANGUAGES.CPP,
     );
     const theme = useAppSelector(selectThemeMode);
 
     const [localCode, setLocalCode] = useState<string>(initialCode);
     const [localLanguage, setLocalLanguage] = useState<LANGUAGES>(initialLanguage);
 
+    const taskKey =
+        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
+
     const debouncedCodeCb = useDebouncedCallback(
-        (code: string) => dispatch(setCode({ duelId: Number(duelId), code })),
+        (code: string, key: string) => dispatch(setCode({ taskKey: key, code })),
         DEBOUNCE_DELAY,
     );
 
     const debouncedLanguageCb = useDebouncedCallback(
-        (language: LANGUAGES) => dispatch(setLanguage({ duelId: Number(duelId), language })),
+        (language: LANGUAGES, key: string) => dispatch(setLanguage({ taskKey: key, language })),
         DEBOUNCE_DELAY,
     );
 
     const onCodeChange = (code: string) => {
         setLocalCode(code);
-        debouncedCodeCb(code);
+        if (taskKey) {
+            debouncedCodeCb(code, taskKey);
+        }
     };
 
     const onLanguageChange = (language: LANGUAGES) => {
         setLocalLanguage(language);
-        debouncedLanguageCb(language);
+        if (taskKey) {
+            debouncedLanguageCb(language, taskKey);
+        }
     };
 
     const onSubmissionStart = () => {
         if (duelId) navigate(`/duel/${duelId}/submissions`);
     };
+
+    useEffect(() => {
+        setLocalCode(initialCode);
+    }, [initialCode]);
+
+    useEffect(() => {
+        setLocalLanguage(initialLanguage);
+    }, [initialLanguage]);
 
     if (!duelId) return null;
 
@@ -72,6 +88,7 @@ function CodeEditor() {
                 onLanguageChange={onLanguageChange}
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}
+                taskKey={selectedTaskKey}
             />
 
             <MonacoEditor
