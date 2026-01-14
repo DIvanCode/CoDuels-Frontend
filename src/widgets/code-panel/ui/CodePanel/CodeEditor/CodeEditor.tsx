@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
@@ -17,6 +17,7 @@ import styles from "./CodeEditor.module.scss";
 function CodeEditor() {
     const { duelId } = useParams();
 
+    const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
@@ -66,7 +67,16 @@ function CodeEditor() {
     };
 
     const onSubmissionStart = () => {
-        if (duelId) navigate(`/duel/${duelId}/submissions`);
+        if (!duelId) return;
+        const nextParams = new URLSearchParams(location.search);
+        if (selectedTaskKey) {
+            nextParams.set("task", selectedTaskKey);
+        }
+        const search = nextParams.toString();
+        navigate({
+            pathname: `/duel/${duelId}/submissions`,
+            search: search ? `?${search}` : "",
+        });
     };
 
     useEffect(() => {
