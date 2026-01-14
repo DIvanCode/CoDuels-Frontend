@@ -102,6 +102,9 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 return Array.from(resultMap.values());
             },
             forceRefetch: ({ currentArg, previousArg }) => {
+                if (!currentArg || !previousArg) {
+                    return true;
+                }
                 const current = normalizeSubmissionsArg(currentArg);
                 const previous = normalizeSubmissionsArg(previousArg);
                 return current.duelId !== previous.duelId || current.taskKey !== previous.taskKey;
