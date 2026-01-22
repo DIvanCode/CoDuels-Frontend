@@ -14,7 +14,7 @@ interface UpdateDuelConfigurationArgs {
 export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getDuelConfigurations: builder.query<DuelConfiguration[], void>({
-            query: () => "/configurations",
+            query: () => "/duels/configurations",
             providesTags: (result) =>
                 result
                     ? [
@@ -28,7 +28,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
             CreateDuelConfigurationRequest
         >({
             query: (body) => ({
-                url: "/configurations",
+                url: "/duels/configurations",
                 method: "POST",
                 body,
             }),
@@ -36,7 +36,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
         }),
         updateDuelConfiguration: builder.mutation<DuelConfiguration, UpdateDuelConfigurationArgs>({
             query: ({ id, body }) => ({
-                url: `/configurations/${id}`,
+                url: `/duels/configurations/${id}`,
                 method: "PUT",
                 body,
             }),
@@ -47,7 +47,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
         }),
         deleteDuelConfiguration: builder.mutation<void, number>({
             query: (id) => ({
-                url: `/configurations/${id}`,
+                url: `/duels/configurations/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: (_result, _error, id) => [
@@ -56,7 +56,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
             ],
         }),
         getDuelConfiguration: builder.query<DuelConfiguration, number>({
-            query: (id) => `/configurations/${id}`,
+            query: (id) => `/duels/configurations/${id}`,
             providesTags: (_result, _error, id) => [{ type: "DuelConfiguration", id }],
         }),
     }),

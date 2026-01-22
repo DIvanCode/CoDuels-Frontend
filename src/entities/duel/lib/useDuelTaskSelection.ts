@@ -6,7 +6,7 @@ const TASK_QUERY_PARAM = "task";
 
 export interface DuelTaskOption {
     key: string;
-    id: string;
+    id: string | null;
 }
 
 const getDuelTaskOptions = (duel?: Duel): DuelTaskOption[] => {

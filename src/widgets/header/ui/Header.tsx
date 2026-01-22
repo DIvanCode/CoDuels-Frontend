@@ -1,5 +1,6 @@
 import { selectCurrentUser, UserCard } from "entities/user";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
@@ -19,6 +20,7 @@ export const Header = () => {
 
     const dispatch = useAppDispatch();
     const user = useAppSelector(selectCurrentUser);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const userMenuItems: DropdownItem[] = [
         {
@@ -32,6 +34,13 @@ export const Header = () => {
             onClick: () => dispatch(authActions.logout()),
         },
     ];
+
+    useEffect(() => {
+        document.body.classList.toggle("user-menu-open", isUserMenuOpen);
+        return () => {
+            document.body.classList.remove("user-menu-open");
+        };
+    }, [isUserMenuOpen]);
 
     return (
         <header className={styles.header}>
@@ -49,6 +58,7 @@ export const Header = () => {
                     <DropdownMenu
                         trigger={<UserCard user={user} hideInfo={Boolean(duelId)} />}
                         items={userMenuItems}
+                        onOpenChange={setIsUserMenuOpen}
                     />
                 )}
             </div>

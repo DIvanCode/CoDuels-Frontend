@@ -33,16 +33,20 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
 
             <tbody>
                 {duels.map((duel) => {
-                    const isParticipant = duel.participants.some((p) => p.id === currentUserId);
+                    const participants = duel.participants ?? [];
+                    if (participants.length === 0) {
+                        return null;
+                    }
+
+                    const isParticipant = participants.some((p) => p.id === currentUserId);
                     const opponent = isParticipant
-                        ? (duel.participants.find((p) => p.id !== currentUserId) ??
-                          duel.participants[0])
-                        : duel.participants[0];
+                        ? (participants.find((p) => p.id !== currentUserId) ?? participants[0])
+                        : participants[0];
                     const duelResult = isParticipant
                         ? getDuelResultForUser(duel, currentUserId)
                         : null;
                     const delta = duelResult
-                        ? duel.rating_changes[currentUserId]?.[duelResult]
+                        ? duel.rating_changes?.[currentUserId]?.[duelResult]
                         : null;
 
                     return (

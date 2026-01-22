@@ -1,5 +1,13 @@
-﻿import { useGetCurrentDuelQuery } from "entities/duel";
-import { setPhase } from "features/duel-session/model/duelSessionSlice";
+import { useCancelDuelInvitationMutation } from "entities/duel-invitation";
+import {
+    useCancelDuelSearchMutation,
+    useStartDuelSearchMutation,
+} from "features/duel-session/api/duelSessionApi";
+import {
+    setPhase,
+    setSearchConfigurationId,
+    setSearchNickname,
+} from "features/duel-session/model/duelSessionSlice";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { DuelSessionPhase } from "features/duel-session/model/types";
 import { useEffect, useRef } from "react";
@@ -12,10 +20,12 @@ export const DuelSessionButton = () => {
 
     const dispatch = useAppDispatch();
 
-    useGetCurrentDuelQuery();
-
-    const { phase, activeDuelId } = useAppSelector(selectDuelSession);
+    const { phase, activeDuelId, searchNickname, searchConfigurationId } =
+        useAppSelector(selectDuelSession);
     const prevPhaseRef = useRef<DuelSessionPhase>(phase);
+    const [startDuelSearch] = useStartDuelSearchMutation();
+    const [cancelDuelSearch] = useCancelDuelSearchMutation();
+    const [cancelDuelInvitation] = useCancelDuelInvitationMutation();
 
     useEffect(() => {
         if (prevPhaseRef.current === "searching" && phase === "active" && activeDuelId) {
@@ -25,10 +35,34 @@ export const DuelSessionButton = () => {
         prevPhaseRef.current = phase;
     }, [phase, activeDuelId, navigate]);
 
-    const handleClick = () => {
+    const handleClick = async () => {
         if (phase === "idle") {
+            dispatch(setSearchNickname(null));
+            dispatch(setSearchConfigurationId(null));
+
+            try {
+                await startDuelSearch().unwrap();
+            } catch {
+                return;
+            }
             dispatch(setPhase("searching"));
         } else if (phase === "searching") {
+            if (searchNickname) {
+                try {
+                    await cancelDuelInvitation({
+                        opponent_nickname: searchNickname,
+                        configuration_id: searchConfigurationId ?? undefined,
+                    }).unwrap();
+                } catch {
+                    return;
+                }
+            } else {
+                try {
+                    await cancelDuelSearch().unwrap();
+                } catch {
+                    return;
+                }
+            }
             dispatch(setPhase("idle"));
         } else if (phase === "active" && activeDuelId) {
             navigate("/duel/" + activeDuelId);

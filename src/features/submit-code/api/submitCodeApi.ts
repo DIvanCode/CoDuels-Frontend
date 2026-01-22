@@ -1,10 +1,5 @@
 import { apiSlice } from "shared/api";
-import {
-    SubmissionDetail,
-    SubmissionItem,
-    SubmitCodeRequestData,
-    SubmitCodeResponse,
-} from "../model/types";
+import { SubmissionDetail, SubmissionItem, SubmitCodeRequestData } from "../model/types";
 
 interface SubmissionsQueryArg {
     duelId: string;
@@ -22,7 +17,7 @@ const normalizeSubmissionsArg = (arg: string | SubmissionsQueryArg) => {
 export const submitCodeApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         submitCode: builder.mutation<
-            SubmitCodeResponse,
+            SubmissionDetail,
             { duelId: string; data: SubmitCodeRequestData; taskKey?: string | null }
         >({
             query: ({ duelId, data }) => ({
@@ -30,9 +25,7 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
-            invalidatesTags: (_result, _error, { duelId }) => [
-                { type: "Submission", id: `LIST-${duelId}` },
-            ],
+            invalidatesTags: () => [],
             async onQueryStarted({ duelId, data, taskKey }, { dispatch, queryFulfilled }) {
                 try {
                     const { data: result } = await queryFulfilled;
@@ -43,14 +36,16 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                             { duelId, taskKey: taskKey ?? null },
                             (draft) => {
                                 const exists = draft.some(
-                                    (s) => String(s.submission_id) === String(result.submission_id),
+                                    (s) => String(s.submission_id) === String(result.id),
                                 );
                                 if (!exists) {
                                     const newSubmission: SubmissionItem = {
-                                        submission_id: String(result.submission_id),
-                                        status: "Queued",
-                                        language: data.language,
-                                        created_at: new Date().toISOString(),
+                                        submission_id: result.id,
+                                        status: result.status ?? "Queued",
+                                        language: result.language ?? data.language,
+                                        created_at: result.created_at ?? new Date().toISOString(),
+                                        verdict: result.verdict ?? null,
+                                        is_upsolving: result.is_upsolving ?? false,
                                     };
                                     draft.unshift(newSubmission);
                                 }
@@ -140,11 +135,12 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                     };
                                 } else {
                                     const newSubmission: SubmissionItem = {
-                                        submission_id: String(data.submission_id),
+                                        submission_id: data.id,
                                         status: data.status,
                                         verdict: data.verdict,
                                         created_at: data.created_at,
                                         language: data.language,
+                                        is_upsolving: data.is_upsolving,
                                     };
                                     draft.unshift(newSubmission);
                                 }

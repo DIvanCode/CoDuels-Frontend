@@ -27,11 +27,14 @@ export const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
     let result = await baseQuery(args, api, extraOptions);
 
-    if (result.error) {
+    if (result.error && result.error.status === 401) {
         const newToken = await refreshAuthToken(api.getState() as RootState, api.dispatch);
 
         if (newToken) {
             result = await baseQuery(args, api, extraOptions);
+            if (result.error && result.error.status === 401) {
+                api.dispatch({ type: "auth/logout" });
+            }
         }
     }
 
@@ -40,6 +43,6 @@ export const baseQueryWithReauth: BaseQueryFn<
 
 export const apiSlice = createApi({
     baseQuery: baseQueryWithReauth,
-    tagTypes: ["Duel", "DuelConfiguration", "DuelRequest", "Submission", "User"],
+    tagTypes: ["Duel", "DuelConfiguration", "DuelInvitation", "Submission", "User"],
     endpoints: () => ({}),
 });

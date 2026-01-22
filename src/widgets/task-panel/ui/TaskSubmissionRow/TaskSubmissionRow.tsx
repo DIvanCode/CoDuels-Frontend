@@ -1,5 +1,6 @@
 import { SubmissionItem } from "features/submit-code";
 import { useNavigate } from "react-router-dom";
+import { fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { ResultTitle, Badge } from "shared/ui";
 import { formatDate, getDisplayText, getVerdictVariant } from "../../lib/submissionUtils";
 
@@ -15,6 +16,8 @@ export const TaskSubmissionRow = ({ submission, duelId, afterDuelEnd }: Submissi
     const navigate = useNavigate();
 
     const { status, verdict, language, created_at } = submission;
+    const verdictValue = verdict ?? undefined;
+    const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 
     const handleRowClick = () => {
         navigate(`/duel/${duelId}/submissions/${submission.submission_id}`);
@@ -23,11 +26,11 @@ export const TaskSubmissionRow = ({ submission, duelId, afterDuelEnd }: Submissi
     return (
         <tr onClick={handleRowClick} className={styles.clickableRow} style={{ cursor: "pointer" }}>
             <td>
-                <ResultTitle variant={getVerdictVariant(verdict, status)}>
-                    {getDisplayText(status, verdict)}
+                <ResultTitle variant={getVerdictVariant(verdictValue, status)}>
+                    {getDisplayText(status, verdictValue)}
                 </ResultTitle>
             </td>
-            <td>{language ?? "—"}</td>
+            <td>{languageLabel}</td>
             <td className={styles.submissionDate}>
                 {formatDate(created_at)}
                 {afterDuelEnd && <Badge severity="warning">после дуэли</Badge>}

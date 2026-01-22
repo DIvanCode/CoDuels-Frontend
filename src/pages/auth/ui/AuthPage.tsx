@@ -1,5 +1,5 @@
 import { LoginForm, RegisterForm } from "features/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MainCard, TabPanel, StatusCard, type StatusVariant, type ITab } from "shared/ui";
 
 import type { StatusPayload } from "features/auth";
@@ -11,6 +11,7 @@ type AuthStatus = StatusPayload & { variant: StatusVariant };
 const AuthPage = () => {
     const [activeAuthTab, setActiveAuthTab] = useState<"login" | "register">("login");
     const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
+    const [authStatusClosing, setAuthStatusClosing] = useState(false);
 
     const handleStatusChange = (payload: StatusPayload | null) => {
         if (!payload) {
@@ -18,17 +19,41 @@ const AuthPage = () => {
             return;
         }
         setAuthStatus({ variant: "error", ...payload });
+        setAuthStatusClosing(false);
     };
 
     const switchToLogin = () => {
         setActiveAuthTab("login");
         setAuthStatus(null);
+        setAuthStatusClosing(false);
     };
 
     const switchToRegister = () => {
         setActiveAuthTab("register");
         setAuthStatus(null);
+        setAuthStatusClosing(false);
     };
+
+    useEffect(() => {
+        if (!authStatus) {
+            setAuthStatusClosing(false);
+            return;
+        }
+
+        const closingTimeout = setTimeout(() => {
+            setAuthStatusClosing(true);
+        }, 2700);
+
+        const clearTimeoutId = setTimeout(() => {
+            setAuthStatus(null);
+            setAuthStatusClosing(false);
+        }, 3000);
+
+        return () => {
+            clearTimeout(closingTimeout);
+            clearTimeout(clearTimeoutId);
+        };
+    }, [authStatus]);
 
     const authTabs: ITab[] = [
         {
@@ -51,6 +76,14 @@ const AuthPage = () => {
                     title={authStatus.title}
                     description={authStatus.description}
                     className={styles.statusBanner}
+                    closing={authStatusClosing}
+                    onClose={() => {
+                        setAuthStatusClosing(true);
+                        setTimeout(() => {
+                            setAuthStatus(null);
+                            setAuthStatusClosing(false);
+                        }, 200);
+                    }}
                 />
             )}
             <MainCard className={styles.authCard}>

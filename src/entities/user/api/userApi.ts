@@ -11,6 +11,12 @@ export const userApiSlice = apiSlice.injectEndpoints({
             query: () => `/users/iam`,
             providesTags: [{ type: "User", id: "ME" }],
         }),
+        createTicket: builder.mutation<{ ticket: string }, void>({
+            query: () => ({
+                url: "/users/ticket",
+                method: "POST",
+            }),
+        }),
     }),
 });
 

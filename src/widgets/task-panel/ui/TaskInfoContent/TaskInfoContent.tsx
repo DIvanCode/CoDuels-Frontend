@@ -7,7 +7,7 @@ import styles from "./TaskInfoContent.module.scss";
 export const TaskInfoContent = () => {
     const { duelId } = useParams();
 
-    const { data, isLoading, isError, error } = useTaskInfo(Number(duelId));
+    const { data, isLoading, isError, error, isLocked } = useTaskInfo(Number(duelId));
     const { task, statement, testCases } = data;
 
     if (isLoading) {
@@ -16,6 +16,10 @@ export const TaskInfoContent = () => {
 
     if (isError) {
         return <p>Something went wrong: {JSON.stringify(error)}</p>;
+    }
+
+    if (isLocked) {
+        return <div className={styles.lockedState}>Эта задача пока что закрыта</div>;
     }
 
     if (!task?.task || !statement || !testCases) {

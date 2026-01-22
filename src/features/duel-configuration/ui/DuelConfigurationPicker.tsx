@@ -8,13 +8,13 @@ import {
     useDeleteDuelConfigurationMutation,
     useGetDuelConfigurationsQuery,
 } from "entities/duel-configuration";
-import { Button, ResultModal } from "shared/ui";
+import { Button, Modal } from "shared/ui";
 
 import styles from "./DuelConfigurationManager.module.scss";
 
 interface StoredDuelConfiguration {
     id: number;
-    should_show_opponent_code: boolean;
+    should_show_opponent_solution: boolean;
     max_duration_minutes: number;
     tasks_count: number;
     tasks_order: DuelTasksOrder;
@@ -53,7 +53,7 @@ export const DuelConfigurationPicker = ({
     const normalizedConfigs: StoredDuelConfiguration[] =
         configs?.map((config: DuelConfiguration) => ({
             id: config.id,
-            should_show_opponent_code: config.should_show_opponent_code,
+            should_show_opponent_solution: config.should_show_opponent_solution,
             max_duration_minutes: config.max_duration_minutes,
             tasks_count: config.task_count,
             tasks_order: config.task_order,
@@ -62,7 +62,7 @@ export const DuelConfigurationPicker = ({
 
     const toDuelConfiguration = (config: StoredDuelConfiguration): DuelConfiguration => ({
         id: config.id,
-        should_show_opponent_code: config.should_show_opponent_code,
+        should_show_opponent_solution: config.should_show_opponent_solution,
         max_duration_minutes: config.max_duration_minutes,
         task_count: config.tasks_count,
         task_order: config.tasks_order,
@@ -82,8 +82,6 @@ export const DuelConfigurationPicker = ({
 
             {isLoading ? (
                 <p className={styles.emptyState}>Загрузка правил...</p>
-            ) : isError ? (
-                <p className={styles.emptyState}>Не удалось загрузить правила.</p>
             ) : (
                 <>
                     {onSelectDefault && (
@@ -123,7 +121,9 @@ export const DuelConfigurationPicker = ({
                             </Button>
                         </div>
                     )}
-                    {normalizedConfigs.length === 0 ? (
+                    {isError ? (
+                        <p className={styles.emptyState}>Не удалось загрузить правила.</p>
+                    ) : normalizedConfigs.length === 0 ? (
                         <p className={styles.emptyState}>Пока нет созданных правил.</p>
                     ) : (
                         <div className={styles.configList}>
@@ -161,7 +161,7 @@ export const DuelConfigurationPicker = ({
                                                 Длительность: {config.max_duration_minutes} мин
                                             </div>
                                             <div className={styles.configMeta}>
-                                                {config.should_show_opponent_code
+                                                {config.should_show_opponent_solution
                                                     ? "Показывать код соперника во время дуэли."
                                                     : "Не показывать код соперника во время дуэли."}
                                             </div>
@@ -208,7 +208,7 @@ export const DuelConfigurationPicker = ({
             )}
 
             {pendingDelete && (
-                <ResultModal title="Удалить правила?" onClose={() => setPendingDelete(null)}>
+                <Modal title="Удалить правила?" onClose={() => setPendingDelete(null)}>
                     <p className={styles.deleteHint}>Действие необратимо. Правила будут удалены.</p>
                     <div className={styles.deleteActions}>
                         <Button
@@ -233,7 +233,7 @@ export const DuelConfigurationPicker = ({
                             Удалить
                         </Button>
                     </div>
-                </ResultModal>
+                </Modal>
             )}
         </div>
     );

@@ -1,5 +1,6 @@
 export { IconButton } from "./IconButton/IconButton";
 export { ResultModal } from "./ResultModal/ResultModal";
+export { Modal } from "./Modal/Modal";
 export { Button } from "./Button/Button";
 export { CopyButton } from "./CopyButton/CopyButton";
 

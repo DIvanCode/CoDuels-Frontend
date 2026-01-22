@@ -4,6 +4,12 @@ import { duelApiSlice } from "entities/duel";
 import { DuelSessionState, DuelSessionPhase } from "./types";
 import { restoreDuelSession } from "./thunks";
 
+const isNotFoundError = (error: unknown) =>
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status?: number }).status === 404;
+
 const initialState: DuelSessionState = {
     activeDuelId: null,
     phase: "idle",
@@ -12,6 +18,9 @@ const initialState: DuelSessionState = {
     searchConfigurationId: null,
     duelCanceled: false,
     duelCanceledOpponentNickname: null,
+    newTasksAvailable: false,
+    duelStatusChanged: false,
+    sessionInterrupted: false,
 };
 
 const duelSessionSlice = createSlice({
@@ -35,6 +44,15 @@ const duelSessionSlice = createSlice({
         setDuelCanceledOpponentNickname: (state, action: PayloadAction<string | null>) => {
             state.duelCanceledOpponentNickname = action.payload;
         },
+        setNewTasksAvailable: (state, action: PayloadAction<boolean>) => {
+            state.newTasksAvailable = action.payload;
+        },
+        setDuelStatusChanged: (state, action: PayloadAction<boolean>) => {
+            state.duelStatusChanged = action.payload;
+        },
+        setSessionInterrupted: (state, action: PayloadAction<boolean>) => {
+            state.sessionInterrupted = action.payload;
+        },
         setActiveDuelId: (state, action: PayloadAction<number | null>) => {
             state.activeDuelId = action.payload;
             if (action.payload) {
@@ -43,8 +61,12 @@ const duelSessionSlice = createSlice({
                 }
                 state.searchNickname = null;
                 state.searchConfigurationId = null;
+                state.newTasksAvailable = false;
+                state.duelStatusChanged = false;
             } else {
                 state.lastEventId = null;
+                state.newTasksAvailable = false;
+                state.duelStatusChanged = false;
             }
         },
         setLastEventId: (state, action: PayloadAction<string | null>) => {
@@ -64,14 +86,33 @@ const duelSessionSlice = createSlice({
             state.searchConfigurationId = null;
             state.duelCanceled = false;
             state.duelCanceledOpponentNickname = null;
+            state.newTasksAvailable = false;
+            state.duelStatusChanged = false;
+            state.sessionInterrupted = false;
         },
     },
     extraReducers: (builder) => {
         builder.addMatcher(
-            duelApiSlice.endpoints.getCurrentDuel.matchFulfilled,
+            duelApiSlice.endpoints.getActiveDuel.matchFulfilled,
             (state, { payload }) => {
                 state.activeDuelId = payload.id;
                 restoreDuelSession(state.activeDuelId);
+            },
+        );
+        builder.addMatcher(
+            duelApiSlice.endpoints.getActiveDuel.matchRejected,
+            (state, { payload }) => {
+                if (!isNotFoundError(payload)) return;
+
+                if (state.phase === "active") {
+                    state.activeDuelId = null;
+                    state.phase = "idle";
+                    state.lastEventId = null;
+                    state.duelCanceled = false;
+                    state.duelCanceledOpponentNickname = null;
+                    state.newTasksAvailable = false;
+                    state.duelStatusChanged = false;
+                }
             },
         );
     },
@@ -81,10 +122,13 @@ export const {
     setPhase,
     setDuelCanceled,
     setDuelCanceledOpponentNickname,
+    setNewTasksAvailable,
+    setDuelStatusChanged,
     setActiveDuelId,
     setLastEventId,
     setSearchNickname,
     setSearchConfigurationId,
+    setSessionInterrupted,
     resetDuelSession,
 } = duelSessionSlice.actions;
 export default duelSessionSlice.reducer;

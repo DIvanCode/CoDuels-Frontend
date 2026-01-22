@@ -6,3 +6,17 @@
     align-items: center;
     justify-content: center;
 }
+
+.lockedState {
+    height: 100%;
+    min-height: 18em;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    padding: 2em;
+    font-size: 1em;
+    color: var(--text-secondary);
+}

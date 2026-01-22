@@ -1,9 +1,14 @@
-import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
+﻿import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
-import { useAppSelector } from "shared/lib/storeHooks";
-import { Button, ResultModal } from "shared/ui";
+import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { Button, Modal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "shared/lib/useLocalStorage";
+import {
+    selectDuelSession,
+    setDuelStatusChanged,
+    setNewTasksAvailable,
+} from "features/duel-session";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -13,23 +18,41 @@ interface Props {
 
 export const DuelInfo = ({ duelId }: Props) => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
     const currentUser = useAppSelector(selectCurrentUser);
+    const { newTasksAvailable, duelStatusChanged } = useAppSelector(selectDuelSession);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
     const [isDismissed, setIsDismissed] = useLocalStorage(`duel:${duelId}:resultDismissed`, false);
-    const showResultModal = duel?.status === "Finished" && !isDismissed;
+    const showResultModal = duel?.status === "Finished" && (!isDismissed || duelStatusChanged);
+    const showUpdateModal = duelStatusChanged && duel?.status !== "Finished";
+    const showNewTasksModal = newTasksAvailable;
+    const handleResultModalClose = () => {
+        setIsDismissed(true);
+        if (duelStatusChanged) {
+            dispatch(setDuelStatusChanged(false));
+        }
+    };
+    const handleUpdateModalClose = () => {
+        dispatch(setDuelStatusChanged(false));
+    };
 
     if (!duel || isDuelLoading) return <div>...</div>;
 
-    let [user1, user2] = duel.participants;
+    const participants = duel.participants ?? [];
+    if (participants.length < 2) {
+        return <div>...</div>;
+    }
+
+    let [user1, user2] = participants;
     if (currentUser?.id === user2.id) {
         [user1, user2] = [user2, user1];
     }
 
     let [delta1, delta2]: [number | undefined, number | undefined] = [undefined, undefined];
-    if (duel.status === "Finished" && duel.winner_id !== undefined) {
+    if (duel.status === "Finished" && duel.winner_id !== undefined && duel.rating_changes) {
         delta1 = duel.rating_changes[user1.id][getDuelResultForUser(duel, user1.id)];
         delta2 = duel.rating_changes[user2.id][getDuelResultForUser(duel, user2.id)];
     }
@@ -75,22 +98,44 @@ export const DuelInfo = ({ duelId }: Props) => {
                 />
             </div>
             {showResultModal && duelResult !== null && (
-                <ResultModal
-                    title={resultTitleMap[duelResult]}
-                    onClose={() => setIsDismissed(true)}
-                >
+                <Modal title={resultTitleMap[duelResult]} onClose={handleResultModalClose}>
                     {duelResult && (
                         <div className={styles.resultContent}>
                             <p className={styles.description}>
                                 Изменение рейтинга: {changeText}
                                 <span className={styles.ratingChange}>
-                                    ({user1.rating} → {user1.rating + delta})
+                                    ({user1.rating} {"->"} {user1.rating + delta})
                                 </span>
                             </p>
-                            <Button onClick={() => setIsDismissed(true)}>Назад к дуэли</Button>
+                            <Button onClick={handleResultModalClose}>Назад к дуэли</Button>
                         </div>
                     )}
-                </ResultModal>
+                </Modal>
+            )}
+            {showUpdateModal && (
+                <Modal title="Дуэль обновлена" onClose={handleUpdateModalClose}>
+                    <div className={styles.resultContent}>
+                        <p className={styles.description}>
+                            Проверьте, возможно, некоторые задачи стали доступны.
+                        </p>
+                        <Button onClick={handleUpdateModalClose}>Понятно</Button>
+                    </div>
+                </Modal>
+            )}
+            {showNewTasksModal && (
+                <Modal
+                    title="Открылись новые задачи"
+                    onClose={() => dispatch(setNewTasksAvailable(false))}
+                >
+                    <div className={styles.resultContent}>
+                        <p className={styles.description}>
+                            Появились новые задачи дуэли. Проверьте список задач.
+                        </p>
+                        <Button onClick={() => dispatch(setNewTasksAvailable(false))}>
+                            Понятно
+                        </Button>
+                    </div>
+                </Modal>
             )}
         </>
     );

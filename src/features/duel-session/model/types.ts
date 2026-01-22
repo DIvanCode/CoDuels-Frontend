@@ -10,6 +10,9 @@ export interface DuelSessionState {
     searchConfigurationId: number | null;
     duelCanceled: boolean;
     duelCanceledOpponentNickname: string | null;
+    newTasksAvailable: boolean;
+    duelStatusChanged: boolean;
+    sessionInterrupted: boolean;
 }
 
 export type DuelSessionPhase = "idle" | "searching" | "active";

@@ -1,24 +1,29 @@
+import type { ApiLanguageValue } from "shared/config";
+
 export interface SubmitCodeRequestData {
     solution: string;
-    language: string;
-    task_key?: string | null;
-}
-
-export interface SubmitCodeResponse {
-    submission_id: string;
+    language: ApiLanguageValue;
+    task_key: string;
 }
 
 export type SubmissionStatus = "Queued" | "Running" | "Done";
 
 export interface SubmissionItem {
-    submission_id: string;
+    submission_id: number;
     status: SubmissionStatus;
-    language: string;
+    language: ApiLanguageValue;
     created_at: string;
-    verdict?: string;
+    verdict?: string | null;
+    is_upsolving: boolean;
 }
 
-export interface SubmissionDetail extends SubmissionItem {
-    solution: string;
+export interface SubmissionDetail {
+    id: number;
+    solution: string | null;
+    language: ApiLanguageValue;
+    status: SubmissionStatus;
+    created_at: string;
     message?: string | null;
+    verdict?: string | null;
+    is_upsolving: boolean;
 }
