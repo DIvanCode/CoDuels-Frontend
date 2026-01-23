@@ -3,6 +3,7 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { defaultEditorOptions, initializeMonaco } from "shared/config/monaco/monaco";
 import clsx from "clsx";
+import { Loader } from "../Loader/Loader";
 import styles from "./MonacoEditor.module.scss";
 
 interface Props {
@@ -58,7 +59,11 @@ export const MonacoEditor = ({
                 ...defaultEditorOptions,
                 ...options,
             }}
-            loading={<div>Loading editor...</div>}
+            loading={
+                <div className={styles.loadingState}>
+                    <Loader />
+                </div>
+            }
         />
     );
 };

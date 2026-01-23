@@ -18,7 +18,15 @@ const duelSessionPersistConfig = {
     key: "duelSession",
     storage,
     version: 1,
-    whitelist: ["activeDuelId", "lastEventId"],
+    whitelist: [
+        "activeDuelId",
+        "lastEventId",
+        "phase",
+        "searchNickname",
+        "searchConfigurationId",
+        "duelCanceled",
+        "duelCanceledOpponentNickname",
+    ],
 };
 
 const codeEditorPersistConfig = {

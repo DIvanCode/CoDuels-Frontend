@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -24,7 +24,7 @@ interface TaskFormState {
 
 interface StoredDuelConfiguration {
     id: number;
-    should_show_opponent_code: boolean;
+    should_show_opponent_solution: boolean;
     max_duration_minutes: number;
     tasks_count: number;
     tasks_order: DuelTasksOrder;
@@ -115,7 +115,7 @@ export const DuelConfigurationManager = ({
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [maxDurationMinutes, setMaxDurationMinutes] = useState(DEFAULT_DURATION_MINUTES);
     const [tasksOrder, setTasksOrder] = useState<DuelTasksOrder>("Sequential");
-    const [shouldShowOpponentCode, setShouldShowOpponentCode] = useState(true);
+    const [shouldShowOpponentSolution, setShouldShowOpponentSolution] = useState(true);
     const [tasks, setTasks] = useState<TaskFormState[]>([createTask()]);
     const [formError, setFormError] = useState<string | null>(null);
 
@@ -141,7 +141,7 @@ export const DuelConfigurationManager = ({
         setEditingId(null);
         setMaxDurationMinutes(DEFAULT_DURATION_MINUTES);
         setTasksOrder("Sequential");
-        setShouldShowOpponentCode(true);
+        setShouldShowOpponentSolution(true);
         setTasks([createTask()]);
         setFormError(null);
     };
@@ -183,7 +183,7 @@ export const DuelConfigurationManager = ({
         setEditingId(config.id);
         setMaxDurationMinutes(String(config.max_duration_minutes));
         setTasksOrder(config.tasks_order);
-        setShouldShowOpponentCode(config.should_show_opponent_code);
+        setShouldShowOpponentSolution(config.should_show_opponent_solution);
         setTasks(nextTasks.length > 0 ? nextTasks : [createTask()]);
         setFormError(null);
     };
@@ -242,7 +242,7 @@ export const DuelConfigurationManager = ({
                     id: editingId,
                     body: {
                         ...payloadBase,
-                        should_ShouldShowOpponentCode: shouldShowOpponentCode,
+                        should_ShouldShowOpponentSolution: shouldShowOpponentSolution,
                     },
                 }).unwrap();
 
@@ -251,7 +251,8 @@ export const DuelConfigurationManager = ({
                         config.id === editingId
                             ? {
                                   id: response.id,
-                                  should_show_opponent_code: response.should_show_opponent_code,
+                                  should_show_opponent_solution:
+                                      response.should_show_opponent_solution,
                                   max_duration_minutes: response.max_duration_minutes,
                                   tasks_count: response.task_count,
                                   tasks_order: response.task_order,
@@ -263,14 +264,14 @@ export const DuelConfigurationManager = ({
             } else {
                 const response = await createConfiguration({
                     ...payloadBase,
-                    should_show_opponent_code: shouldShowOpponentCode,
+                    should_show_opponent_solution: shouldShowOpponentSolution,
                 }).unwrap();
 
                 setConfigs((prev) => [
                     ...prev,
                     {
                         id: response.id,
-                        should_show_opponent_code: response.should_show_opponent_code,
+                        should_show_opponent_solution: response.should_show_opponent_solution,
                         max_duration_minutes: response.max_duration_minutes,
                         tasks_count: response.task_count,
                         tasks_order: response.task_order,
@@ -291,7 +292,7 @@ export const DuelConfigurationManager = ({
 
         const mappedConfig: StoredDuelConfiguration = {
             id: editConfig.id,
-            should_show_opponent_code: editConfig.should_show_opponent_code,
+            should_show_opponent_solution: editConfig.should_show_opponent_solution,
             max_duration_minutes: editConfig.max_duration_minutes,
             tasks_count: editConfig.task_count,
             tasks_order: editConfig.task_order,
@@ -359,7 +360,7 @@ export const DuelConfigurationManager = ({
                                                 Длительность: {config.max_duration_minutes} мин
                                             </div>
                                             <div className={styles.configMeta}>
-                                                {config.should_show_opponent_code
+                                                {config.should_show_opponent_solution
                                                     ? "Показывать код соперника во время дуэли"
                                                     : "Не показывать код соперника во время дуэли"}
                                             </div>
@@ -455,9 +456,9 @@ export const DuelConfigurationManager = ({
                                 <label className={styles.toggle}>
                                     <input
                                         type="checkbox"
-                                        checked={shouldShowOpponentCode}
+                                        checked={shouldShowOpponentSolution}
                                         onChange={(event) =>
-                                            setShouldShowOpponentCode(event.target.checked)
+                                            setShouldShowOpponentSolution(event.target.checked)
                                         }
                                     />
                                     Показывать код соперника во время дуэли

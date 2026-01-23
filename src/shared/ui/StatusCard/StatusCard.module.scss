@@ -12,13 +12,18 @@
     box-shadow: 0 0.25em 0.75em rgba(0, 0, 0, 0.12);
 
     transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
 
     &:hover {
-        transform: translateY(-1px);
         box-shadow: 0 0.375em 1.125em rgba(0, 0, 0, 0.18);
     }
+}
+
+.closing {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    pointer-events: none;
 }
 
 .content {
@@ -54,4 +59,17 @@
 
 .card_error {
     border-color: transparent;
+}
+
+.closeButton {
+    margin-left: auto;
+    color: var(--text-secondary);
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.35em;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+    color: var(--text-primary);
 }

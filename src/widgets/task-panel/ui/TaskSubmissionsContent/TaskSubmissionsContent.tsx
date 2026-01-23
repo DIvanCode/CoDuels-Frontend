@@ -1,9 +1,7 @@
 ﻿import { skipToken } from "@reduxjs/toolkit/query";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Loader, Table } from "shared/ui";
-import { useGetSubmissionsQuery, POOLING_INTERVAL } from "features/submit-code";
-
-import { useEffect, useState } from "react";
+import { useGetSubmissionsQuery } from "features/submit-code";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
@@ -11,8 +9,6 @@ import styles from "./TaskSubmissionsContent.module.scss";
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
     const [searchParams] = useSearchParams();
-    const [shouldPollSubmissions, setShouldPollSubmissions] = useState(true);
-
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId!), {
         skip: !duelId,
     });
@@ -36,23 +32,7 @@ export const TaskSubmissionsContent = () => {
         data: submissions,
         isLoading: isSubmissionsLoading,
         isError,
-        refetch,
-    } = useGetSubmissionsQuery(submissionsArg, {
-        pollingInterval: shouldPollSubmissions ? POOLING_INTERVAL : 0,
-    });
-
-    useEffect(() => {
-        if (!duelId) return;
-        refetch();
-    }, [duelId, resolvedTaskKey, refetch]);
-
-    useEffect(() => {
-        if (submissions?.every((s) => s.status === "Done") || isError) {
-            setShouldPollSubmissions(false);
-        } else {
-            setShouldPollSubmissions(true);
-        }
-    }, [submissions, isError]);
+    } = useGetSubmissionsQuery(submissionsArg);
 
     if (isSubmissionsLoading || isDuelLoading) {
         return <Loader className={styles.centeredState} />;
@@ -96,6 +76,7 @@ export const TaskSubmissionsContent = () => {
                         key={submission.submission_id}
                         submission={submission}
                         duelId={duelId}
+                        taskKey={resolvedTaskKey}
                         afterDuelEnd={
                             submission?.created_at && duel?.end_time
                                 ? new Date(submission.created_at) > new Date(duel.end_time)

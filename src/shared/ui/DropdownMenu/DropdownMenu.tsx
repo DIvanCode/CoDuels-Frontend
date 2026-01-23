@@ -19,6 +19,7 @@ interface Props {
     triggerClassName?: string;
     menuClassName?: string;
     itemClassName?: string;
+    onOpenChange?: (open: boolean) => void;
 }
 
 export const DropdownMenu = ({
@@ -28,6 +29,7 @@ export const DropdownMenu = ({
     triggerClassName,
     menuClassName,
     itemClassName,
+    onOpenChange,
 }: Props) => {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -41,7 +43,10 @@ export const DropdownMenu = ({
 
     const handleClickOutside = ({ target }: MouseEvent) => {
         assertIsNode(target);
-        if (menuRef.current && !menuRef.current.contains(target)) setOpen(false);
+        if (menuRef.current && !menuRef.current.contains(target)) {
+            setOpen(false);
+            onOpenChange?.(false);
+        }
     };
 
     useEffect(() => {
@@ -55,7 +60,11 @@ export const DropdownMenu = ({
         <div ref={menuRef} className={clsx(styles.dropdown, dropdownClassName)}>
             <div
                 className={clsx(styles.dropdownTrigger, triggerClassName)}
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                    const nextOpen = !open;
+                    setOpen(nextOpen);
+                    onOpenChange?.(nextOpen);
+                }}
             >
                 {trigger}
             </div>

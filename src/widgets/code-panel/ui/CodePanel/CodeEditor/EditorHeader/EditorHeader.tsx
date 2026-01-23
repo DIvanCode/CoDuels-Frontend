@@ -1,6 +1,6 @@
 import { FileLoader, SubmitCodeButton } from "features/submit-code";
 import { Select } from "shared/ui";
-import { LANGUAGE_OPTIONS, type LanguageValue } from "shared/config";
+import { LANGUAGE_LABELS, LANGUAGE_OPTIONS, type LanguageValue } from "shared/config";
 import styles from "./EditorHeader.module.scss";
 
 interface EditorHeaderProps {
@@ -11,6 +11,7 @@ interface EditorHeaderProps {
     onSubmissionStart: () => void;
     duelId: string;
     taskKey?: string | null;
+    readOnly?: boolean;
 }
 
 export const EditorHeader = ({
@@ -21,23 +22,30 @@ export const EditorHeader = ({
     duelId,
     onSubmissionStart,
     taskKey,
+    readOnly = false,
 }: EditorHeaderProps) => {
     const handleFileLoaded = (content: string) => onCodeChange(content);
 
     return (
         <header className={styles.header}>
-            <Select value={language} options={LANGUAGE_OPTIONS} onChange={onLanguageChange} />
+            {readOnly ? (
+                <div className={styles.languageLabel}>{LANGUAGE_LABELS[language] ?? language}</div>
+            ) : (
+                <Select value={language} options={LANGUAGE_OPTIONS} onChange={onLanguageChange} />
+            )}
 
-            <div className={styles.buttons}>
-                <FileLoader onFileLoaded={handleFileLoaded} />
-                <SubmitCodeButton
-                    code={code}
-                    language={language}
-                    onSubmissionStart={onSubmissionStart}
-                    duelId={duelId}
-                    taskKey={taskKey}
-                />
-            </div>
+            {!readOnly && (
+                <div className={styles.buttons}>
+                    <FileLoader onFileLoaded={handleFileLoaded} />
+                    <SubmitCodeButton
+                        code={code}
+                        language={language}
+                        onSubmissionStart={onSubmissionStart}
+                        duelId={duelId}
+                        taskKey={taskKey}
+                    />
+                </div>
+            )}
         </header>
     );
 };

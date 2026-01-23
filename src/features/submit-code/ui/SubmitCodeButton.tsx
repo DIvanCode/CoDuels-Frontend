@@ -2,7 +2,7 @@
 import SubmitCodeIcon from "shared/assets/icons/submit-code.svg?react";
 import { useSubmitCodeMutation } from "features/submit-code/api/submitCodeApi";
 import type { LanguageValue } from "shared/config";
-import { LANGUAGE_LABELS } from "shared/config";
+import { toApiLanguage } from "shared/config";
 
 interface Props {
     code: string;
@@ -20,8 +20,8 @@ export const SubmitCodeButton = ({ code, language, onSubmissionStart, duelId, ta
 
         const submissionData = {
             solution: code,
-            language: LANGUAGE_LABELS[language],
-            task_key: taskKey ?? null,
+            language: toApiLanguage(language),
+            task_key: taskKey ?? "A",
         };
 
         await submitCode({

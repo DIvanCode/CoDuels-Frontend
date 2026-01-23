@@ -1,5 +1,12 @@
 ﻿import clsx from "clsx";
-import { matchPath, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+    matchPath,
+    Outlet,
+    useLocation,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
 
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import DescriptionIcon from "shared/assets/icons/document.svg?react";
@@ -16,7 +23,8 @@ export const TaskPanel = () => {
     const { data: duel } = useGetDuelQuery(duelId ? Number(duelId) : NaN, {
         skip: !duelId,
     });
-    const { tasks, selectedTaskKey, setSelectedTaskKey } = useDuelTaskSelection(duel);
+    const [searchParams] = useSearchParams();
+    const { tasks, selectedTaskKey } = useDuelTaskSelection(duel);
     const selectedTaskValue = selectedTaskKey ?? tasks[0]?.key ?? "";
     const showTaskSelect = tasks.length > 0 && Boolean(selectedTaskValue);
 
@@ -51,7 +59,14 @@ export const TaskPanel = () => {
                                     styles.taskButton,
                                     selectedTaskValue === task.key && styles.taskButtonActive,
                                 )}
-                                onClick={() => setSelectedTaskKey(task.key)}
+                                onClick={() => {
+                                    const nextParams = new URLSearchParams(searchParams);
+                                    nextParams.set("task", task.key);
+                                    navigate({
+                                        pathname: "description",
+                                        search: nextParams.toString(),
+                                    });
+                                }}
                             >
                                 {task.key}
                             </Button>

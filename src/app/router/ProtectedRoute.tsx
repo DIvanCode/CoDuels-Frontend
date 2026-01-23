@@ -9,15 +9,22 @@ import { Loader } from "shared/ui";
 export const ProtectedRoute = ({ children }: PropsWithChildren) => {
     const token = useAppSelector(selectAuthToken);
 
-    const { isLoading, isError, isSuccess } = useGetMeQuery(undefined, {
+    const { isLoading, isError, isSuccess, error } = useGetMeQuery(undefined, {
         skip: !token,
     });
 
-    if (token && isLoading) {
+    const isUnauthorized =
+        isError &&
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        error.status === 401;
+
+    if (token && (isLoading || (isError && !isUnauthorized))) {
         return <Loader />;
     }
 
-    if (!token || isError) {
+    if (!token || isUnauthorized) {
         return <Navigate to={AppRoutes.AUTH} replace />;
     }
 
@@ -25,5 +32,5 @@ export const ProtectedRoute = ({ children }: PropsWithChildren) => {
         return children;
     }
 
-    return <Navigate to={AppRoutes.AUTH} replace />;
+    return <Loader />;
 };

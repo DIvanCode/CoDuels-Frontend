@@ -26,12 +26,28 @@ export const baseQueryWithReauth: BaseQueryFn<
     FetchBaseQueryError
 > = async (args, api, extraOptions) => {
     let result = await baseQuery(args, api, extraOptions);
+    const isRefreshRequest =
+        typeof args === "object" &&
+        args !== null &&
+        "url" in args &&
+        typeof args.url === "string" &&
+        args.url.includes("/users/refresh");
+    const authState = api.getState() as RootState;
+    const hasRefreshToken = Boolean(authState.auth.refreshToken);
+    const shouldAttemptRefresh =
+        !isRefreshRequest &&
+        hasRefreshToken &&
+        result.error &&
+        (result.error.status === 401 || result.error.status === "FETCH_ERROR");
 
-    if (result.error) {
-        const newToken = await refreshAuthToken(api.getState() as RootState, api.dispatch);
+    if (shouldAttemptRefresh) {
+        const newToken = await refreshAuthToken(authState, api.dispatch);
 
         if (newToken) {
             result = await baseQuery(args, api, extraOptions);
+            if (result.error && result.error.status === 401) {
+                api.dispatch({ type: "auth/logout" });
+            }
         }
     }
 
@@ -40,6 +56,6 @@ export const baseQueryWithReauth: BaseQueryFn<
 
 export const apiSlice = createApi({
     baseQuery: baseQueryWithReauth,
-    tagTypes: ["Duel", "DuelConfiguration", "DuelRequest", "Submission", "User"],
+    tagTypes: ["Duel", "DuelConfiguration", "DuelInvitation", "Submission", "User"],
     endpoints: () => ({}),
 });

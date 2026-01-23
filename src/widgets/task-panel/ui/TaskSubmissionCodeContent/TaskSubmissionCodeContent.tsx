@@ -1,8 +1,7 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
-import { useGetSubmissionDetailQuery, POOLING_INTERVAL } from "features/submit-code";
+import { useGetSubmissionDetailQuery } from "features/submit-code";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
-import { useState, useEffect } from "react";
 import {
     formatDate,
     getDisplayText,
@@ -10,7 +9,7 @@ import {
     mapLanguageToLanguageValue,
 } from "widgets/task-panel/lib/submissionUtils";
 
-import { baseEditorConfig } from "shared/config";
+import { baseEditorConfig, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { selectThemeMode } from "features/theme";
 import styles from "./TaskSubmissionCodeContent.module.scss";
@@ -18,7 +17,7 @@ import styles from "./TaskSubmissionCodeContent.module.scss";
 export const TaskSubmissionCodeContent = () => {
     const { duelId, submissionId } = useParams<{ duelId: string; submissionId: string }>();
     const navigate = useNavigate();
-    const [shouldPoll, setShouldPoll] = useState(true);
+    const [searchParams] = useSearchParams();
 
     const {
         data: submissionDetail,
@@ -28,19 +27,14 @@ export const TaskSubmissionCodeContent = () => {
         { duelId: duelId ?? "", submissionId: submissionId ?? "" },
         {
             skip: !duelId || !submissionId,
-            pollingInterval: shouldPoll ? POOLING_INTERVAL : 0,
         },
     );
     const theme = useAppSelector(selectThemeMode);
 
-    useEffect(() => {
-        if (submissionDetail?.status?.toLowerCase() === "done") {
-            setShouldPoll(false);
-        }
-    }, [submissionDetail?.status]);
-
     const handleBackClick = () => {
-        navigate(`/duel/${duelId}/submissions`);
+        const taskKey = searchParams.get("task");
+        const taskParam = taskKey ? `?task=${encodeURIComponent(taskKey)}` : "";
+        navigate(`/duel/${duelId}/submissions${taskParam}`);
     };
 
     if (isLoading) {
@@ -56,11 +50,15 @@ export const TaskSubmissionCodeContent = () => {
     }
 
     const { status, verdict, message } = submissionDetail;
-    const displayText = getDisplayText(status, verdict, message);
-    const variant = getVerdictVariant(verdict, status, message);
+    const verdictValue = verdict ?? undefined;
+    const messageValue = message ?? undefined;
+    const displayText = getDisplayText(status, verdictValue, messageValue);
+    const variant = getVerdictVariant(verdictValue, status, messageValue);
 
     const { language, created_at, solution } = submissionDetail;
+    const solutionText = solution ?? "";
     const languageValue = mapLanguageToLanguageValue(submissionDetail.language);
+    const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 
     return (
         <div className={styles.container}>
@@ -110,7 +108,7 @@ export const TaskSubmissionCodeContent = () => {
                     )}
                     <div className={styles.divider} />
                     <div className={styles.metaInfo}>
-                        <div className={styles.language}>{language}</div>
+                        <div className={styles.language}>{languageLabel}</div>
                         <div className={styles.date}>{formatDate(created_at)}</div>
                     </div>
                 </div>
@@ -118,14 +116,14 @@ export const TaskSubmissionCodeContent = () => {
             <div className={styles.editorContainer}>
                 <div className={styles.editorWrapper}>
                     <CopyButton
-                        textToCopy={solution}
+                        textToCopy={solutionText}
                         className={styles.copyCodeButton}
                         size="medium"
                     />
 
                     <MonacoEditor
                         height="100%"
-                        value={solution}
+                        value={solutionText}
                         theme={theme}
                         onValueChange={() => {}}
                         language={languageValue}

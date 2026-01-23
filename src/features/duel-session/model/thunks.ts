@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { duelApiSlice } from "entities/duel";
-import { duelSessionApiSlice } from "../api/duelSessionApi";
 import { resetDuelSession, setActiveDuelId } from "./duelSessionSlice";
 
 export const restoreDuelSession = createAsyncThunk<void, number, { dispatch: AppDispatch }>(
@@ -12,8 +11,6 @@ export const restoreDuelSession = createAsyncThunk<void, number, { dispatch: App
 
             if (duel?.status === "InProgress") {
                 dispatch(setActiveDuelId(duel.id));
-
-                dispatch(duelSessionApiSlice.endpoints.subscribeToDuelStates.initiate());
             } else {
                 dispatch(resetDuelSession());
             }

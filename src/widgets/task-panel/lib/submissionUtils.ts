@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "features/submit-code";
-import { LANGUAGES, LanguageValue } from "shared/config";
+import { fromApiLanguage, LanguageValue } from "shared/config";
 
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -77,19 +77,7 @@ const getDisplayText = (
     return status;
 };
 
-const mapLanguageToLanguageValue = (language: string): LanguageValue => {
-    const normalized = language.toLowerCase().trim();
-    if (normalized === "c++" || normalized === "cpp") {
-        return LANGUAGES.CPP;
-    }
-    if (normalized === "go" || normalized === "golang") {
-        return LANGUAGES.GO;
-    }
-    if (normalized === "python") {
-        return LANGUAGES.PYTHON;
-    }
-    return LANGUAGES.CPP;
-};
+const mapLanguageToLanguageValue = (language: string): LanguageValue => fromApiLanguage(language);
 
 export {
     formatDate,

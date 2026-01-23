@@ -5,6 +5,7 @@ import { useGetTaskFileQuery, useGetTaskQuery, useGetTaskTestsQuery } from "enti
 export function useTaskInfo(duelId?: number) {
     const duelQuery = useGetDuelQuery(duelId ?? skipToken);
     const { selectedTaskId } = useDuelTaskSelection(duelQuery.data);
+    const isLocked = selectedTaskId === null;
     const taskQuery = useGetTaskQuery(selectedTaskId ?? skipToken);
     const statementQuery = useGetTaskFileQuery(
         taskQuery?.data?.task
@@ -27,6 +28,7 @@ export function useTaskInfo(duelId?: number) {
             statement: statementQuery.data,
             testCases: testsQuery.data,
         },
+        isLocked,
         isLoading,
         isError: Boolean(error),
         error,

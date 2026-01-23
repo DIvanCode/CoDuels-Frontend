@@ -7,7 +7,7 @@ export interface DuelTaskConfiguration {
 
 export interface DuelConfiguration {
     id: number;
-    should_show_opponent_code: boolean;
+    should_show_opponent_solution: boolean;
     max_duration_minutes: number;
     task_count: number;
     task_order: DuelTasksOrder;
@@ -15,7 +15,7 @@ export interface DuelConfiguration {
 }
 
 export interface CreateDuelConfigurationRequest {
-    should_show_opponent_code: boolean;
+    should_show_opponent_solution: boolean;
     max_duration_minutes: number;
     tasks_count: number;
     tasks_order: DuelTasksOrder;
@@ -23,7 +23,7 @@ export interface CreateDuelConfigurationRequest {
 }
 
 export interface UpdateDuelConfigurationRequest {
-    should_ShouldShowOpponentCode: boolean;
+    should_ShouldShowOpponentSolution: boolean;
     max_duration_minutes: number;
     tasks_count: number;
     tasks_order: DuelTasksOrder;

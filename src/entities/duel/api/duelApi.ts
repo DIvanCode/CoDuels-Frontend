@@ -18,11 +18,11 @@ export const duelApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Duel", id: "LIST" }],
         }),
-        getCurrentDuel: builder.query<Duel, void>({
-            query: () => `/duels/current`,
-            providesTags: (result) => [{ type: "Duel", id: result?.id ?? "CURRENT" }],
+        getActiveDuel: builder.query<Duel, void>({
+            query: () => `/duels/active`,
+            providesTags: (result) => [{ type: "Duel", id: result?.id ?? "ACTIVE" }],
         }),
     }),
 });
 
-export const { useGetDuelQuery, useGetAllUserDuelsQuery, useGetCurrentDuelQuery } = duelApiSlice;
+export const { useGetDuelQuery, useGetAllUserDuelsQuery, useGetActiveDuelQuery } = duelApiSlice;

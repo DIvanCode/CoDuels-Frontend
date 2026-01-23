@@ -6,20 +6,29 @@ export interface DuelParticipant {
 }
 
 export interface DuelTaskRef {
-    id: string;
+    id: string | null;
+}
+
+export interface DuelTaskSolution {
+    solution: string | null;
+    language: string;
 }
 
 export interface Duel {
     id: number;
-    task_id?: string;
-    tasks?: Record<string, DuelTaskRef>;
-    participants: [DuelParticipant, DuelParticipant];
-    winner_id?: number;
+    is_rated: boolean;
+    should_show_opponent_solution: boolean;
+    participants: DuelParticipant[] | null;
+    winner_id?: number | null;
     status: "InProgress" | "Finished";
     start_time: string;
     deadline_time: string;
-    end_time?: number;
-    rating_changes: Record<number, DeltaInfo>;
+    end_time?: string | null;
+    rating_changes: Record<number, DeltaInfo> | null;
+    tasks: Record<string, DuelTaskRef> | null;
+    solutions?: Record<string, DuelTaskSolution> | null;
+    opponent_solutions?: Record<string, DuelTaskSolution> | null;
+    task_id?: string;
 }
 
 export type DeltaInfo = Record<DuelResultType, number>;

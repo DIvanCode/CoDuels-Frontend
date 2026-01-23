@@ -1,12 +1,22 @@
 ﻿import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useGetActiveDuelQuery } from "entities/duel";
 import type { DuelConfiguration } from "entities/duel-configuration";
 import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
-import { useDenyDuelRequestMutation, useGetDuelRequestsQuery } from "entities/duel-request";
+import {
+    useAcceptDuelInvitationMutation,
+    useCreateDuelInvitationMutation,
+    useDenyDuelInvitationMutation,
+    useLazyGetDuelInvitationsQuery,
+} from "entities/duel-invitation";
 import { selectCurrentUser } from "entities/user";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
-import { DuelSessionButton, selectDuelSession } from "features/duel-session";
+import {
+    DuelSessionButton,
+    selectDuelSession,
+    useStartDuelSearchMutation,
+} from "features/duel-session";
 import {
     setDuelCanceled,
     setPhase,
@@ -15,7 +25,16 @@ import {
 } from "features/duel-session/model/duelSessionSlice";
 import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
-import { Button, IconButton, InputField, MainCard, ResultModal, SearchLoader } from "shared/ui";
+import { useSessionStorage } from "shared/lib/useSessionStorage";
+import {
+    Button,
+    IconButton,
+    InputField,
+    MainCard,
+    Modal,
+    SearchLoader,
+    StatusCard,
+} from "shared/ui";
 
 import configStyles from "features/duel-configuration/ui/DuelConfigurationManager.module.scss";
 import styles from "./HomePage.module.scss";
@@ -62,19 +81,50 @@ const HomePage = () => {
     } = useAppSelector(selectDuelSession);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const [showStartPanel, setShowStartPanel] = useState(false);
-    const [showConfigPicker, setShowConfigPicker] = useState(false);
-    const [showConfigCreateModal, setShowConfigCreateModal] = useState(false);
+    const [showStartPanel, setShowStartPanel] = useSessionStorage("home.showStartPanel", false);
+    const [showConfigPicker, setShowConfigPicker] = useSessionStorage(
+        "home.showConfigPicker",
+        false,
+    );
+    const [showConfigCreateModal, setShowConfigCreateModal] = useSessionStorage(
+        "home.showConfigCreateModal",
+        false,
+    );
     const [editConfig, setEditConfig] = useState<DuelConfiguration | null>(null);
-    const [showFriendlyForm, setShowFriendlyForm] = useState(false);
-    const [friendlyNickname, setFriendlyNickname] = useState("");
-    const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
-    const [selectedDefaultConfig, setSelectedDefaultConfig] = useState(true);
-    const [pendingRequestNickname, setPendingRequestNickname] = useState<string | null>(null);
-    const [waitingForStart, setWaitingForStart] = useState(false);
+    const [showFriendlyForm, setShowFriendlyForm] = useSessionStorage(
+        "home.showFriendlyForm",
+        false,
+    );
+    const [friendlyNickname, setFriendlyNickname] = useSessionStorage("home.friendlyNickname", "");
+    const [selectedConfigId, setSelectedConfigId] = useSessionStorage<number | null>(
+        "home.selectedConfigId",
+        null,
+    );
+    const [selectedDefaultConfig, setSelectedDefaultConfig] = useSessionStorage(
+        "home.selectedDefaultConfig",
+        true,
+    );
+    const [pendingInvitationNickname, setPendingInvitationNickname] = useSessionStorage<
+        string | null
+    >("home.pendingInvitationNickname", null);
+    const [waitingForStart, setWaitingForStart] = useSessionStorage("home.waitingForStart", false);
+    const [inviteError, setInviteError] = useState<{ title: string; description?: string } | null>(
+        null,
+    );
+    const [inviteErrorClosing, setInviteErrorClosing] = useState(false);
     const { data: configs } = useGetDuelConfigurationsQuery();
-    const { data: duelRequests } = useGetDuelRequestsQuery(undefined, { pollingInterval: 3000 });
-    const [denyDuelRequest, { isLoading: isDenyingRequest }] = useDenyDuelRequestMutation();
+    const [loadDuelInvitations, { data: duelInvitations }] = useLazyGetDuelInvitationsQuery();
+    const [createDuelInvitation] = useCreateDuelInvitationMutation();
+    const [acceptDuelInvitation] = useAcceptDuelInvitationMutation();
+    const [denyDuelInvitation, { isLoading: isDenyingInvitation }] =
+        useDenyDuelInvitationMutation();
+    const [startDuelSearch] = useStartDuelSearchMutation();
+    useGetActiveDuelQuery(undefined, { skip: !user });
+
+    useEffect(() => {
+        if (!user?.id) return;
+        void loadDuelInvitations();
+    }, [user?.id, loadDuelInvitations]);
 
     useEffect(() => {
         if (phase === "idle") return;
@@ -88,6 +138,27 @@ const HomePage = () => {
         setSelectedDefaultConfig(true);
         setEditConfig(null);
     }, [phase]);
+
+    useEffect(() => {
+        if (!inviteError) {
+            setInviteErrorClosing(false);
+            return;
+        }
+
+        const closingTimeout = setTimeout(() => {
+            setInviteErrorClosing(true);
+        }, 2700);
+
+        const clearTimeoutId = setTimeout(() => {
+            setInviteError(null);
+            setInviteErrorClosing(false);
+        }, 3000);
+
+        return () => {
+            clearTimeout(closingTimeout);
+            clearTimeout(clearTimeoutId);
+        };
+    }, [inviteError]);
 
     useEffect(() => {
         if (phase !== "searching") {
@@ -111,7 +182,9 @@ const HomePage = () => {
     }, [phase, activeDuelId, waitingForStart, navigate]);
 
     const isSessionBusy = phase !== "idle";
-    const visibleRequests = (duelRequests ?? []).filter((request) => request.opponent_nickname);
+    const visibleInvitations = (duelInvitations ?? []).filter(
+        (invitation) => invitation.opponent_nickname,
+    );
 
     const handleStartPanelToggle = () => {
         setShowStartPanel((prev) => !prev);
@@ -131,9 +204,16 @@ const HomePage = () => {
         setSelectedConfigId(null);
     };
 
-    const handleQuickSearch = () => {
+    const handleQuickSearch = async () => {
         dispatch(setSearchNickname(null));
         dispatch(setSearchConfigurationId(null));
+
+        try {
+            await startDuelSearch().unwrap();
+        } catch {
+            return;
+        }
+
         dispatch(setPhase("searching"));
         setWaitingForStart(false);
         setShowStartPanel(false);
@@ -202,13 +282,47 @@ const HomePage = () => {
         setEditConfig(null);
     };
 
-    const handleFriendlySubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleFriendlySubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         const trimmedNickname = friendlyNickname.trim();
         if (!trimmedNickname) return;
+        if (user?.nickname && trimmedNickname.toLowerCase() === user.nickname.toLowerCase()) {
+            setInviteError({
+                title: "Нельзя вызвать себя на дуэль",
+                description: "Укажите никнейм другого пользователя.",
+            });
+            setInviteErrorClosing(false);
+            return;
+        }
+
+        const configurationId = selectedDefaultConfig ? null : selectedConfigId;
+
+        try {
+            setInviteError(null);
+            await createDuelInvitation({
+                opponent_nickname: trimmedNickname,
+                configuration_id: configurationId ?? undefined,
+            }).unwrap();
+        } catch (error) {
+            if (
+                error &&
+                typeof error === "object" &&
+                "status" in error &&
+                (error as { status?: number }).status === 409
+            ) {
+                setInviteError({
+                    title: "Не получилось отправить вызов на дуэль",
+                    description: "Возможно, у вас уже есть вызов на дуэль от этого пользователя.",
+                });
+                setInviteErrorClosing(false);
+                return;
+            }
+            return;
+        }
 
         dispatch(setSearchNickname(trimmedNickname));
+        dispatch(setSearchConfigurationId(configurationId ?? null));
         dispatch(setPhase("searching"));
         setWaitingForStart(false);
         setShowStartPanel(false);
@@ -222,34 +336,62 @@ const HomePage = () => {
         dispatch(setDuelCanceled(false));
     };
 
-    const handleRequestAccept = (nickname: string) => {
+    const handleInvitationAccept = async (nickname: string, configurationId?: number | null) => {
         if (isSessionBusy) return;
 
+        try {
+            await acceptDuelInvitation({
+                opponent_nickname: nickname,
+                configuration_id: configurationId ?? undefined,
+            }).unwrap();
+        } catch {
+            return;
+        }
+
         dispatch(setSearchNickname(nickname));
-        dispatch(setSearchConfigurationId(null));
+        dispatch(setSearchConfigurationId(configurationId ?? null));
         dispatch(setPhase("searching"));
         setWaitingForStart(true);
     };
 
-    const handleRequestDeny = async (nickname: string) => {
-        setPendingRequestNickname(nickname);
+    const handleInvitationDeny = async (nickname: string, configurationId?: number | null) => {
+        setPendingInvitationNickname(nickname);
         try {
-            await denyDuelRequest(nickname).unwrap();
+            await denyDuelInvitation({
+                opponent_nickname: nickname,
+                configuration_id: configurationId ?? undefined,
+            }).unwrap();
         } finally {
-            setPendingRequestNickname(null);
+            setPendingInvitationNickname(null);
         }
     };
 
     const searchingLabel = waitingForStart
         ? "Ждём начала..."
         : searchNickname
-          ? `Ждем ${searchNickname}...`
+          ? `Ждём ${searchNickname}...`
           : searchConfigurationId
-            ? "Ждем оппонента..."
+            ? "Ждём оппонента..."
             : "Поиск оппонента...";
 
     return (
         <div className={styles.homePage}>
+            {inviteError && (
+                <StatusCard
+                    variant="error"
+                    title={inviteError.title}
+                    description={inviteError.description}
+                    className={styles.statusBanner}
+                    closing={inviteErrorClosing}
+                    onClose={() => {
+                        setInviteErrorClosing(true);
+                        setTimeout(() => {
+                            setInviteError(null);
+                            setInviteErrorClosing(false);
+                        }, 200);
+                    }}
+                />
+            )}
             <div className={styles.homeContent}>
                 <MainCard className={styles.homeCard}>
                     {phase === "searching" ? (
@@ -275,7 +417,7 @@ const HomePage = () => {
                     {showStartPanel && (
                         <div className={styles.startOverlay}>
                             <div
-                                className={styles.startPanel}
+                                className={`${styles.startPanel} ${styles.modePanel}`}
                                 onClick={(event) => event.stopPropagation()}
                             >
                                 <IconButton
@@ -447,7 +589,7 @@ const HomePage = () => {
                                                             {selected.max_duration_minutes} мин
                                                         </div>
                                                         <div className={configStyles.configMeta}>
-                                                            {selected.should_show_opponent_code
+                                                            {selected.should_show_opponent_solution
                                                                 ? "Показывать код соперника во время дуэли."
                                                                 : "Не показывать код соперника во время дуэли."}
                                                         </div>
@@ -504,37 +646,42 @@ const HomePage = () => {
                         </div>
                     )}
                 </MainCard>
-                {visibleRequests.length > 0 && phase !== "active" && (
-                    <div className={styles.requestsList}>
-                        {visibleRequests.map((request) => {
-                            const nickname = request.opponent_nickname ?? "";
-                            const isPending = pendingRequestNickname === nickname;
-                            const requestKey = `${nickname}-${request.created_at}`;
+                {visibleInvitations.length > 0 && phase !== "active" && (
+                    <div className={styles.invitationsList}>
+                        {visibleInvitations.map((invitation) => {
+                            const nickname = invitation.opponent_nickname ?? "";
+                            const isPending = pendingInvitationNickname === nickname;
+                            const invitationKey = `${nickname}-${invitation.created_at}`;
+                            const configurationId = invitation.configuration_id ?? null;
                             return (
-                                <div className={styles.requestItem} key={requestKey}>
-                                    <div className={styles.requestInfo}>
-                                        <span className={styles.requestLabel}>
+                                <div className={styles.invitationItem} key={invitationKey}>
+                                    <div className={styles.invitationInfo}>
+                                        <span className={styles.invitationLabel}>
                                             {nickname
                                                 ? `Вызов на дуэль от ${nickname}`
                                                 : "Вызов на дуэль"}
                                         </span>
                                     </div>
-                                    <div className={styles.requestActions}>
+                                    <div className={styles.invitationActions}>
                                         <Button
-                                            className={styles.acceptButton}
-                                            onClick={() => handleRequestAccept(nickname)}
+                                            className={styles.invitationAcceptButton}
+                                            onClick={() =>
+                                                handleInvitationAccept(nickname, configurationId)
+                                            }
                                             disabled={isSessionBusy || !nickname}
                                         >
                                             Принять
                                         </Button>
                                         <Button
-                                            className={styles.denyButton}
-                                            onClick={() => handleRequestDeny(nickname)}
+                                            className={styles.invitationDenyButton}
+                                            onClick={() =>
+                                                handleInvitationDeny(nickname, configurationId)
+                                            }
                                             disabled={
                                                 isSessionBusy ||
                                                 !nickname ||
                                                 isPending ||
-                                                isDenyingRequest
+                                                isDenyingInvitation
                                             }
                                         >
                                             Отклонить
@@ -547,7 +694,7 @@ const HomePage = () => {
                 )}
             </div>
             {duelCanceled && (
-                <ResultModal title="Вызов не принят" onClose={handleDuelCanceledClose}>
+                <Modal title="Вызов не принят" onClose={handleDuelCanceledClose}>
                     <p className={styles.duelCanceledText}>
                         {duelCanceledOpponentNickname
                             ? `${duelCanceledOpponentNickname} не принял вызов на дуэль.`
@@ -556,7 +703,7 @@ const HomePage = () => {
                     <Button className={styles.duelCanceledButton} onClick={handleDuelCanceledClose}>
                         Понятно
                     </Button>
-                </ResultModal>
+                </Modal>
             )}
         </div>
     );
