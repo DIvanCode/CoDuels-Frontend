@@ -76,6 +76,7 @@ export const TaskSubmissionsContent = () => {
                         key={submission.submission_id}
                         submission={submission}
                         duelId={duelId}
+                        taskKey={resolvedTaskKey}
                         afterDuelEnd={
                             submission?.created_at && duel?.end_time
                                 ? new Date(submission.created_at) > new Date(duel.end_time)

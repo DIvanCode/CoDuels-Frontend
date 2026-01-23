@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
 import { useGetSubmissionDetailQuery } from "features/submit-code";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
@@ -17,6 +17,7 @@ import styles from "./TaskSubmissionCodeContent.module.scss";
 export const TaskSubmissionCodeContent = () => {
     const { duelId, submissionId } = useParams<{ duelId: string; submissionId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const {
         data: submissionDetail,
@@ -31,7 +32,9 @@ export const TaskSubmissionCodeContent = () => {
     const theme = useAppSelector(selectThemeMode);
 
     const handleBackClick = () => {
-        navigate(`/duel/${duelId}/submissions`);
+        const taskKey = searchParams.get("task");
+        const taskParam = taskKey ? `?task=${encodeURIComponent(taskKey)}` : "";
+        navigate(`/duel/${duelId}/submissions${taskParam}`);
     };
 
     if (isLoading) {

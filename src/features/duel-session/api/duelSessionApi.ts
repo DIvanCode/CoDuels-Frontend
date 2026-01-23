@@ -14,8 +14,6 @@ import {
     setDuelCanceledOpponentNickname,
     setPhase,
     setLastEventId,
-    setNewTasksAvailable,
-    setDuelStatusChanged,
     setSessionInterrupted,
     resetDuelSession,
 } from "../model/duelSessionSlice";
@@ -554,14 +552,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             const duelId = getDuelIdFromPayload(payload, currentState);
 
                             if (duelId) {
-                                const activeDuelId = currentState.duelSession.activeDuelId ?? null;
-                                const shouldAffectActive = !activeDuelId || duelId === activeDuelId;
-
                                 if (duelPayload?.id) {
-                                    if (shouldAffectActive) {
-                                        dispatch(setNewTasksAvailable(true));
-                                    }
-
                                     const mapSolutionToTaskId = (
                                         solutions:
                                             | Record<
@@ -627,9 +618,6 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                             },
                                         );
                                     }
-                                }
-                                if (shouldAffectActive) {
-                                    dispatch(setDuelStatusChanged(true));
                                 }
                             }
 

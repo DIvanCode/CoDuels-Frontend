@@ -10,9 +10,15 @@ interface SubmissionRowProps {
     submission: SubmissionItem;
     duelId: string;
     afterDuelEnd: boolean;
+    taskKey: string | null;
 }
 
-export const TaskSubmissionRow = ({ submission, duelId, afterDuelEnd }: SubmissionRowProps) => {
+export const TaskSubmissionRow = ({
+    submission,
+    duelId,
+    afterDuelEnd,
+    taskKey,
+}: SubmissionRowProps) => {
     const navigate = useNavigate();
 
     const { status, verdict, language, created_at } = submission;
@@ -20,7 +26,8 @@ export const TaskSubmissionRow = ({ submission, duelId, afterDuelEnd }: Submissi
     const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 
     const handleRowClick = () => {
-        navigate(`/duel/${duelId}/submissions/${submission.submission_id}`);
+        const taskParam = taskKey ? `?task=${encodeURIComponent(taskKey)}` : "";
+        navigate(`/duel/${duelId}/submissions/${submission.submission_id}${taskParam}`);
     };
 
     return (

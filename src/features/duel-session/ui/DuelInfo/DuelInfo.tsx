@@ -4,11 +4,7 @@ import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "shared/lib/useLocalStorage";
-import {
-    selectDuelSession,
-    setDuelStatusChanged,
-    setNewTasksAvailable,
-} from "features/duel-session";
+import { selectDuelSession, setDuelStatusChanged, setOpenedTaskKeys } from "features/duel-session";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -21,14 +17,13 @@ export const DuelInfo = ({ duelId }: Props) => {
     const dispatch = useAppDispatch();
 
     const currentUser = useAppSelector(selectCurrentUser);
-    const { newTasksAvailable, duelStatusChanged } = useAppSelector(selectDuelSession);
+    const { duelStatusChanged, openedTaskKeys } = useAppSelector(selectDuelSession);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
     const [isDismissed, setIsDismissed] = useLocalStorage(`duel:${duelId}:resultDismissed`, false);
     const showResultModal = duel?.status === "Finished" && (!isDismissed || duelStatusChanged);
     const showUpdateModal = duelStatusChanged && duel?.status !== "Finished";
-    const showNewTasksModal = newTasksAvailable;
     const handleResultModalClose = () => {
         setIsDismissed(true);
         if (duelStatusChanged) {
@@ -37,6 +32,7 @@ export const DuelInfo = ({ duelId }: Props) => {
     };
     const handleUpdateModalClose = () => {
         dispatch(setDuelStatusChanged(false));
+        dispatch(setOpenedTaskKeys([]));
     };
 
     if (!duel || isDuelLoading) return <div>...</div>;
@@ -116,24 +112,13 @@ export const DuelInfo = ({ duelId }: Props) => {
                 <Modal title="Дуэль обновлена" onClose={handleUpdateModalClose}>
                     <div className={styles.resultContent}>
                         <p className={styles.description}>
-                            Проверьте, возможно, некоторые задачи стали доступны.
+                            {openedTaskKeys.length > 0
+                                ? openedTaskKeys.length === 1
+                                    ? `Открылась задача ${openedTaskKeys[0]}`
+                                    : `Открылись задачи ${openedTaskKeys.join(", ")}`
+                                : "Проверьте, возможно, некоторые задачи стали доступны"}
                         </p>
                         <Button onClick={handleUpdateModalClose}>Понятно</Button>
-                    </div>
-                </Modal>
-            )}
-            {showNewTasksModal && (
-                <Modal
-                    title="Открылись новые задачи"
-                    onClose={() => dispatch(setNewTasksAvailable(false))}
-                >
-                    <div className={styles.resultContent}>
-                        <p className={styles.description}>
-                            Появились новые задачи дуэли. Проверьте список задач.
-                        </p>
-                        <Button onClick={() => dispatch(setNewTasksAvailable(false))}>
-                            Понятно
-                        </Button>
                     </div>
                 </Modal>
             )}
