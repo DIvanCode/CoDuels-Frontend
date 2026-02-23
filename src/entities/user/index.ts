@@ -3,7 +3,13 @@ export { BriefUserInfo } from "./ui/BriefUserInfo/BriefUserInfo";
 
 export type { UserData } from "./model/types";
 
-export { useGetUserQuery, useGetMeQuery } from "./api/userApi";
+export {
+    useGetUserQuery,
+    useLazyGetUserQuery,
+    useGetUserByNicknameQuery,
+    useLazyGetUserByNicknameQuery,
+    useGetMeQuery,
+} from "./api/userApi";
 
 export { userApiSlice } from "./api/userApi";
 export { selectCurrentUser } from "./model/selectors";

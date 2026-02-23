@@ -1,6 +1,7 @@
 import type { Duel } from "entities/duel";
 import { duelApiSlice } from "entities/duel";
 import { duelInvitationApiSlice } from "entities/duel-invitation/api/duelInvitationApi";
+import { groupInvitationApiSlice } from "entities/group-invitation";
 import { userApiSlice } from "entities/user";
 import { SubmissionStatus } from "features/submit-code";
 import { submitCodeApiSlice } from "features/submit-code/api/submitCodeApi";
@@ -456,6 +457,15 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             return;
                         }
 
+                        if (normalized === "groupinvitation") {
+                            dispatch(
+                                groupInvitationApiSlice.util.invalidateTags([
+                                    { type: "GroupInvitation", id: "LIST" },
+                                ]),
+                            );
+                            return;
+                        }
+
                         if (normalized === "duelinvitationcanceled") {
                             dispatch(
                                 duelInvitationApiSlice.util.invalidateTags([
@@ -472,6 +482,15 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             if (matchInvitationPayload(invitationPayload, currentState)) {
                                 dispatch(setPhase("idle"));
                             }
+                            return;
+                        }
+
+                        if (normalized === "groupinvitationcanceled") {
+                            dispatch(
+                                groupInvitationApiSlice.util.invalidateTags([
+                                    { type: "GroupInvitation", id: "LIST" },
+                                ]),
+                            );
                             return;
                         }
 
@@ -670,6 +689,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                     { type: "Duel", id: "LIST" },
                                     { type: "DuelConfiguration", id: "LIST" },
                                     { type: "DuelInvitation", id: "LIST" },
+                                    { type: "Group", id: "LIST" },
+                                    { type: "GroupInvitation", id: "LIST" },
                                     { type: "Submission", id: "LIST" },
                                     { type: "User", id: "ME" },
                                 ]),

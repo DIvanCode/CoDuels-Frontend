@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
+import GroupIcon from "shared/assets/icons/group.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
@@ -23,6 +24,11 @@ export const Header = () => {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const userMenuItems: DropdownItem[] = [
+        {
+            icon: <GroupIcon />,
+            label: "Группы",
+            onClick: () => navigate(AppRoutes.GROUPS),
+        },
         {
             icon: <ProfileIcon />,
             label: "Профиль",

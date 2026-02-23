@@ -40,4 +40,11 @@
     .listIcon {
         color: var(--text-primary);
     }
+
+    .listIcon :global(svg) {
+        width: 1.1em;
+        height: 1.1em;
+        display: block;
+        fill: currentColor;
+    }
 }
