@@ -67,6 +67,7 @@ export const Select = <T extends string>({
                                 styles.option,
                                 option.value === value && styles.selected,
                             )}
+                            data-selected={option.value === value}
                             onClick={() => handleOptionClick(option.value)}
                         >
                             {option.label}

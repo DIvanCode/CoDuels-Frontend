@@ -7,6 +7,9 @@ export const userApiSlice = apiSlice.injectEndpoints({
         getUser: builder.query<UserData, number>({
             query: (userId) => `/users/${userId}`,
         }),
+        getUserByNickname: builder.query<UserData, string>({
+            query: (nickname) => `/users/nickname/${encodeURIComponent(nickname)}`,
+        }),
         getMe: builder.query<UserData, void>({
             query: () => `/users/iam`,
             providesTags: [{ type: "User", id: "ME" }],
@@ -20,4 +23,10 @@ export const userApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useGetUserQuery, useGetMeQuery } = userApiSlice;
+export const {
+    useGetUserQuery,
+    useLazyGetUserQuery,
+    useGetUserByNicknameQuery,
+    useLazyGetUserByNicknameQuery,
+    useGetMeQuery,
+} = userApiSlice;

@@ -10,8 +10,14 @@ import {
     useDenyDuelInvitationMutation,
     useLazyGetDuelInvitationsQuery,
 } from "entities/duel-invitation";
+import {
+    useAcceptGroupInvitationMutation,
+    useDenyGroupInvitationMutation,
+    useLazyGetGroupInvitationsQuery,
+} from "entities/group-invitation";
 import { selectCurrentUser } from "entities/user";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
+import { roleLabels } from "entities/group";
 import {
     DuelSessionButton,
     selectDuelSession,
@@ -114,17 +120,22 @@ const HomePage = () => {
     const [inviteErrorClosing, setInviteErrorClosing] = useState(false);
     const { data: configs } = useGetDuelConfigurationsQuery();
     const [loadDuelInvitations, { data: duelInvitations }] = useLazyGetDuelInvitationsQuery();
+    const [loadGroupInvitations, { data: groupInvitations }] = useLazyGetGroupInvitationsQuery();
     const [createDuelInvitation] = useCreateDuelInvitationMutation();
     const [acceptDuelInvitation] = useAcceptDuelInvitationMutation();
     const [denyDuelInvitation, { isLoading: isDenyingInvitation }] =
         useDenyDuelInvitationMutation();
+    const [acceptGroupInvitation] = useAcceptGroupInvitationMutation();
+    const [denyGroupInvitation, { isLoading: isDenyingGroupInvitation }] =
+        useDenyGroupInvitationMutation();
     const [startDuelSearch] = useStartDuelSearchMutation();
     useGetActiveDuelQuery(undefined, { skip: !user });
 
     useEffect(() => {
         if (!user?.id) return;
         void loadDuelInvitations();
-    }, [user?.id, loadDuelInvitations]);
+        void loadGroupInvitations();
+    }, [user?.id, loadDuelInvitations, loadGroupInvitations]);
 
     useEffect(() => {
         if (phase === "idle") return;
@@ -185,6 +196,10 @@ const HomePage = () => {
     const visibleInvitations = (duelInvitations ?? []).filter(
         (invitation) => invitation.opponent_nickname,
     );
+    const visibleGroupInvitations = groupInvitations ?? [];
+    const [pendingGroupInvitationId, setPendingGroupInvitationId] = useSessionStorage<
+        number | null
+    >("home.pendingGroupInvitationId", null);
 
     const handleStartPanelToggle = () => {
         setShowStartPanel((prev) => !prev);
@@ -363,6 +378,23 @@ const HomePage = () => {
             }).unwrap();
         } finally {
             setPendingInvitationNickname(null);
+        }
+    };
+
+    const handleGroupInvitationAccept = async (groupId: number) => {
+        try {
+            await acceptGroupInvitation({ group_id: groupId }).unwrap();
+        } catch {
+            return;
+        }
+    };
+
+    const handleGroupInvitationDeny = async (groupId: number) => {
+        setPendingGroupInvitationId(groupId);
+        try {
+            await denyGroupInvitation({ group_id: groupId }).unwrap();
+        } finally {
+            setPendingGroupInvitationId(null);
         }
     };
 
@@ -646,52 +678,99 @@ const HomePage = () => {
                         </div>
                     )}
                 </MainCard>
-                {visibleInvitations.length > 0 && phase !== "active" && (
-                    <div className={styles.invitationsList}>
-                        {visibleInvitations.map((invitation) => {
-                            const nickname = invitation.opponent_nickname ?? "";
-                            const isPending = pendingInvitationNickname === nickname;
-                            const invitationKey = `${nickname}-${invitation.created_at}`;
-                            const configurationId = invitation.configuration_id ?? null;
-                            return (
-                                <div className={styles.invitationItem} key={invitationKey}>
-                                    <div className={styles.invitationInfo}>
-                                        <span className={styles.invitationLabel}>
-                                            {nickname
-                                                ? `Вызов на дуэль от ${nickname}`
-                                                : "Вызов на дуэль"}
-                                        </span>
+                {(visibleInvitations.length > 0 || visibleGroupInvitations.length > 0) &&
+                    phase !== "active" && (
+                        <div className={styles.invitationsList}>
+                            {visibleGroupInvitations.map((invitation) => {
+                                const groupName = invitation.group_name ?? "Без названия";
+                                const isPending = pendingGroupInvitationId === invitation.group_id;
+                                return (
+                                    <div
+                                        className={styles.invitationItem}
+                                        key={`group-${invitation.group_id}`}
+                                    >
+                                        <div className={styles.invitationInfo}>
+                                            <span className={styles.invitationLabel}>
+                                                Приглашение в группу
+                                                <span className={styles.invitationGroupName}>
+                                                    {groupName}
+                                                </span>
+                                            </span>
+                                            <span className={styles.invitationMeta}>
+                                                Роль:{" "}
+                                                {roleLabels[invitation.role] ?? invitation.role}
+                                            </span>
+                                        </div>
+                                        <div className={styles.invitationActions}>
+                                            <Button
+                                                className={styles.invitationAcceptButton}
+                                                onClick={() =>
+                                                    handleGroupInvitationAccept(invitation.group_id)
+                                                }
+                                                disabled={isPending || isDenyingGroupInvitation}
+                                            >
+                                                Принять
+                                            </Button>
+                                            <Button
+                                                className={styles.invitationDenyButton}
+                                                onClick={() =>
+                                                    handleGroupInvitationDeny(invitation.group_id)
+                                                }
+                                                disabled={isPending || isDenyingGroupInvitation}
+                                            >
+                                                Отклонить
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className={styles.invitationActions}>
-                                        <Button
-                                            className={styles.invitationAcceptButton}
-                                            onClick={() =>
-                                                handleInvitationAccept(nickname, configurationId)
-                                            }
-                                            disabled={isSessionBusy || !nickname}
-                                        >
-                                            Принять
-                                        </Button>
-                                        <Button
-                                            className={styles.invitationDenyButton}
-                                            onClick={() =>
-                                                handleInvitationDeny(nickname, configurationId)
-                                            }
-                                            disabled={
-                                                isSessionBusy ||
-                                                !nickname ||
-                                                isPending ||
-                                                isDenyingInvitation
-                                            }
-                                        >
-                                            Отклонить
-                                        </Button>
+                                );
+                            })}
+                            {visibleInvitations.map((invitation) => {
+                                const nickname = invitation.opponent_nickname ?? "";
+                                const isPending = pendingInvitationNickname === nickname;
+                                const invitationKey = `${nickname}-${invitation.created_at}`;
+                                const configurationId = invitation.configuration_id ?? null;
+                                return (
+                                    <div className={styles.invitationItem} key={invitationKey}>
+                                        <div className={styles.invitationInfo}>
+                                            <span className={styles.invitationLabel}>
+                                                {nickname
+                                                    ? `Вызов на дуэль от ${nickname}`
+                                                    : "Вызов на дуэль"}
+                                            </span>
+                                        </div>
+                                        <div className={styles.invitationActions}>
+                                            <Button
+                                                className={styles.invitationAcceptButton}
+                                                onClick={() =>
+                                                    handleInvitationAccept(
+                                                        nickname,
+                                                        configurationId,
+                                                    )
+                                                }
+                                                disabled={isSessionBusy || !nickname}
+                                            >
+                                                Принять
+                                            </Button>
+                                            <Button
+                                                className={styles.invitationDenyButton}
+                                                onClick={() =>
+                                                    handleInvitationDeny(nickname, configurationId)
+                                                }
+                                                disabled={
+                                                    isSessionBusy ||
+                                                    !nickname ||
+                                                    isPending ||
+                                                    isDenyingInvitation
+                                                }
+                                            >
+                                                Отклонить
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+                                );
+                            })}
+                        </div>
+                    )}
             </div>
             {duelCanceled && (
                 <Modal title="Вызов не принят" onClose={handleDuelCanceledClose}>

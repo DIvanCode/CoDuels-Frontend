@@ -3,6 +3,8 @@ import { AuthPage } from "pages/auth";
 import { ProfilePage } from "pages/profile";
 import { DuelPage } from "pages/duel";
 import { HomePage } from "pages/home";
+import { GroupsPage } from "pages/groups";
+import { GroupPage } from "pages/group";
 import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -44,6 +46,26 @@ export const router = createBrowserRouter([
                     <Suspense fallback={<Loader />}>
                         <ProtectedRoute>
                             <ProfilePage />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUPS,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <GroupsPage />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUP,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <GroupPage />
                         </ProtectedRoute>
                     </Suspense>
                 ),

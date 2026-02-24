@@ -56,6 +56,14 @@ export const baseQueryWithReauth: BaseQueryFn<
 
 export const apiSlice = createApi({
     baseQuery: baseQueryWithReauth,
-    tagTypes: ["Duel", "DuelConfiguration", "DuelInvitation", "Submission", "User"],
+    tagTypes: [
+        "Duel",
+        "DuelConfiguration",
+        "DuelInvitation",
+        "Submission",
+        "User",
+        "Group",
+        "GroupInvitation",
+    ],
     endpoints: () => ({}),
 });
