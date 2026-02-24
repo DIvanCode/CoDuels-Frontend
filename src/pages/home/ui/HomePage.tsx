@@ -17,6 +17,7 @@ import {
 } from "entities/group-invitation";
 import { selectCurrentUser } from "entities/user";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
+import { roleLabels } from "entities/group";
 import {
     DuelSessionButton,
     selectDuelSession,
@@ -690,10 +691,14 @@ const HomePage = () => {
                                     >
                                         <div className={styles.invitationInfo}>
                                             <span className={styles.invitationLabel}>
-                                                Приглашение в группу {groupName}
+                                                Приглашение в группу
+                                                <span className={styles.invitationGroupName}>
+                                                    {groupName}
+                                                </span>
                                             </span>
                                             <span className={styles.invitationMeta}>
-                                                Роль: {invitation.role}
+                                                Роль:{" "}
+                                                {roleLabels[invitation.role] ?? invitation.role}
                                             </span>
                                         </div>
                                         <div className={styles.invitationActions}>

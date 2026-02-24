@@ -20,3 +20,5 @@ export type {
     CreateGroupRequest,
     InviteGroupUserRequest,
 } from "./model/types";
+
+export { roleLabels } from "./lib/roleLabels";

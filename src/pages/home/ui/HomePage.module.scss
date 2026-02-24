@@ -99,6 +99,11 @@
     color: var(--text-secondary);
 }
 
+.invitationGroupName {
+    display: block;
+    font-weight: 600;
+}
+
 .invitationActions {
     display: grid;
     grid-template-columns: 1fr 1fr;

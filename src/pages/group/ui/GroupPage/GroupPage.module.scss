@@ -24,6 +24,12 @@
     flex-wrap: wrap;
 }
 
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+}
+
 .titleRow {
     display: flex;
     align-items: center;
@@ -44,8 +50,15 @@
 
 .headerActions {
     display: flex;
-    gap: 0.75em;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5em;
     flex-wrap: wrap;
+}
+
+.backButton {
+    width: fit-content;
+    padding: 0.25em 0.6em;
 }
 
 .title {
@@ -94,7 +107,7 @@
 }
 
 .userLink:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .inviterLink {
@@ -107,7 +120,7 @@
 }
 
 .inviterLink:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .roleCell {
@@ -209,6 +222,12 @@
     width: auto;
 }
 
+.leaveButton {
+    font-size: 0.9rem;
+    padding: 0.5em 1em;
+    width: auto;
+}
+
 .roleSelectInline {
     min-width: 120px;
 }
@@ -282,5 +301,6 @@
 
     .headerActions {
         width: 100%;
+        align-items: stretch;
     }
 }

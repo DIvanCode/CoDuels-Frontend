@@ -6,10 +6,12 @@ import { selectCurrentUser, useLazyGetUserByNicknameQuery } from "entities/user"
 import {
     type GroupRole,
     type GroupUser,
+    roleLabels,
     useGetGroupQuery,
     useGetGroupUsersQuery,
     useChangeGroupUserRoleMutation,
     useExcludeGroupUserMutation,
+    useLeaveGroupMutation,
     useInviteGroupUserMutation,
     useUpdateGroupMutation,
 } from "entities/group";
@@ -20,12 +22,6 @@ import { Button, IconButton, InputField, Modal, Select, Table } from "shared/ui"
 import { useCancelGroupInvitationMutation } from "entities/group-invitation";
 
 import styles from "./GroupPage.module.scss";
-
-const roleLabels: Record<GroupRole, string> = {
-    Creator: "Создатель",
-    Manager: "Менеджер",
-    Member: "Участник",
-};
 
 const roleOptions = [
     { value: "Manager" as const, label: roleLabels.Manager },
@@ -76,6 +72,7 @@ const GroupPage = () => {
     const [cancelGroupInvitation, { isLoading: isCancelingInvitation }] =
         useCancelGroupInvitationMutation();
     const [excludeGroupUser, { isLoading: isExcluding }] = useExcludeGroupUserMutation();
+    const [leaveGroup, { isLoading: isLeavingGroup }] = useLeaveGroupMutation();
 
     const currentUserRole = useMemo(() => {
         if (!members || !currentUser) return null;
@@ -102,6 +99,7 @@ const GroupPage = () => {
     const [isLoadErrorOpen, setIsLoadErrorOpen] = useState(false);
     const [excludeTarget, setExcludeTarget] = useState<GroupUser | null>(null);
     const [excludeError, setExcludeError] = useState<string | null>(null);
+    const [leaveTarget, setLeaveTarget] = useState<{ id: number; name: string } | null>(null);
 
     const handleEditOpen = () => {
         setGroupName(group?.name ?? "");
@@ -279,6 +277,15 @@ const GroupPage = () => {
         }
     };
 
+    const handleLeaveGroup = async (groupId: number) => {
+        try {
+            await leaveGroup(groupId).unwrap();
+            navigate(AppRoutes.GROUPS);
+        } catch {
+            return;
+        }
+    };
+
     if (!resolvedGroupId) {
         return <div className={styles.status}>Группа не найдена.</div>;
     }
@@ -314,26 +321,48 @@ const GroupPage = () => {
         <div className={styles.groupPage}>
             <div className={styles.groupCard}>
                 <div className={styles.header}>
-                    <div className={styles.titleRow}>
-                        <h2 className={styles.title}>{group.name ?? "Без названия"}</h2>
-                        {canManage && (
-                            <IconButton
-                                className={styles.editIcon}
-                                onClick={handleEditOpen}
-                                aria-label="Изменить название группы"
-                                size="small"
-                            >
-                                <EditIcon />
-                            </IconButton>
-                        )}
+                    <div className={styles.titleBlock}>
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            className={styles.backButton}
+                            onClick={() => navigate(AppRoutes.GROUPS)}
+                        >
+                            &lt; Назад к списку групп
+                        </Button>
+                        <div className={styles.titleRow}>
+                            <h2 className={styles.title}>{group.name ?? "Без названия"}</h2>
+                            {canManage && (
+                                <IconButton
+                                    className={styles.editIcon}
+                                    onClick={handleEditOpen}
+                                    aria-label="Изменить название группы"
+                                    size="small"
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                            )}
+                        </div>
                     </div>
-                    {canManage && (
-                        <div className={styles.headerActions}>
+                    <div className={styles.headerActions}>
+                        {canManage && (
                             <Button className={styles.addButton} onClick={handleAddOpen}>
                                 Добавить участников
                             </Button>
-                        </div>
-                    )}
+                        )}
+                        <Button
+                            variant="outlined"
+                            className={styles.leaveButton}
+                            onClick={() =>
+                                setLeaveTarget({
+                                    id: group.id,
+                                    name: group.name ?? "Без названия",
+                                })
+                            }
+                        >
+                            Покинуть группу
+                        </Button>
+                    </div>
                 </div>
 
                 <Table className={styles.table}>
@@ -387,7 +416,7 @@ const GroupPage = () => {
                                                         (не подтвержден)
                                                     </span>
                                                 )}
-                                                {canEditRole && (
+                                                {canEditRole && member.status !== "Pending" && (
                                                     <IconButton
                                                         className={styles.roleEditButton}
                                                         onClick={() => handleStartRoleEdit(member)}
@@ -598,6 +627,37 @@ const GroupPage = () => {
                             disabled={isExcluding || isCancelingInvitation}
                         >
                             Исключить
+                        </Button>
+                    </div>
+                </Modal>
+            )}
+
+            {leaveTarget && (
+                <Modal
+                    title="Покинуть группу"
+                    onClose={() => setLeaveTarget(null)}
+                    closeOnOverlay={false}
+                >
+                    <div className={styles.confirmText}>
+                        Вы действительно хотите покинуть группу {leaveTarget.name}?
+                    </div>
+                    <div className={styles.formActions}>
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => setLeaveTarget(null)}
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={async () => {
+                                await handleLeaveGroup(leaveTarget.id);
+                                setLeaveTarget(null);
+                            }}
+                            disabled={isLeavingGroup}
+                        >
+                            Покинуть
                         </Button>
                     </div>
                 </Modal>

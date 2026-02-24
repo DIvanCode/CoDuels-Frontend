@@ -5,6 +5,7 @@ import type { UserData } from "entities/user";
 import { selectCurrentUser, useLazyGetUserByNicknameQuery } from "entities/user";
 import {
     type GroupRole,
+    roleLabels,
     useCreateGroupMutation,
     useGetGroupsQuery,
     useLeaveGroupMutation,
@@ -25,12 +26,6 @@ interface Invitee {
     user: UserData;
     role: GroupRole;
 }
-
-const roleLabels: Record<GroupRole, string> = {
-    Creator: "Создатель",
-    Manager: "Менеджер",
-    Member: "Участник",
-};
 
 const roleOptions = [
     { value: "Manager" as const, label: roleLabels.Manager },
