@@ -6,9 +6,10 @@ import type { DuelConfiguration } from "entities/duel-configuration";
 import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
 import {
     useAcceptDuelInvitationMutation,
+    useAcceptGroupDuelInvitationMutation,
     useCreateDuelInvitationMutation,
     useDenyDuelInvitationMutation,
-    useLazyGetDuelInvitationsQuery,
+    useGetDuelInvitationsQuery,
 } from "entities/duel-invitation";
 import {
     useAcceptGroupInvitationMutation,
@@ -77,14 +78,8 @@ const SearchingStateContent = ({ label }: SearchingStateContentProps) => {
 
 const HomePage = () => {
     const user = useAppSelector(selectCurrentUser);
-    const {
-        phase,
-        activeDuelId,
-        searchNickname,
-        searchConfigurationId,
-        duelCanceled,
-        duelCanceledOpponentNickname,
-    } = useAppSelector(selectDuelSession);
+    const { phase, activeDuelId, duelCanceled, duelCanceledOpponentNickname } =
+        useAppSelector(selectDuelSession);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [showStartPanel, setShowStartPanel] = useSessionStorage("home.showStartPanel", false);
@@ -119,10 +114,16 @@ const HomePage = () => {
     );
     const [inviteErrorClosing, setInviteErrorClosing] = useState(false);
     const { data: configs } = useGetDuelConfigurationsQuery();
-    const [loadDuelInvitations, { data: duelInvitations }] = useLazyGetDuelInvitationsQuery();
+    const { data: directDuelInvitations } = useGetDuelInvitationsQuery("Ranked", {
+        skip: !user,
+    });
+    const { data: groupDuelInvitations } = useGetDuelInvitationsQuery("Group", {
+        skip: !user,
+    });
     const [loadGroupInvitations, { data: groupInvitations }] = useLazyGetGroupInvitationsQuery();
     const [createDuelInvitation] = useCreateDuelInvitationMutation();
     const [acceptDuelInvitation] = useAcceptDuelInvitationMutation();
+    const [acceptGroupDuelInvitation] = useAcceptGroupDuelInvitationMutation();
     const [denyDuelInvitation, { isLoading: isDenyingInvitation }] =
         useDenyDuelInvitationMutation();
     const [acceptGroupInvitation] = useAcceptGroupInvitationMutation();
@@ -133,9 +134,9 @@ const HomePage = () => {
 
     useEffect(() => {
         if (!user?.id) return;
-        void loadDuelInvitations();
+        // Duel invitations are loaded via useGetDuelInvitationsQuery per type.
         void loadGroupInvitations();
-    }, [user?.id, loadDuelInvitations, loadGroupInvitations]);
+    }, [user?.id, loadGroupInvitations]);
 
     useEffect(() => {
         if (phase === "idle") return;
@@ -185,7 +186,7 @@ const HomePage = () => {
             return;
         }
 
-        if (prevPhaseRef.current === "searching" && phase === "active" && activeDuelId) {
+        if (phase === "active" && activeDuelId) {
             navigate("/duel/" + activeDuelId);
         }
 
@@ -193,9 +194,15 @@ const HomePage = () => {
     }, [phase, activeDuelId, waitingForStart, navigate]);
 
     const isSessionBusy = phase !== "idle";
-    const visibleInvitations = (duelInvitations ?? []).filter(
-        (invitation) => invitation.opponent_nickname,
-    );
+    const duelInvitations = [...(directDuelInvitations ?? []), ...(groupDuelInvitations ?? [])];
+    const visibleInvitations = duelInvitations.filter((invitation) => {
+        const invitationType = invitation.type ?? "Ranked";
+        const invitationGroup = invitation.group;
+        if (invitationType === "Group" || invitationGroup) {
+            return true;
+        }
+        return Boolean(invitation.opponent_nickname);
+    });
     const visibleGroupInvitations = groupInvitations ?? [];
     const [pendingGroupInvitationId, setPendingGroupInvitationId] = useSessionStorage<
         number | null
@@ -351,14 +358,28 @@ const HomePage = () => {
         dispatch(setDuelCanceled(false));
     };
 
-    const handleInvitationAccept = async (nickname: string, configurationId?: number | null) => {
+    const handleInvitationAccept = async (
+        nickname: string,
+        configurationId?: number | null,
+        isGroupInvitation?: boolean,
+        groupId?: number,
+    ) => {
         if (isSessionBusy) return;
+        if (isGroupInvitation && !groupId) return;
 
         try {
-            await acceptDuelInvitation({
-                opponent_nickname: nickname,
-                configuration_id: configurationId ?? undefined,
-            }).unwrap();
+            if (isGroupInvitation) {
+                await acceptGroupDuelInvitation({
+                    group_id: groupId as number,
+                    opponent_nickname: nickname,
+                    configuration_id: configurationId ?? undefined,
+                }).unwrap();
+            } else {
+                await acceptDuelInvitation({
+                    opponent_nickname: nickname,
+                    configuration_id: configurationId ?? undefined,
+                }).unwrap();
+            }
         } catch {
             return;
         }
@@ -398,13 +419,7 @@ const HomePage = () => {
         }
     };
 
-    const searchingLabel = waitingForStart
-        ? "Ждём начала..."
-        : searchNickname
-          ? `Ждём ${searchNickname}...`
-          : searchConfigurationId
-            ? "Ждём оппонента..."
-            : "Поиск оппонента...";
+    const searchingLabel = "Ожидание соперника";
 
     return (
         <div className={styles.homePage}>
@@ -433,13 +448,7 @@ const HomePage = () => {
                     )}
 
                     {phase === "searching" || phase === "active" ? (
-                        <div
-                            className={
-                                waitingForStart && phase === "searching"
-                                    ? `${styles.duelAction} ${styles.duelActionHidden}`
-                                    : styles.duelAction
-                            }
-                        >
+                        <div className={styles.duelAction}>
                             <DuelSessionButton />
                         </div>
                     ) : (
@@ -729,13 +738,23 @@ const HomePage = () => {
                                 const isPending = pendingInvitationNickname === nickname;
                                 const invitationKey = `${nickname}-${invitation.created_at}`;
                                 const configurationId = invitation.configuration_id ?? null;
+                                const invitationType = invitation.type ?? "Ranked";
+                                const invitationGroup = invitation.group ?? null;
+                                const isGroupInvitation =
+                                    invitationType === "Group" || Boolean(invitationGroup);
+                                const groupId = invitationGroup?.id;
+                                const groupName = invitationGroup?.name ?? "Без названия";
                                 return (
                                     <div className={styles.invitationItem} key={invitationKey}>
                                         <div className={styles.invitationInfo}>
                                             <span className={styles.invitationLabel}>
-                                                {nickname
-                                                    ? `Вызов на дуэль от ${nickname}`
-                                                    : "Вызов на дуэль"}
+                                                {isGroupInvitation
+                                                    ? nickname
+                                                        ? `Приглашение на дуэль с ${nickname} в группе ${groupName}`
+                                                        : `Приглашение на дуэль в группе ${groupName}`
+                                                    : nickname
+                                                      ? `Вызов на дуэль от ${nickname}`
+                                                      : "Вызов на дуэль"}
                                             </span>
                                         </div>
                                         <div className={styles.invitationActions}>
@@ -745,26 +764,33 @@ const HomePage = () => {
                                                     handleInvitationAccept(
                                                         nickname,
                                                         configurationId,
+                                                        isGroupInvitation,
+                                                        groupId,
                                                     )
                                                 }
                                                 disabled={isSessionBusy || !nickname}
                                             >
                                                 Принять
                                             </Button>
-                                            <Button
-                                                className={styles.invitationDenyButton}
-                                                onClick={() =>
-                                                    handleInvitationDeny(nickname, configurationId)
-                                                }
-                                                disabled={
-                                                    isSessionBusy ||
-                                                    !nickname ||
-                                                    isPending ||
-                                                    isDenyingInvitation
-                                                }
-                                            >
-                                                Отклонить
-                                            </Button>
+                                            {!isGroupInvitation && (
+                                                <Button
+                                                    className={styles.invitationDenyButton}
+                                                    onClick={() =>
+                                                        handleInvitationDeny(
+                                                            nickname,
+                                                            configurationId,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        isSessionBusy ||
+                                                        !nickname ||
+                                                        isPending ||
+                                                        isDenyingInvitation
+                                                    }
+                                                >
+                                                    Отклонить
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 );

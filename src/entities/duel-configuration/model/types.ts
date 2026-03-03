@@ -23,7 +23,7 @@ export interface CreateDuelConfigurationRequest {
 }
 
 export interface UpdateDuelConfigurationRequest {
-    should_ShouldShowOpponentSolution: boolean;
+    should_show_opponent_solution: boolean;
     max_duration_minutes: number;
     tasks_count: number;
     tasks_order: DuelTasksOrder;

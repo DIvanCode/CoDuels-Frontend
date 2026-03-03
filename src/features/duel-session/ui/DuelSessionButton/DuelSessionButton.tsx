@@ -1,4 +1,3 @@
-import { useCancelDuelInvitationMutation } from "entities/duel-invitation";
 import {
     useCancelDuelSearchMutation,
     useStartDuelSearchMutation,
@@ -20,12 +19,10 @@ export const DuelSessionButton = () => {
 
     const dispatch = useAppDispatch();
 
-    const { phase, activeDuelId, searchNickname, searchConfigurationId } =
-        useAppSelector(selectDuelSession);
+    const { phase, activeDuelId } = useAppSelector(selectDuelSession);
     const prevPhaseRef = useRef<DuelSessionPhase>(phase);
     const [startDuelSearch] = useStartDuelSearchMutation();
     const [cancelDuelSearch] = useCancelDuelSearchMutation();
-    const [cancelDuelInvitation] = useCancelDuelInvitationMutation();
 
     useEffect(() => {
         if (prevPhaseRef.current === "searching" && phase === "active" && activeDuelId) {
@@ -47,21 +44,10 @@ export const DuelSessionButton = () => {
             }
             dispatch(setPhase("searching"));
         } else if (phase === "searching") {
-            if (searchNickname) {
-                try {
-                    await cancelDuelInvitation({
-                        opponent_nickname: searchNickname,
-                        configuration_id: searchConfigurationId ?? undefined,
-                    }).unwrap();
-                } catch {
-                    return;
-                }
-            } else {
-                try {
-                    await cancelDuelSearch().unwrap();
-                } catch {
-                    return;
-                }
+            try {
+                await cancelDuelSearch().unwrap();
+            } catch {
+                return;
             }
             dispatch(setPhase("idle"));
         } else if (phase === "active" && activeDuelId) {

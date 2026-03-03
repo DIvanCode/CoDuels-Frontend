@@ -3,6 +3,7 @@ import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
+import { AppRoutes } from "shared/config";
 import { useLocalStorage } from "shared/lib/useLocalStorage";
 import { selectDuelSession, setDuelStatusChanged, setOpenedTaskKeys } from "features/duel-session";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
@@ -64,8 +65,9 @@ export const DuelInfo = ({ duelId }: Props) => {
     const delta = delta1 ?? 0;
     const changeText = delta > 0 ? `+${delta}` : delta;
 
-    const handleOnUserClick = (userId: number) =>
-        userId !== currentUser?.id && navigate(`/profile/${userId}`);
+    const handleOnUserClick = (userId: number, nickname: string) =>
+        userId !== currentUser?.id &&
+        navigate(AppRoutes.PROFILE.replace(":userNickname", nickname));
 
     return (
         <>
@@ -73,7 +75,7 @@ export const DuelInfo = ({ duelId }: Props) => {
                 <UserCard
                     user={user1}
                     ratingDelta={delta1}
-                    onClick={() => handleOnUserClick(user1.id)}
+                    onClick={() => handleOnUserClick(user1.id, user1.nickname)}
                 />
                 <div className={styles.duelContent}>
                     {duel.status === "InProgress" ? (
@@ -90,7 +92,7 @@ export const DuelInfo = ({ duelId }: Props) => {
                     user={user2}
                     reversed
                     ratingDelta={delta2}
-                    onClick={() => handleOnUserClick(user2.id)}
+                    onClick={() => handleOnUserClick(user2.id, user2.nickname)}
                 />
             </div>
             {showResultModal && duelResult !== null && (

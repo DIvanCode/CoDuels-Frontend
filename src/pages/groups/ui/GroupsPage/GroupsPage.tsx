@@ -250,7 +250,7 @@ const GroupsPage = () => {
                                             className={styles.groupLink}
                                             onClick={() =>
                                                 navigate(
-                                                    AppRoutes.GROUP.replace(
+                                                    AppRoutes.GROUP_MEMBERS.replace(
                                                         ":groupId",
                                                         String(group.id),
                                                     ),
