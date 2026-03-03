@@ -9,16 +9,10 @@ import styles from "./TaskSubmissionRow.module.scss";
 interface SubmissionRowProps {
     submission: SubmissionItem;
     duelId: string;
-    afterDuelEnd: boolean;
     taskKey: string | null;
 }
 
-export const TaskSubmissionRow = ({
-    submission,
-    duelId,
-    afterDuelEnd,
-    taskKey,
-}: SubmissionRowProps) => {
+export const TaskSubmissionRow = ({ submission, duelId, taskKey }: SubmissionRowProps) => {
     const navigate = useNavigate();
 
     const { status, verdict, language, created_at } = submission;
@@ -40,7 +34,7 @@ export const TaskSubmissionRow = ({
             <td>{languageLabel}</td>
             <td className={styles.submissionDate}>
                 {formatDate(created_at)}
-                {afterDuelEnd && <Badge severity="warning">после дуэли</Badge>}
+                {submission.is_upsolving && <Badge severity="warning">после дуэли</Badge>}
             </td>
         </tr>
     );
