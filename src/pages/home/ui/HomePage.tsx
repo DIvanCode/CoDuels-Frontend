@@ -78,14 +78,8 @@ const SearchingStateContent = ({ label }: SearchingStateContentProps) => {
 
 const HomePage = () => {
     const user = useAppSelector(selectCurrentUser);
-    const {
-        phase,
-        activeDuelId,
-        searchNickname,
-        searchConfigurationId,
-        duelCanceled,
-        duelCanceledOpponentNickname,
-    } = useAppSelector(selectDuelSession);
+    const { phase, activeDuelId, duelCanceled, duelCanceledOpponentNickname } =
+        useAppSelector(selectDuelSession);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [showStartPanel, setShowStartPanel] = useSessionStorage("home.showStartPanel", false);
@@ -425,13 +419,7 @@ const HomePage = () => {
         }
     };
 
-    const searchingLabel = waitingForStart
-        ? "Ждём начала..."
-        : searchNickname
-          ? `Ждём ${searchNickname}...`
-          : searchConfigurationId
-            ? "Ждём оппонента..."
-            : "Поиск оппонента...";
+    const searchingLabel = "Ожидание соперника";
 
     return (
         <div className={styles.homePage}>
@@ -460,13 +448,7 @@ const HomePage = () => {
                     )}
 
                     {phase === "searching" || phase === "active" ? (
-                        <div
-                            className={
-                                waitingForStart && phase === "searching"
-                                    ? `${styles.duelAction} ${styles.duelActionHidden}`
-                                    : styles.duelAction
-                            }
-                        >
+                        <div className={styles.duelAction}>
                             <DuelSessionButton />
                         </div>
                     ) : (

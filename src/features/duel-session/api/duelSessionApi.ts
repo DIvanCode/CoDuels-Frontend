@@ -249,9 +249,13 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
         }),
         cancelDuelSearch: builder.mutation<void, void>({
             query: () => ({
-                url: "/duels/search/cancel",
+                url: "/duels/cancel",
                 method: "POST",
             }),
+            invalidatesTags: [
+                { type: "DuelInvitation", id: "LIST" },
+                { type: "GroupInvitation", id: "LIST" },
+            ],
         }),
         subscribeToDuelStates: builder.query<void, void>({
             async queryFn() {
@@ -515,19 +519,6 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                     ),
                                 );
                                 dispatch(setDuelCanceled(true));
-                            }
-                            return;
-                        }
-
-                        if (normalized === "duelsearchcanceled") {
-                            const currentState = getState() as RootState;
-
-                            if (
-                                currentState.duelSession.phase === "searching" &&
-                                !currentState.duelSession.searchNickname &&
-                                !currentState.duelSession.searchConfigurationId
-                            ) {
-                                dispatch(setPhase("idle"));
                             }
                             return;
                         }
