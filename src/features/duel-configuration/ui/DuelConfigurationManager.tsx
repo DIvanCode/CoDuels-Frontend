@@ -242,7 +242,7 @@ export const DuelConfigurationManager = ({
                     id: editingId,
                     body: {
                         ...payloadBase,
-                        should_ShouldShowOpponentSolution: shouldShowOpponentSolution,
+                        should_show_opponent_solution: shouldShowOpponentSolution,
                     },
                 }).unwrap();
 

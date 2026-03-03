@@ -32,7 +32,8 @@ export const Header = () => {
         {
             icon: <ProfileIcon />,
             label: "Профиль",
-            onClick: () => navigate(AppRoutes.PROFILE.replace(":userId", String(user?.id))),
+            onClick: () =>
+                navigate(AppRoutes.PROFILE.replace(":userNickname", String(user?.nickname))),
         },
         {
             icon: <ExitIcon />,

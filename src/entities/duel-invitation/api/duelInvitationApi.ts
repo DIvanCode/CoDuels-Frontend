@@ -1,11 +1,33 @@
 import { apiSlice } from "shared/api";
 
-import type { DuelInvitation } from "../model/types";
+import type {
+    DuelInvitation,
+    DuelInvitationBaseDto,
+    GroupDuelInvitationDto,
+    PendingDuelType,
+} from "../model/types";
 
 export const duelInvitationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        getDuelInvitations: builder.query<DuelInvitation[], void>({
-            query: () => "/duels/invitations",
+        getDuelInvitations: builder.query<DuelInvitation[], PendingDuelType>({
+            query: (type) => (type === "Group" ? "/duels/group/invitations" : "/duels/invitations"),
+            transformResponse: (
+                response: DuelInvitationBaseDto[] | GroupDuelInvitationDto[],
+                _meta,
+                type,
+            ) => {
+                if (type === "Group") {
+                    return (response as GroupDuelInvitationDto[]).map((invitation) => ({
+                        ...invitation,
+                        type: "Group" as const,
+                    }));
+                }
+
+                return (response as DuelInvitationBaseDto[]).map((invitation) => ({
+                    ...invitation,
+                    type,
+                }));
+            },
             providesTags: (result) =>
                 result
                     ? [
@@ -39,6 +61,20 @@ export const duelInvitationApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "DuelInvitation", id: "LIST" }],
         }),
+        acceptGroupDuelInvitation: builder.mutation<
+            void,
+            { group_id: number; opponent_nickname: string; configuration_id?: number | null }
+        >({
+            query: (body) => ({
+                url: "/duels/group/invitations/accept",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: (_result, _error, body) => [
+                { type: "DuelInvitation", id: "LIST" },
+                { type: "Duel", id: `GROUP-${body.group_id}` },
+            ],
+        }),
         denyDuelInvitation: builder.mutation<
             void,
             { opponent_nickname: string; configuration_id?: number | null }
@@ -61,6 +97,25 @@ export const duelInvitationApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "DuelInvitation", id: "LIST" }],
         }),
+        createGroupDuelInvitation: builder.mutation<
+            void,
+            {
+                group_id: number;
+                user1_id: number;
+                user2_id: number;
+                configuration_id?: number | null;
+            }
+        >({
+            query: (body) => ({
+                url: "/duels/group/invitations",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: (_result, _error, body) => [
+                { type: "DuelInvitation", id: "LIST" },
+                { type: "Duel", id: `GROUP-${body.group_id}` },
+            ],
+        }),
     }),
 });
 
@@ -69,6 +124,8 @@ export const {
     useLazyGetDuelInvitationsQuery,
     useCreateDuelInvitationMutation,
     useAcceptDuelInvitationMutation,
+    useAcceptGroupDuelInvitationMutation,
     useDenyDuelInvitationMutation,
     useCancelDuelInvitationMutation,
+    useCreateGroupDuelInvitationMutation,
 } = duelInvitationApiSlice;

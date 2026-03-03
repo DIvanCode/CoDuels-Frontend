@@ -1,4 +1,4 @@
-import { BriefUserInfo, useGetUserQuery } from "entities/user";
+import { BriefUserInfo, useGetUserByNicknameQuery } from "entities/user";
 import { useGetAllUserDuelsQuery, DuelHistory } from "entities/duel";
 import { useParams } from "react-router-dom";
 import { ProfileSection } from "../ProfileSectionCard/ProfileSection";
@@ -7,13 +7,18 @@ import { UserStats } from "../UserStats/UserStats";
 import styles from "./ProfilePage.module.scss";
 
 const ProfilePage = () => {
-    const { userId } = useParams();
+    const { userNickname } = useParams();
 
-    const { data: userData, isLoading } = useGetUserQuery(Number(userId), { skip: !userId });
-
-    const { data: userDuels, isLoading: duelsLoading } = useGetAllUserDuelsQuery(Number(userId), {
-        skip: !userId,
+    const { data: userData, isLoading } = useGetUserByNicknameQuery(userNickname ?? "", {
+        skip: !userNickname,
     });
+
+    const { data: userDuels, isLoading: duelsLoading } = useGetAllUserDuelsQuery(
+        userData?.id ?? 0,
+        {
+            skip: !userData?.id,
+        },
+    );
 
     if (isLoading || duelsLoading || !userData || !userDuels) {
         return <div>Загрузка...</div>;

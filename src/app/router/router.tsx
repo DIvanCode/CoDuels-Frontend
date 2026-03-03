@@ -6,7 +6,7 @@ import { HomePage } from "pages/home";
 import { GroupsPage } from "pages/groups";
 import { GroupPage } from "pages/group";
 import { Suspense } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, useParams } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { Fallback, Loader } from "shared/ui";
 
@@ -16,6 +16,12 @@ import {
     TaskSubmissionCodeContent,
 } from "widgets/task-panel";
 import { ProtectedRoute } from "./ProtectedRoute";
+
+const GroupRedirect = () => {
+    const { groupId } = useParams();
+    if (!groupId) return <Navigate to={AppRoutes.GROUPS} replace />;
+    return <Navigate to={AppRoutes.GROUP_MEMBERS.replace(":groupId", groupId)} replace />;
+};
 
 export const router = createBrowserRouter([
     {
@@ -62,6 +68,36 @@ export const router = createBrowserRouter([
             },
             {
                 path: AppRoutes.GROUP,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <GroupRedirect />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUP_MEMBERS,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <GroupPage />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUP_DUELS,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <GroupPage />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUP_TOURNAMENTS,
                 element: (
                     <Suspense fallback={<Loader />}>
                         <ProtectedRoute>

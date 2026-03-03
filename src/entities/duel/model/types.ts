@@ -1,3 +1,5 @@
+import type { UserData } from "entities/user";
+
 export interface DuelParticipant {
     id: number;
     nickname: string;
@@ -16,6 +18,7 @@ export interface DuelTaskSolution {
 
 export interface Duel {
     id: number;
+    configuration_id?: number | null;
     is_rated: boolean;
     should_show_opponent_solution: boolean;
     participants: DuelParticipant[] | null;
@@ -29,6 +32,17 @@ export interface Duel {
     solutions?: Record<string, DuelTaskSolution> | null;
     opponent_solutions?: Record<string, DuelTaskSolution> | null;
     task_id?: string;
+}
+
+export interface GroupDuelEntry {
+    duel: Duel | null;
+    configuration_id?: number | null;
+    user1: UserData;
+    user2: UserData;
+    is_accepted_by_user1: boolean;
+    is_accepted_by_user2: boolean;
+    created_by: UserData;
+    created_at: string;
 }
 
 export type DeltaInfo = Record<DuelResultType, number>;

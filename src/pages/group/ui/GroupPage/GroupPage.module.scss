@@ -36,6 +36,147 @@
     gap: 0.8em;
 }
 
+.sectionTabs {
+    display: flex;
+    align-items: center;
+    gap: 2.2em;
+    flex-wrap: wrap;
+}
+
+.membersSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85em;
+    margin-top: -0.35em;
+}
+
+.duelsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85em;
+    margin-top: -0.35em;
+}
+
+.duelsEmpty {
+    padding: 0.85em 1em;
+    border-radius: 0.65em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+    color: var(--text-secondary);
+}
+
+.duelsTable :global(tbody tr:hover) {
+    cursor: default;
+    background: transparent;
+}
+
+.duelsTable :global(th) {
+    text-align: center;
+}
+
+.duelsTable :global(td) {
+    text-align: center;
+}
+
+.duelPlayerCell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1em;
+}
+
+.duelPlayerName {
+    line-height: 1.2;
+}
+
+.duelMetaText {
+    color: var(--text-secondary);
+}
+
+.duelResultProgressCell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1em;
+}
+
+.duelResultFinishedCell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.duelTimer {
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.1;
+    color: var(--text-secondary);
+}
+
+.duelStatusOk {
+    color: #2f9b63;
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+.duelStatusPending {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+.pendingAcceptButton {
+    --btn-bg-color: var(--positive);
+    --btn-text-color: #ffffff;
+    width: auto;
+    min-width: 0;
+    height: 24px;
+    padding: 0 0.6em;
+    font-size: 0.8rem;
+}
+
+.duelResultLetter {
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.1;
+    display: inline-block;
+    min-width: 1ch;
+    text-align: center;
+}
+
+.duelResultWin {
+    color: var(--positive);
+}
+
+.duelResultLoss {
+    color: var(--error);
+}
+
+.duelResultDraw {
+    color: var(--text-secondary);
+}
+
+.tabButton {
+    background: none;
+    border: none;
+    padding: 0.35em 0;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.tabButton:hover {
+    color: var(--text-primary);
+}
+
+.tabButtonActive {
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent-primary);
+}
+
 .editIcon {
     width: 1.8em;
     height: 1.8em;
@@ -181,6 +322,87 @@
     width: min(100%, 600px);
 }
 
+.duelForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+    width: 620px;
+    max-width: 100%;
+}
+
+.duelPlayers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1em;
+}
+
+.duelPlayerField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.selectedPlayerField {
+    width: 100%;
+}
+
+.selectedPlayerInput {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+    padding: 0.5em 1em;
+    border-radius: 0.5em;
+    background: var(--card-secondary);
+    min-height: 44px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.selectedPlayerName {
+    font-weight: 600;
+}
+
+.removeButton {
+    width: auto;
+    min-width: fit-content;
+    padding: 0 0.75em;
+    height: 28px;
+    font-size: 0.9rem;
+    flex: 0 0 auto;
+}
+
+.searchResults {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    padding: 0.5em;
+    border-radius: 0.6em;
+    background: color-mix(in srgb, var(--card-secondary) 90%, transparent);
+}
+
+.searchResult {
+    background: none;
+    border: none;
+    text-align: left;
+    font: inherit;
+    color: var(--text-primary);
+    padding: 0.35em 0.4em;
+    border-radius: 0.4em;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.searchResult:hover {
+    background: none;
+}
+
+.searchEmpty {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    padding: 0.2em 0.4em;
+}
+
 .searchRow {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 160px auto auto;
@@ -218,8 +440,10 @@
 
 .addButton {
     font-size: 0.9rem;
-    padding: 0.5em 1em;
-    width: auto;
+    padding: 0.5em 0.9em;
+    width: fit-content;
+    min-width: 0;
+    margin-top: 0;
 }
 
 .leaveButton {
@@ -295,8 +519,21 @@
 }
 
 @media (max-width: 720px) {
+    .duelForm {
+        width: min(100%, 460px);
+    }
+
     .searchRow {
         grid-template-columns: 1fr;
+    }
+
+    .duelPlayers {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .duelPlayerField {
+        width: min(100%, 420px);
     }
 
     .headerActions {

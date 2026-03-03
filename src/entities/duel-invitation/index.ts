@@ -1,7 +1,9 @@
 export {
     useAcceptDuelInvitationMutation,
+    useAcceptGroupDuelInvitationMutation,
     useCancelDuelInvitationMutation,
     useCreateDuelInvitationMutation,
+    useCreateGroupDuelInvitationMutation,
     useDenyDuelInvitationMutation,
     useGetDuelInvitationsQuery,
     useLazyGetDuelInvitationsQuery,
