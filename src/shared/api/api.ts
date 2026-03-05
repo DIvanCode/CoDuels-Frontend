@@ -64,6 +64,7 @@ export const apiSlice = createApi({
         "User",
         "Group",
         "GroupInvitation",
+        "Tournament",
     ],
     endpoints: () => ({}),
 });
