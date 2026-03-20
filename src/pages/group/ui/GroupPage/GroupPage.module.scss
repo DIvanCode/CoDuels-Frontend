@@ -92,6 +92,19 @@
     text-align: left;
 }
 
+.tournamentsTable :global(tbody tr:hover) {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--card-secondary) 72%, transparent);
+}
+
+.tournamentRow {
+    transition: background 0.15s ease;
+}
+
+.tournamentName {
+    cursor: pointer;
+}
+
 .tournamentStatusBadge {
     display: inline-flex;
     align-items: center;

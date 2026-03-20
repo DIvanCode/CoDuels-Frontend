@@ -1,6 +1,10 @@
 import { apiSlice } from "shared/api";
 
-import type { CreateTournamentRequest, Tournament } from "../model/types";
+import type {
+    CreateTournamentRequest,
+    Tournament,
+    TournamentDetailsResponse,
+} from "../model/types";
 
 export const tournamentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -24,7 +28,26 @@ export const tournamentApiSlice = apiSlice.injectEndpoints({
                 { type: "Tournament", id: `GROUP-${body.group_id}` },
             ],
         }),
+        getTournament: builder.query<TournamentDetailsResponse, number>({
+            query: (id) => `/tournaments/${id}`,
+            providesTags: (_result, _error, id) => [{ type: "Tournament", id }],
+        }),
+        startTournament: builder.mutation<void, { id: number; groupId: number }>({
+            query: ({ id }) => ({
+                url: `/tournaments/${id}/start`,
+                method: "POST",
+            }),
+            invalidatesTags: (_result, _error, { id, groupId }) => [
+                { type: "Tournament", id },
+                { type: "Tournament", id: `GROUP-${groupId}` },
+            ],
+        }),
     }),
 });
 
-export const { useGetGroupTournamentsQuery, useCreateTournamentMutation } = tournamentApiSlice;
+export const {
+    useGetGroupTournamentsQuery,
+    useCreateTournamentMutation,
+    useGetTournamentQuery,
+    useStartTournamentMutation,
+} = tournamentApiSlice;

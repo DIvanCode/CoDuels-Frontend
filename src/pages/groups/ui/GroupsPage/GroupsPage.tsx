@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { UserData } from "entities/user";
@@ -11,11 +11,6 @@ import {
     useLeaveGroupMutation,
     useInviteGroupUserMutation,
 } from "entities/group";
-import {
-    useAcceptGroupInvitationMutation,
-    useDenyGroupInvitationMutation,
-    useLazyGetGroupInvitationsQuery,
-} from "entities/group-invitation";
 import { AppRoutes } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { Button, InputField, Modal, Select, Table } from "shared/ui";
@@ -48,11 +43,6 @@ const GroupsPage = () => {
     const [createGroup, { isLoading: isCreating }] = useCreateGroupMutation();
     const [leaveGroup, { isLoading: isLeavingGroup }] = useLeaveGroupMutation();
     const [inviteGroupUser] = useInviteGroupUserMutation();
-    const [loadGroupInvitations, { data: groupInvitations }] = useLazyGetGroupInvitationsQuery();
-    const [acceptGroupInvitation] = useAcceptGroupInvitationMutation();
-    const [denyGroupInvitation, { isLoading: isDenyingGroupInvitation }] =
-        useDenyGroupInvitationMutation();
-    const [pendingGroupInvitationId, setPendingGroupInvitationId] = useState<number | null>(null);
     const [pendingLeaveGroupId, setPendingLeaveGroupId] = useState<number | null>(null);
     const [leaveTarget, setLeaveTarget] = useState<{ id: number; name: string } | null>(null);
 
@@ -61,10 +51,6 @@ const GroupsPage = () => {
     const isSubmitDisabled = useMemo(() => {
         return isCreating || !trimmedGroupName;
     }, [isCreating, trimmedGroupName]);
-
-    useEffect(() => {
-        void loadGroupInvitations();
-    }, [loadGroupInvitations]);
 
     const handleCreateOpen = () => {
         setIsCreateOpen(true);
@@ -146,23 +132,6 @@ const GroupsPage = () => {
         }
     };
 
-    const handleGroupInvitationAccept = async (groupId: number) => {
-        try {
-            await acceptGroupInvitation({ group_id: groupId }).unwrap();
-        } catch {
-            return;
-        }
-    };
-
-    const handleGroupInvitationDeny = async (groupId: number) => {
-        setPendingGroupInvitationId(groupId);
-        try {
-            await denyGroupInvitation({ group_id: groupId }).unwrap();
-        } finally {
-            setPendingGroupInvitationId(null);
-        }
-    };
-
     const handleLeaveGroup = async (groupId: number) => {
         setPendingLeaveGroupId(groupId);
         try {
@@ -183,52 +152,6 @@ const GroupsPage = () => {
                         Создать группу
                     </Button>
                 </div>
-
-                {groupInvitations && groupInvitations.length > 0 && (
-                    <div className={styles.invitationsList}>
-                        {groupInvitations.map((invitation) => {
-                            const groupName = invitation.group_name ?? "Без названия";
-                            const isPending =
-                                pendingGroupInvitationId === invitation.group_id ||
-                                isDenyingGroupInvitation;
-                            return (
-                                <div
-                                    className={styles.invitationItem}
-                                    key={`group-${invitation.group_id}`}
-                                >
-                                    <div className={styles.invitationInfo}>
-                                        <span className={styles.invitationLabel}>
-                                            Приглашение в группу {groupName}
-                                        </span>
-                                        <span className={styles.invitationMeta}>
-                                            Роль: {invitation.role}
-                                        </span>
-                                    </div>
-                                    <div className={styles.invitationActions}>
-                                        <Button
-                                            className={styles.invitationAcceptButton}
-                                            onClick={() =>
-                                                handleGroupInvitationAccept(invitation.group_id)
-                                            }
-                                            disabled={isPending}
-                                        >
-                                            Принять
-                                        </Button>
-                                        <Button
-                                            className={styles.invitationDenyButton}
-                                            onClick={() =>
-                                                handleGroupInvitationDeny(invitation.group_id)
-                                            }
-                                            disabled={isPending}
-                                        >
-                                            Отклонить
-                                        </Button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
 
                 {isLoading ? (
                     <div className={styles.status}>Загрузка...</div>

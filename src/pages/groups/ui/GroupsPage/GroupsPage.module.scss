@@ -107,53 +107,6 @@
     font-size: 0.95rem;
 }
 
-.invitationsList {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-}
-
-.invitationItem {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75em;
-    padding: 1em;
-    border-radius: 0.75em;
-    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
-}
-
-.invitationInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-}
-
-.invitationLabel {
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.invitationMeta {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
-
-.invitationActions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.4em;
-}
-
-.invitationAcceptButton {
-    --btn-bg-color: #1f8d4d;
-    --btn-text-color: #ffffff;
-}
-
-.invitationDenyButton {
-    --btn-bg-color: #d14b42;
-    --btn-text-color: #ffffff;
-}
-
 .form {
     display: flex;
     flex-direction: column;

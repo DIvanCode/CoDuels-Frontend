@@ -134,6 +134,11 @@ const GroupPage = () => {
     const membersPath = AppRoutes.GROUP_MEMBERS.replace(":groupId", groupIdParam);
     const duelsPath = AppRoutes.GROUP_DUELS.replace(":groupId", groupIdParam);
     const tournamentsPath = AppRoutes.GROUP_TOURNAMENTS.replace(":groupId", groupIdParam);
+    const getTournamentPath = (tournamentId: number) =>
+        AppRoutes.GROUP_TOURNAMENT.replace(":groupId", groupIdParam).replace(
+            ":tournamentId",
+            String(tournamentId),
+        );
 
     const {
         data: group,
@@ -1164,8 +1169,18 @@ const GroupPage = () => {
                                     </thead>
                                     <tbody>
                                         {sortedGroupTournaments.map((tournament) => (
-                                            <tr key={`tournament-${tournament.id}`}>
-                                                <td>{tournament.name ?? "Без названия"}</td>
+                                            <tr
+                                                key={`tournament-${tournament.id}`}
+                                                className={styles.tournamentRow}
+                                                onClick={() =>
+                                                    navigate(getTournamentPath(tournament.id))
+                                                }
+                                            >
+                                                <td>
+                                                    <span className={styles.tournamentName}>
+                                                        {tournament.name ?? "Без названия"}
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <span className={styles.tournamentStatusBadge}>
                                                         {tournamentStatusLabels[

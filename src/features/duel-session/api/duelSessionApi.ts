@@ -15,6 +15,8 @@ import {
     setDuelCanceledOpponentNickname,
     setPhase,
     setLastEventId,
+    setSearchInvitationType,
+    setSearchTournamentId,
     setSessionInterrupted,
     resetDuelSession,
 } from "../model/duelSessionSlice";
@@ -62,13 +64,38 @@ const getDuelIdFromPayload = (payload: unknown, state: RootState) => {
 };
 
 const matchInvitationPayload = (
-    payload: { opponent_nickname?: string | null; configuration_id?: number | null } | null,
+    payload: {
+        opponent_nickname?: string | null;
+        configuration_id?: number | null;
+        tournament_id?: number | null;
+    } | null,
     state: RootState,
 ) => {
-    if (!payload?.opponent_nickname) return false;
+    const { searchNickname, searchConfigurationId, searchInvitationType, searchTournamentId } =
+        state.duelSession;
+    const payloadConfigId = payload?.configuration_id ?? null;
+    const payloadTournamentId = payload?.tournament_id ?? null;
 
-    const { searchNickname, searchConfigurationId } = state.duelSession;
-    const payloadConfigId = payload.configuration_id ?? null;
+    if (searchInvitationType === "Tournament") {
+        if (!searchTournamentId || payloadTournamentId !== searchTournamentId) {
+            return false;
+        }
+
+        if (payload?.opponent_nickname == null) {
+            return true;
+        }
+
+        return (
+            searchNickname === payload.opponent_nickname &&
+            (searchConfigurationId ?? null) === payloadConfigId
+        );
+    }
+
+    if (payloadTournamentId !== null) {
+        return false;
+    }
+
+    if (!payload?.opponent_nickname) return false;
 
     return (
         searchNickname === payload.opponent_nickname &&
@@ -255,6 +282,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [
                 { type: "DuelInvitation", id: "LIST" },
                 { type: "GroupInvitation", id: "LIST" },
+                { type: "Tournament", id: "LIST" },
             ],
         }),
         subscribeToDuelStates: builder.query<void, void>({
@@ -461,6 +489,18 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             return;
                         }
 
+                        if (
+                            normalized === "tournamentduelinvitation" ||
+                            normalized === "tournamentinvitation"
+                        ) {
+                            dispatch(
+                                duelInvitationApiSlice.util.invalidateTags([
+                                    { type: "DuelInvitation", id: "LIST" },
+                                ]),
+                            );
+                            return;
+                        }
+
                         if (normalized === "groupinvitation") {
                             dispatch(
                                 groupInvitationApiSlice.util.invalidateTags([
@@ -481,6 +521,30 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             const invitationPayload = payload as {
                                 opponent_nickname?: string | null;
                                 configuration_id?: number | null;
+                                tournament_id?: number | null;
+                            } | null;
+
+                            if (matchInvitationPayload(invitationPayload, currentState)) {
+                                dispatch(setPhase("idle"));
+                            }
+                            return;
+                        }
+
+                        if (
+                            normalized === "tournamentduelinvitationcanceled" ||
+                            normalized === "tournamentinvitationcanceled"
+                        ) {
+                            dispatch(
+                                duelInvitationApiSlice.util.invalidateTags([
+                                    { type: "DuelInvitation", id: "LIST" },
+                                ]),
+                            );
+
+                            const currentState = getState() as RootState;
+                            const invitationPayload = payload as {
+                                opponent_nickname?: string | null;
+                                configuration_id?: number | null;
+                                tournament_id?: number | null;
                             } | null;
 
                             if (matchInvitationPayload(invitationPayload, currentState)) {
@@ -509,6 +573,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             const invitationPayload = payload as {
                                 opponent_nickname?: string | null;
                                 configuration_id?: number | null;
+                                tournament_id?: number | null;
                             } | null;
 
                             if (matchInvitationPayload(invitationPayload, currentState)) {
@@ -683,6 +748,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                     { type: "Group", id: "LIST" },
                                     { type: "GroupInvitation", id: "LIST" },
                                     { type: "Submission", id: "LIST" },
+                                    { type: "Tournament", id: "LIST" },
                                     { type: "User", id: "ME" },
                                 ]),
                             );
@@ -699,6 +765,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                             if (latestState.duelSession.phase === "searching") {
                                 dispatch(setPhase("idle"));
+                                dispatch(setSearchInvitationType(null));
+                                dispatch(setSearchTournamentId(null));
                             }
 
                             if (!latestState.auth.token) return;

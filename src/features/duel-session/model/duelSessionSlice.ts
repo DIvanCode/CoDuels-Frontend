@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { duelApiSlice, type DuelTaskRef } from "entities/duel";
+import type { PendingDuelType } from "entities/duel-invitation/model/types";
 import { DuelSessionState, DuelSessionPhase } from "./types";
 import { restoreDuelSession } from "./thunks";
 
@@ -16,6 +17,8 @@ const initialState: DuelSessionState = {
     lastEventId: null,
     searchNickname: null,
     searchConfigurationId: null,
+    searchInvitationType: null,
+    searchTournamentId: null,
     duelCanceled: false,
     duelCanceledOpponentNickname: null,
     duelStatusChanged: false,
@@ -59,6 +62,8 @@ const duelSessionSlice = createSlice({
                 state.activeDuelId = null;
                 state.searchNickname = null;
                 state.searchConfigurationId = null;
+                state.searchInvitationType = null;
+                state.searchTournamentId = null;
                 state.lastTasksByDuelId = {};
             }
         },
@@ -92,6 +97,8 @@ const duelSessionSlice = createSlice({
                 }
                 state.searchNickname = null;
                 state.searchConfigurationId = null;
+                state.searchInvitationType = null;
+                state.searchTournamentId = null;
                 state.duelStatusChanged = false;
                 state.openedTaskKeys = [];
             } else {
@@ -109,12 +116,20 @@ const duelSessionSlice = createSlice({
         setSearchConfigurationId: (state, action: PayloadAction<number | null>) => {
             state.searchConfigurationId = action.payload;
         },
+        setSearchInvitationType: (state, action: PayloadAction<PendingDuelType | null>) => {
+            state.searchInvitationType = action.payload;
+        },
+        setSearchTournamentId: (state, action: PayloadAction<number | null>) => {
+            state.searchTournamentId = action.payload;
+        },
         resetDuelSession: (state) => {
             state.activeDuelId = null;
             state.phase = "idle";
             state.lastEventId = null;
             state.searchNickname = null;
             state.searchConfigurationId = null;
+            state.searchInvitationType = null;
+            state.searchTournamentId = null;
             state.duelCanceled = false;
             state.duelCanceledOpponentNickname = null;
             state.duelStatusChanged = false;
@@ -179,6 +194,8 @@ export const {
     setLastEventId,
     setSearchNickname,
     setSearchConfigurationId,
+    setSearchInvitationType,
+    setSearchTournamentId,
     setSessionInterrupted,
     resetDuelSession,
 } = duelSessionSlice.actions;

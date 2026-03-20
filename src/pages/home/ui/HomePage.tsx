@@ -7,6 +7,7 @@ import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
 import {
     useAcceptDuelInvitationMutation,
     useAcceptGroupDuelInvitationMutation,
+    useAcceptTournamentDuelInvitationMutation,
     useCreateDuelInvitationMutation,
     useDenyDuelInvitationMutation,
     useGetDuelInvitationsQuery,
@@ -16,9 +17,9 @@ import {
     useDenyGroupInvitationMutation,
     useLazyGetGroupInvitationsQuery,
 } from "entities/group-invitation";
+import { roleLabels } from "entities/group";
 import { selectCurrentUser } from "entities/user";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
-import { roleLabels } from "entities/group";
 import {
     DuelSessionButton,
     selectDuelSession,
@@ -28,7 +29,9 @@ import {
     setDuelCanceled,
     setPhase,
     setSearchConfigurationId,
+    setSearchInvitationType,
     setSearchNickname,
+    setSearchTournamentId,
 } from "features/duel-session/model/duelSessionSlice";
 import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
@@ -78,8 +81,13 @@ const SearchingStateContent = ({ label }: SearchingStateContentProps) => {
 
 const HomePage = () => {
     const user = useAppSelector(selectCurrentUser);
-    const { phase, activeDuelId, duelCanceled, duelCanceledOpponentNickname } =
-        useAppSelector(selectDuelSession);
+    const {
+        phase,
+        activeDuelId,
+        duelCanceled,
+        duelCanceledOpponentNickname,
+        searchInvitationType,
+    } = useAppSelector(selectDuelSession);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [showStartPanel, setShowStartPanel] = useSessionStorage("home.showStartPanel", false);
@@ -120,10 +128,14 @@ const HomePage = () => {
     const { data: groupDuelInvitations } = useGetDuelInvitationsQuery("Group", {
         skip: !user,
     });
+    const { data: tournamentDuelInvitations } = useGetDuelInvitationsQuery("Tournament", {
+        skip: !user,
+    });
     const [loadGroupInvitations, { data: groupInvitations }] = useLazyGetGroupInvitationsQuery();
     const [createDuelInvitation] = useCreateDuelInvitationMutation();
     const [acceptDuelInvitation] = useAcceptDuelInvitationMutation();
     const [acceptGroupDuelInvitation] = useAcceptGroupDuelInvitationMutation();
+    const [acceptTournamentDuelInvitation] = useAcceptTournamentDuelInvitationMutation();
     const [denyDuelInvitation, { isLoading: isDenyingInvitation }] =
         useDenyDuelInvitationMutation();
     const [acceptGroupInvitation] = useAcceptGroupInvitationMutation();
@@ -194,11 +206,15 @@ const HomePage = () => {
     }, [phase, activeDuelId, waitingForStart, navigate]);
 
     const isSessionBusy = phase !== "idle";
-    const duelInvitations = [...(directDuelInvitations ?? []), ...(groupDuelInvitations ?? [])];
+    const duelInvitations = [
+        ...(directDuelInvitations ?? []),
+        ...(groupDuelInvitations ?? []),
+        ...(tournamentDuelInvitations ?? []),
+    ];
     const visibleInvitations = duelInvitations.filter((invitation) => {
         const invitationType = invitation.type ?? "Ranked";
         const invitationGroup = invitation.group;
-        if (invitationType === "Group" || invitationGroup) {
+        if (invitationType === "Group" || invitationType === "Tournament" || invitationGroup) {
             return true;
         }
         return Boolean(invitation.opponent_nickname);
@@ -229,6 +245,8 @@ const HomePage = () => {
     const handleQuickSearch = async () => {
         dispatch(setSearchNickname(null));
         dispatch(setSearchConfigurationId(null));
+        dispatch(setSearchInvitationType(null));
+        dispatch(setSearchTournamentId(null));
 
         try {
             await startDuelSearch().unwrap();
@@ -255,6 +273,8 @@ const HomePage = () => {
         setShowConfigPicker(false);
         setSelectedConfigId(null);
         dispatch(setSearchConfigurationId(null));
+        dispatch(setSearchInvitationType(null));
+        dispatch(setSearchTournamentId(null));
         setSelectedDefaultConfig(true);
         setShowStartPanel(true);
     };
@@ -263,6 +283,8 @@ const HomePage = () => {
         setShowConfigPicker(false);
         setSelectedConfigId(null);
         dispatch(setSearchConfigurationId(null));
+        dispatch(setSearchInvitationType(null));
+        dispatch(setSearchTournamentId(null));
         setSelectedDefaultConfig(true);
     };
 
@@ -292,6 +314,8 @@ const HomePage = () => {
         setShowConfigPicker(true);
         setFriendlyNickname("");
         dispatch(setSearchNickname(null));
+        dispatch(setSearchInvitationType(null));
+        dispatch(setSearchTournamentId(null));
     };
 
     const handleFriendlyClose = () => {
@@ -301,6 +325,8 @@ const HomePage = () => {
         setSelectedDefaultConfig(true);
         dispatch(setSearchNickname(null));
         dispatch(setSearchConfigurationId(null));
+        dispatch(setSearchInvitationType(null));
+        dispatch(setSearchTournamentId(null));
         setEditConfig(null);
     };
 
@@ -345,6 +371,8 @@ const HomePage = () => {
 
         dispatch(setSearchNickname(trimmedNickname));
         dispatch(setSearchConfigurationId(configurationId ?? null));
+        dispatch(setSearchInvitationType("Friendly"));
+        dispatch(setSearchTournamentId(null));
         dispatch(setPhase("searching"));
         setWaitingForStart(false);
         setShowStartPanel(false);
@@ -361,18 +389,24 @@ const HomePage = () => {
     const handleInvitationAccept = async (
         nickname: string,
         configurationId?: number | null,
-        isGroupInvitation?: boolean,
+        invitationType?: "Ranked" | "Group" | "Tournament",
         groupId?: number,
+        tournamentId?: number,
     ) => {
         if (isSessionBusy) return;
-        if (isGroupInvitation && !groupId) return;
+        if (invitationType === "Group" && !groupId) return;
+        if (invitationType === "Tournament" && !tournamentId) return;
 
         try {
-            if (isGroupInvitation) {
+            if (invitationType === "Group") {
                 await acceptGroupDuelInvitation({
                     group_id: groupId as number,
                     opponent_nickname: nickname,
                     configuration_id: configurationId ?? undefined,
+                }).unwrap();
+            } else if (invitationType === "Tournament") {
+                await acceptTournamentDuelInvitation({
+                    tournament_id: tournamentId as number,
                 }).unwrap();
             } else {
                 await acceptDuelInvitation({
@@ -386,6 +420,8 @@ const HomePage = () => {
 
         dispatch(setSearchNickname(nickname));
         dispatch(setSearchConfigurationId(configurationId ?? null));
+        dispatch(setSearchInvitationType(invitationType ?? "Ranked"));
+        dispatch(setSearchTournamentId(tournamentId ?? null));
         dispatch(setPhase("searching"));
         setWaitingForStart(true);
     };
@@ -419,7 +455,10 @@ const HomePage = () => {
         }
     };
 
-    const searchingLabel = "Ожидание соперника";
+    const searchingLabel =
+        searchInvitationType === "Tournament"
+            ? "Ожидание начала турнирной дуэли"
+            : "Ожидание соперника";
 
     return (
         <div className={styles.homePage}>
@@ -736,25 +775,33 @@ const HomePage = () => {
                             {visibleInvitations.map((invitation) => {
                                 const nickname = invitation.opponent_nickname ?? "";
                                 const isPending = pendingInvitationNickname === nickname;
-                                const invitationKey = `${nickname}-${invitation.created_at}`;
+                                const invitationKey = `${invitation.tournament_id ?? "direct"}-${nickname}-${invitation.created_at}`;
                                 const configurationId = invitation.configuration_id ?? null;
                                 const invitationType = invitation.type ?? "Ranked";
                                 const invitationGroup = invitation.group ?? null;
                                 const isGroupInvitation =
                                     invitationType === "Group" || Boolean(invitationGroup);
+                                const isTournamentInvitation = invitationType === "Tournament";
                                 const groupId = invitationGroup?.id;
                                 const groupName = invitationGroup?.name ?? "Без названия";
+                                const tournamentId = invitation.tournament_id ?? null;
+                                const tournamentName =
+                                    invitation.tournament_name?.trim() || "Без названия";
                                 return (
                                     <div className={styles.invitationItem} key={invitationKey}>
                                         <div className={styles.invitationInfo}>
                                             <span className={styles.invitationLabel}>
-                                                {isGroupInvitation
+                                                {isTournamentInvitation
                                                     ? nickname
-                                                        ? `Приглашение на дуэль с ${nickname} в группе ${groupName}`
-                                                        : `Приглашение на дуэль в группе ${groupName}`
-                                                    : nickname
-                                                      ? `Вызов на дуэль от ${nickname}`
-                                                      : "Вызов на дуэль"}
+                                                        ? `Приглашение на дуэль с ${nickname} в турнире ${tournamentName}`
+                                                        : `Приглашение на дуэль в турнире ${tournamentName}`
+                                                    : isGroupInvitation
+                                                      ? nickname
+                                                          ? `Приглашение на дуэль с ${nickname} в группе ${groupName}`
+                                                          : `Приглашение на дуэль в группе ${groupName}`
+                                                      : nickname
+                                                        ? `Вызов на дуэль от ${nickname}`
+                                                        : "Вызов на дуэль"}
                                             </span>
                                         </div>
                                         <div className={styles.invitationActions}>
@@ -764,15 +811,25 @@ const HomePage = () => {
                                                     handleInvitationAccept(
                                                         nickname,
                                                         configurationId,
-                                                        isGroupInvitation,
+                                                        isTournamentInvitation
+                                                            ? "Tournament"
+                                                            : isGroupInvitation
+                                                              ? "Group"
+                                                              : "Ranked",
                                                         groupId,
+                                                        tournamentId ?? undefined,
                                                     )
                                                 }
-                                                disabled={isSessionBusy || !nickname}
+                                                disabled={
+                                                    isSessionBusy ||
+                                                    (isTournamentInvitation
+                                                        ? !tournamentId
+                                                        : !nickname)
+                                                }
                                             >
                                                 Принять
                                             </Button>
-                                            {!isGroupInvitation && (
+                                            {!isGroupInvitation && !isTournamentInvitation && (
                                                 <Button
                                                     className={styles.invitationDenyButton}
                                                     onClick={() =>
