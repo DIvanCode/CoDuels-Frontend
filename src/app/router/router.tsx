@@ -5,6 +5,7 @@ import { DuelPage } from "pages/duel";
 import { HomePage } from "pages/home";
 import { GroupsPage } from "pages/groups";
 import { GroupPage } from "pages/group";
+import { TournamentPage } from "pages/tournament";
 import { Suspense } from "react";
 import { createBrowserRouter, Navigate, useParams } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -102,6 +103,16 @@ export const router = createBrowserRouter([
                     <Suspense fallback={<Loader />}>
                         <ProtectedRoute>
                             <GroupPage />
+                        </ProtectedRoute>
+                    </Suspense>
+                ),
+            },
+            {
+                path: AppRoutes.GROUP_TOURNAMENT,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <TournamentPage />
                         </ProtectedRoute>
                     </Suspense>
                 ),

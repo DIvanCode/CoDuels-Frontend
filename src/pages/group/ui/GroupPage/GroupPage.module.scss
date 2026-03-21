@@ -57,6 +57,13 @@
     margin-top: -0.35em;
 }
 
+.tournamentsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85em;
+    margin-top: -0.35em;
+}
+
 .duelsEmpty {
     padding: 0.85em 1em;
     border-radius: 0.65em;
@@ -75,6 +82,38 @@
 
 .duelsTable :global(td) {
     text-align: center;
+}
+
+.tournamentsTable :global(th) {
+    text-align: left;
+}
+
+.tournamentsTable :global(td) {
+    text-align: left;
+}
+
+.tournamentsTable :global(tbody tr:hover) {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--card-secondary) 72%, transparent);
+}
+
+.tournamentRow {
+    transition: background 0.15s ease;
+}
+
+.tournamentName {
+    cursor: pointer;
+}
+
+.tournamentStatusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .duelPlayerCell {
@@ -330,6 +369,107 @@
     max-width: 100%;
 }
 
+.tournamentForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+    width: 560px;
+    max-width: 100%;
+}
+
+.tournamentStage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.participantsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 0.6em 0.8em;
+    border-radius: 0.6em;
+    background: color-mix(in srgb, var(--card-secondary) 90%, transparent);
+    max-height: 280px;
+    overflow: auto;
+}
+
+.checkboxRow {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-weight: 500;
+    padding: 0.45em 0.6em;
+    border-radius: 0.55em;
+    border: 1px solid transparent;
+    transition:
+        border 0.15s ease,
+        background 0.15s ease;
+}
+
+.checkboxRow input {
+    accent-color: var(--accent-primary);
+    width: 18px;
+    height: 18px;
+}
+
+.checkboxRowHeader {
+    padding-left: 0;
+    padding-right: 0;
+    border: none;
+    background: none;
+}
+
+.checkboxDisabled {
+    color: var(--text-secondary);
+    background: none;
+}
+
+.pendingLabelSmall {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.schemeList {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8em;
+}
+
+.schemeCard {
+    border: 1px solid transparent;
+    border-radius: 0.75em;
+    padding: 0.9em 1em;
+    text-align: left;
+    background: color-mix(in srgb, var(--card-secondary) 85%, transparent);
+    cursor: pointer;
+    transition:
+        border 0.2s ease,
+        background 0.2s ease;
+    color: inherit;
+    font: inherit;
+    width: 100%;
+}
+
+.schemeCard:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+}
+
+.schemeCardSelected {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.schemeTitle {
+    font-weight: 600;
+    margin-bottom: 0.35em;
+}
+
+.schemeDescription {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
 .duelPlayers {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -523,6 +663,10 @@
         width: min(100%, 460px);
     }
 
+    .tournamentForm {
+        width: min(100%, 460px);
+    }
+
     .searchRow {
         grid-template-columns: 1fr;
     }
@@ -534,6 +678,10 @@
 
     .duelPlayerField {
         width: min(100%, 420px);
+    }
+
+    .schemeList {
+        grid-template-columns: 1fr;
     }
 
     .headerActions {

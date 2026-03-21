@@ -1,3 +1,5 @@
+import type { PendingDuelType } from "entities/duel-invitation/model/types";
+
 export interface DuelMessage {
     duel_id: number;
 }
@@ -8,6 +10,8 @@ export interface DuelSessionState {
     lastEventId: string | null;
     searchNickname: string | null;
     searchConfigurationId: number | null;
+    searchInvitationType: PendingDuelType | null;
+    searchTournamentId: number | null;
     duelCanceled: boolean;
     duelCanceledOpponentNickname: string | null;
     duelStatusChanged: boolean;

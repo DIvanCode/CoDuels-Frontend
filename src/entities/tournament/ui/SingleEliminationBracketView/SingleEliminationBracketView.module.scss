@@ -1,0 +1,156 @@
+.viewport {
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    max-width: 100%;
+    padding-bottom: 0.5em;
+    min-width: 0;
+}
+
+.canvas {
+    position: relative;
+    min-width: 100%;
+}
+
+.lines {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.connector {
+    fill: none;
+    stroke: color-mix(in srgb, var(--text-secondary) 38%, transparent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.card {
+    position: absolute;
+    width: 152px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 0;
+    background: var(--card-secondary);
+    border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+    box-sizing: border-box;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.45em;
+}
+
+.duelCard {
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+    transform-origin: center;
+}
+
+.duelCard:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 35%, transparent);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    transform: scale(1.02);
+}
+
+.duelCard:has(.nicknameLink:hover):hover {
+    border-color: color-mix(in srgb, var(--text-secondary) 16%, transparent);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transform: none;
+}
+
+.leafCard {
+    height: 22px;
+    min-height: 22px;
+    padding: 0 0.6em;
+    justify-content: center;
+}
+
+.leafNickname {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.leafNicknameLink,
+.nicknameLink {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--accent-primary);
+    text-decoration: none;
+    cursor: default;
+    max-width: 100%;
+}
+
+.leafNicknameLink {
+    align-self: flex-start;
+}
+
+.leafNicknameLink:hover,
+.nicknameLink:hover {
+    text-decoration: underline;
+}
+
+.matchGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1.4rem;
+    grid-template-rows: 1fr 1fr;
+    width: 100%;
+    height: 100%;
+}
+
+.matchCell,
+.nickname {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.matchCell {
+    padding: 0.14em 0.45em;
+}
+
+.matchCell:nth-child(1),
+.matchCell:nth-child(2) {
+    border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+}
+
+.nicknameCell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resultCell {
+    justify-content: center;
+    border-left: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+}
+
+.result {
+    display: inline-flex;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.72rem;
+}
+
+.resultWin {
+    color: var(--positive);
+}
+
+.resultLoss {
+    color: var(--error);
+}

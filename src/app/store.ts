@@ -24,6 +24,8 @@ const duelSessionPersistConfig = {
         "phase",
         "searchNickname",
         "searchConfigurationId",
+        "searchInvitationType",
+        "searchTournamentId",
         "duelCanceled",
         "duelCanceledOpponentNickname",
     ],

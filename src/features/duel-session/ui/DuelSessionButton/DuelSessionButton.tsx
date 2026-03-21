@@ -5,7 +5,9 @@ import {
 import {
     setPhase,
     setSearchConfigurationId,
+    setSearchInvitationType,
     setSearchNickname,
+    setSearchTournamentId,
 } from "features/duel-session/model/duelSessionSlice";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { DuelSessionPhase } from "features/duel-session/model/types";
@@ -36,6 +38,8 @@ export const DuelSessionButton = () => {
         if (phase === "idle") {
             dispatch(setSearchNickname(null));
             dispatch(setSearchConfigurationId(null));
+            dispatch(setSearchInvitationType(null));
+            dispatch(setSearchTournamentId(null));
 
             try {
                 await startDuelSearch().unwrap();

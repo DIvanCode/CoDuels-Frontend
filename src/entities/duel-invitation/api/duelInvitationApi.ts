@@ -5,14 +5,28 @@ import type {
     DuelInvitationBaseDto,
     GroupDuelInvitationDto,
     PendingDuelType,
+    TournamentDuelInvitationDto,
 } from "../model/types";
 
 export const duelInvitationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getDuelInvitations: builder.query<DuelInvitation[], PendingDuelType>({
-            query: (type) => (type === "Group" ? "/duels/group/invitations" : "/duels/invitations"),
+            query: (type) => {
+                if (type === "Group") {
+                    return "/duels/group/invitations";
+                }
+
+                if (type === "Tournament") {
+                    return "/duels/tournament/invitations";
+                }
+
+                return "/duels/invitations";
+            },
             transformResponse: (
-                response: DuelInvitationBaseDto[] | GroupDuelInvitationDto[],
+                response:
+                    | DuelInvitationBaseDto[]
+                    | GroupDuelInvitationDto[]
+                    | TournamentDuelInvitationDto[],
                 _meta,
                 type,
             ) => {
@@ -20,6 +34,13 @@ export const duelInvitationApiSlice = apiSlice.injectEndpoints({
                     return (response as GroupDuelInvitationDto[]).map((invitation) => ({
                         ...invitation,
                         type: "Group" as const,
+                    }));
+                }
+
+                if (type === "Tournament") {
+                    return (response as TournamentDuelInvitationDto[]).map((invitation) => ({
+                        ...invitation,
+                        type: "Tournament" as const,
                     }));
                 }
 
@@ -75,6 +96,16 @@ export const duelInvitationApiSlice = apiSlice.injectEndpoints({
                 { type: "Duel", id: `GROUP-${body.group_id}` },
             ],
         }),
+        acceptTournamentDuelInvitation: builder.mutation<void, { tournament_id: number }>({
+            query: ({ tournament_id }) => ({
+                url: `/tournaments/${tournament_id}/duels/accept`,
+                method: "POST",
+            }),
+            invalidatesTags: (_result, _error, { tournament_id }) => [
+                { type: "DuelInvitation", id: "LIST" },
+                { type: "Tournament", id: tournament_id },
+            ],
+        }),
         denyDuelInvitation: builder.mutation<
             void,
             { opponent_nickname: string; configuration_id?: number | null }
@@ -125,6 +156,7 @@ export const {
     useCreateDuelInvitationMutation,
     useAcceptDuelInvitationMutation,
     useAcceptGroupDuelInvitationMutation,
+    useAcceptTournamentDuelInvitationMutation,
     useDenyDuelInvitationMutation,
     useCancelDuelInvitationMutation,
     useCreateGroupDuelInvitationMutation,

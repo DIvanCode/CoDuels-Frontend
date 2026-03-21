@@ -18,6 +18,12 @@ import {
 } from "entities/group";
 import { useGetGroupDuelsQuery } from "entities/duel";
 import {
+    useCreateTournamentMutation,
+    useGetGroupTournamentsQuery,
+    type TournamentMatchmakingType,
+    type TournamentStatus,
+} from "entities/tournament";
+import {
     setPhase,
     setSearchConfigurationId,
     setSearchNickname,
@@ -40,6 +46,24 @@ import styles from "./GroupPage.module.scss";
 const roleOptions = [
     { value: "Manager" as const, label: roleLabels.Manager },
     { value: "Member" as const, label: roleLabels.Member },
+];
+
+const tournamentStatusLabels: Record<TournamentStatus, string> = {
+    New: "Новый",
+    InProgress: "В процессе",
+    Finished: "Завершен",
+};
+
+const tournamentMatchmakingOptions: Array<{
+    value: TournamentMatchmakingType;
+    title: string;
+    description: string;
+}> = [
+    {
+        value: "SingleEliminationBracket",
+        title: "Single Elimination Bracket",
+        description: "Турнир на выбывание: проигравший вылетает, победитель идет дальше.",
+    },
 ];
 
 const isManagerRole = (role: GroupRole | null) => role === "Creator" || role === "Manager";
@@ -110,6 +134,11 @@ const GroupPage = () => {
     const membersPath = AppRoutes.GROUP_MEMBERS.replace(":groupId", groupIdParam);
     const duelsPath = AppRoutes.GROUP_DUELS.replace(":groupId", groupIdParam);
     const tournamentsPath = AppRoutes.GROUP_TOURNAMENTS.replace(":groupId", groupIdParam);
+    const getTournamentPath = (tournamentId: number) =>
+        AppRoutes.GROUP_TOURNAMENT.replace(":groupId", groupIdParam).replace(
+            ":tournamentId",
+            String(tournamentId),
+        );
 
     const {
         data: group,
@@ -127,6 +156,13 @@ const GroupPage = () => {
         isError: isGroupDuelsError,
     } = useGetGroupDuelsQuery(resolvedGroupId, {
         skip: !resolvedGroupId || activeSection !== "duels",
+    });
+    const {
+        data: groupTournaments,
+        isLoading: isGroupTournamentsLoading,
+        isError: isGroupTournamentsError,
+    } = useGetGroupTournamentsQuery(resolvedGroupId, {
+        skip: !resolvedGroupId || activeSection !== "tournaments",
     });
 
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -153,6 +189,7 @@ const GroupPage = () => {
         useAcceptGroupDuelInvitationMutation();
     const [excludeGroupUser, { isLoading: isExcluding }] = useExcludeGroupUserMutation();
     const [leaveGroup, { isLoading: isLeavingGroup }] = useLeaveGroupMutation();
+    const [createTournament, { isLoading: isCreatingTournament }] = useCreateTournamentMutation();
 
     const currentUserRole = useMemo(() => {
         if (!members || !currentUser) return null;
@@ -192,6 +229,22 @@ const GroupPage = () => {
     const [showConfigCreateModal, setShowConfigCreateModal] = useState(false);
     const [editConfig, setEditConfig] = useState<DuelConfiguration | null>(null);
     const [nowMs, setNowMs] = useState(() => Date.now());
+
+    const [isCreateTournamentOpen, setIsCreateTournamentOpen] = useState(false);
+    const [tournamentStep, setTournamentStep] = useState(1);
+    const [tournamentName, setTournamentName] = useState("");
+    const [tournamentParticipants, setTournamentParticipants] = useState<number[]>([]);
+    const [tournamentMatchmakingType, setTournamentMatchmakingType] =
+        useState<TournamentMatchmakingType>("SingleEliminationBracket");
+    const [tournamentFormError, setTournamentFormError] = useState<string | null>(null);
+    const [selectedTournamentConfigId, setSelectedTournamentConfigId] = useState<number | null>(
+        null,
+    );
+    const [selectedTournamentDefaultConfig, setSelectedTournamentDefaultConfig] = useState(true);
+    const [showTournamentConfigModal, setShowTournamentConfigModal] = useState(false);
+    const [tournamentEditConfig, setTournamentEditConfig] = useState<DuelConfiguration | null>(
+        null,
+    );
 
     const handleEditOpen = () => {
         setGroupName(group?.name ?? "");
@@ -388,6 +441,18 @@ const GroupPage = () => {
             });
     }, [members]);
 
+    const sortedMembers = useMemo(() => {
+        return [...(members ?? [])].sort((left, right) => {
+            const leftName = left.user.nickname ?? "";
+            const rightName = right.user.nickname ?? "";
+            return leftName.localeCompare(rightName);
+        });
+    }, [members]);
+
+    const selectableTournamentMembers = useMemo(() => {
+        return sortedMembers.filter((member) => Boolean(member.user.nickname));
+    }, [sortedMembers]);
+
     const sortedGroupDuels = useMemo(() => {
         return [...(groupDuels ?? [])].sort((left, right) => {
             const leftTime = new Date(left.created_at).getTime();
@@ -395,6 +460,14 @@ const GroupPage = () => {
             return rightTime - leftTime;
         });
     }, [groupDuels]);
+
+    const sortedGroupTournaments = useMemo(() => {
+        return [...(groupTournaments ?? [])].sort((left, right) => {
+            const leftTime = new Date(left.created_at).getTime();
+            const rightTime = new Date(right.created_at).getTime();
+            return rightTime - leftTime;
+        });
+    }, [groupTournaments]);
 
     useEffect(() => {
         const intervalId = window.setInterval(() => setNowMs(Date.now()), 1000);
@@ -475,6 +548,116 @@ const GroupPage = () => {
         }
     };
 
+    const resetTournamentForm = () => {
+        setTournamentStep(1);
+        setTournamentName("");
+        setTournamentParticipants([]);
+        setTournamentMatchmakingType("SingleEliminationBracket");
+        setTournamentFormError(null);
+        setSelectedTournamentConfigId(null);
+        setSelectedTournamentDefaultConfig(true);
+        setTournamentEditConfig(null);
+        setShowTournamentConfigModal(false);
+    };
+
+    const handleCreateTournamentOpen = () => {
+        resetTournamentForm();
+        setIsCreateTournamentOpen(true);
+    };
+
+    const handleCreateTournamentClose = () => {
+        setIsCreateTournamentOpen(false);
+        resetTournamentForm();
+    };
+
+    const toggleTournamentParticipant = (userId: number) => {
+        setTournamentParticipants((prev) =>
+            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
+        );
+        setTournamentFormError(null);
+    };
+
+    const handleToggleSelectAllParticipants = () => {
+        const selectableIds = selectableTournamentMembers.map((member) => member.user.id);
+        setTournamentParticipants((prev) =>
+            prev.length === selectableIds.length ? [] : selectableIds,
+        );
+        setTournamentFormError(null);
+    };
+
+    const handleTournamentNext = () => {
+        if (tournamentStep === 1) {
+            if (!tournamentName.trim()) {
+                setTournamentFormError("Введите название турнира.");
+                return;
+            }
+        }
+        if (tournamentStep === 2) {
+            if (tournamentParticipants.length === 0) {
+                setTournamentFormError("Выберите участников турнира.");
+                return;
+            }
+        }
+        if (tournamentStep === 3) {
+            if (!tournamentMatchmakingType) {
+                setTournamentFormError("Выберите схему проведения турнира.");
+                return;
+            }
+        }
+        setTournamentFormError(null);
+        setTournamentStep((prev) => Math.min(4, prev + 1));
+    };
+
+    const handleTournamentBack = () => {
+        setTournamentFormError(null);
+        setTournamentStep((prev) => Math.max(1, prev - 1));
+    };
+
+    const handleCreateTournamentSubmit = async () => {
+        if (tournamentStep < 4) {
+            return;
+        }
+        if (!resolvedGroupId) {
+            setTournamentFormError("Не удалось определить группу.");
+            return;
+        }
+        if (!tournamentName.trim()) {
+            setTournamentFormError("Введите название турнира.");
+            setTournamentStep(1);
+            return;
+        }
+        if (tournamentParticipants.length === 0) {
+            setTournamentFormError("Выберите участников турнира.");
+            setTournamentStep(2);
+            return;
+        }
+        const participantNicknames = tournamentParticipants
+            .map((id) => members?.find((member) => member.user.id === id)?.user.nickname ?? "")
+            .filter((nickname) => nickname.trim().length > 0);
+        if (participantNicknames.length === 0) {
+            setTournamentFormError("Не удалось определить участников турнира.");
+            setTournamentStep(2);
+            return;
+        }
+
+        try {
+            const configurationId =
+                selectedTournamentDefaultConfig || !selectedTournamentConfigId
+                    ? null
+                    : selectedTournamentConfigId;
+            await createTournament({
+                name: tournamentName.trim(),
+                group_id: resolvedGroupId,
+                matchmaking_type: tournamentMatchmakingType,
+                participants: participantNicknames,
+                duel_configuration_id: configurationId,
+            }).unwrap();
+            handleCreateTournamentClose();
+        } catch {
+            setTournamentFormError("Не получилось создать турнир. Попробуйте снова.");
+        }
+    };
+
     const handleAcceptPendingGroupDuel = async (
         opponentNickname: string | null | undefined,
         groupId: number,
@@ -516,6 +699,11 @@ const GroupPage = () => {
             </button>
         );
     };
+
+    const tournamentParticipantSet = new Set(tournamentParticipants);
+    const isAllTournamentParticipantsSelected =
+        selectableTournamentMembers.length > 0 &&
+        tournamentParticipants.length === selectableTournamentMembers.length;
 
     if (!resolvedGroupId) {
         return <div className={styles.status}>Группа не найдена.</div>;
@@ -950,6 +1138,71 @@ const GroupPage = () => {
                             ))}
                     </div>
                 )}
+
+                {activeSection === "tournaments" && (
+                    <div className={styles.tournamentsSection}>
+                        {canManage && (
+                            <Button
+                                className={styles.addButton}
+                                onClick={handleCreateTournamentOpen}
+                            >
+                                Создать турнир
+                            </Button>
+                        )}
+                        {isGroupTournamentsLoading && (
+                            <div className={styles.duelsEmpty}>Загрузка турниров...</div>
+                        )}
+                        {isGroupTournamentsError && (
+                            <div className={styles.duelsEmpty}>Не удалось загрузить турниры.</div>
+                        )}
+                        {!isGroupTournamentsLoading &&
+                            !isGroupTournamentsError &&
+                            (sortedGroupTournaments.length > 0 ? (
+                                <Table className={`${styles.table} ${styles.tournamentsTable}`}>
+                                    <thead>
+                                        <tr>
+                                            <th>Название турнира</th>
+                                            <th>Статус</th>
+                                            <th>Создатель</th>
+                                            <th>Время создания</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sortedGroupTournaments.map((tournament) => (
+                                            <tr
+                                                key={`tournament-${tournament.id}`}
+                                                className={styles.tournamentRow}
+                                                onClick={() =>
+                                                    navigate(getTournamentPath(tournament.id))
+                                                }
+                                            >
+                                                <td>
+                                                    <span className={styles.tournamentName}>
+                                                        {tournament.name ?? "Без названия"}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span className={styles.tournamentStatusBadge}>
+                                                        {tournamentStatusLabels[
+                                                            tournament.status
+                                                        ] ?? tournament.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {renderProfileLink(
+                                                        tournament.created_by?.nickname,
+                                                    )}
+                                                </td>
+                                                <td>{formatCreatedAt(tournament.created_at)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            ) : (
+                                <div className={styles.duelsEmpty}>Пока нет турниров.</div>
+                            ))}
+                    </div>
+                )}
             </div>
 
             {isEditOpen && (
@@ -1329,6 +1582,169 @@ const GroupPage = () => {
                 </Modal>
             )}
 
+            {isCreateTournamentOpen && (
+                <Modal title="Новый турнир" onClose={handleCreateTournamentClose}>
+                    <form className={styles.tournamentForm}>
+                        {tournamentStep === 1 && (
+                            <div className={styles.tournamentStage}>
+                                <InputField
+                                    id="group-tournament-name"
+                                    labelValue="Название турнира"
+                                    placeholder="Введите название"
+                                    value={tournamentName}
+                                    onChange={(event) => {
+                                        setTournamentName(event.target.value);
+                                        setTournamentFormError(null);
+                                    }}
+                                    autoComplete="off"
+                                />
+                            </div>
+                        )}
+
+                        {tournamentStep === 2 && (
+                            <div className={styles.tournamentStage}>
+                                <label
+                                    className={`${styles.checkboxRow} ${styles.checkboxRowHeader}`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllTournamentParticipantsSelected}
+                                        onChange={handleToggleSelectAllParticipants}
+                                        disabled={selectableTournamentMembers.length === 0}
+                                    />
+                                    Выбрать всех
+                                </label>
+                                <div className={styles.participantsList}>
+                                    {sortedMembers.length === 0 ? (
+                                        <div className={styles.searchEmpty}>
+                                            В группе пока нет участников.
+                                        </div>
+                                    ) : (
+                                        sortedMembers.map((member) => {
+                                            const nickname = member.user.nickname ?? "Без никнейма";
+                                            const isDisabled = !member.user.nickname;
+                                            return (
+                                                <label
+                                                    key={member.user.id}
+                                                    className={`${styles.checkboxRow} ${
+                                                        isDisabled ? styles.checkboxDisabled : ""
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={tournamentParticipantSet.has(
+                                                            member.user.id,
+                                                        )}
+                                                        onChange={() =>
+                                                            toggleTournamentParticipant(
+                                                                member.user.id,
+                                                            )
+                                                        }
+                                                        disabled={isDisabled}
+                                                    />
+                                                    <span>{nickname}</span>
+                                                    {member.status === "Pending" && (
+                                                        <span className={styles.pendingLabelSmall}>
+                                                            (не подтвержден)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {tournamentStep === 3 && (
+                            <div className={styles.tournamentStage}>
+                                <div className={styles.schemeList}>
+                                    {tournamentMatchmakingOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            className={`${styles.schemeCard} ${
+                                                tournamentMatchmakingType === option.value
+                                                    ? styles.schemeCardSelected
+                                                    : ""
+                                            }`}
+                                            onClick={() => {
+                                                setTournamentMatchmakingType(option.value);
+                                                setTournamentFormError(null);
+                                            }}
+                                        >
+                                            <div className={styles.schemeTitle}>{option.title}</div>
+                                            <div className={styles.schemeDescription}>
+                                                {option.description}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {tournamentStep === 4 && (
+                            <div className={styles.tournamentStage}>
+                                <DuelConfigurationPicker
+                                    className={configStyles.cardFlat}
+                                    selectedId={selectedTournamentConfigId}
+                                    selectedIsDefault={selectedTournamentDefaultConfig}
+                                    onSelect={(id) => {
+                                        setSelectedTournamentConfigId(id);
+                                        setSelectedTournamentDefaultConfig(false);
+                                    }}
+                                    onSelectDefault={() => {
+                                        setSelectedTournamentConfigId(null);
+                                        setSelectedTournamentDefaultConfig(true);
+                                    }}
+                                    onClearSelection={() => {
+                                        setSelectedTournamentConfigId(null);
+                                        setSelectedTournamentDefaultConfig(true);
+                                    }}
+                                    onCreate={() => {
+                                        setTournamentEditConfig(null);
+                                        setShowTournamentConfigModal(true);
+                                    }}
+                                    onEdit={(config) => {
+                                        setTournamentEditConfig(config);
+                                        setShowTournamentConfigModal(true);
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {tournamentFormError && (
+                            <div className={styles.errorText}>{tournamentFormError}</div>
+                        )}
+
+                        <div className={styles.formActions}>
+                            {tournamentStep > 1 && (
+                                <Button
+                                    type="button"
+                                    variant="outlined"
+                                    onClick={handleTournamentBack}
+                                >
+                                    Назад
+                                </Button>
+                            )}
+                            {tournamentStep < 4 ? (
+                                <Button type="button" onClick={handleTournamentNext}>
+                                    Далее
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    onClick={() => void handleCreateTournamentSubmit()}
+                                    disabled={isCreatingTournament}
+                                >
+                                    Создать
+                                </Button>
+                            )}
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
             {showConfigCreateModal && (
                 <DuelConfigurationManager
                     mode="modalOnly"
@@ -1343,6 +1759,24 @@ const GroupPage = () => {
                         setSelectedDefaultConfig(false);
                         setShowConfigCreateModal(false);
                         setEditConfig(null);
+                    }}
+                />
+            )}
+
+            {showTournamentConfigModal && (
+                <DuelConfigurationManager
+                    mode="modalOnly"
+                    forceFormOpen={showTournamentConfigModal}
+                    onForceFormClose={() => {
+                        setShowTournamentConfigModal(false);
+                        setTournamentEditConfig(null);
+                    }}
+                    editConfig={tournamentEditConfig}
+                    onCreated={(config) => {
+                        setSelectedTournamentConfigId(config.id);
+                        setSelectedTournamentDefaultConfig(false);
+                        setShowTournamentConfigModal(false);
+                        setTournamentEditConfig(null);
                     }}
                 />
             )}

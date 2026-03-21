@@ -7,6 +7,7 @@ export const enum AppRoutes {
     GROUP_MEMBERS = "/groups/:groupId/members",
     GROUP_DUELS = "/groups/:groupId/duels",
     GROUP_TOURNAMENTS = "/groups/:groupId/tournaments",
+    GROUP_TOURNAMENT = "/groups/:groupId/tournaments/:tournamentId",
     DUEL = "/duel/:duelId",
     DUEL_TASK_DESCRIPTION = "/duel/:duelId/description",
     DUEL_TASK_SUBMISSIONS = "/duel/:duelId/submissions",

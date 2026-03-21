@@ -1,6 +1,7 @@
 export {
     useAcceptDuelInvitationMutation,
     useAcceptGroupDuelInvitationMutation,
+    useAcceptTournamentDuelInvitationMutation,
     useCancelDuelInvitationMutation,
     useCreateDuelInvitationMutation,
     useCreateGroupDuelInvitationMutation,
