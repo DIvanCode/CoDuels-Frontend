@@ -6,8 +6,16 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
+import {
+    trackChooseLanguageAction,
+    trackCutCodeAction,
+    trackDeleteCodeAction,
+    trackMoveCursorAction,
+    trackPasteCodeAction,
+    trackWriteCodeAction,
+} from "features/anti-cheat";
 import { selectThemeMode } from "features/theme";
-import { baseEditorConfig, LANGUAGES } from "shared/config";
+import { baseEditorConfig, LANGUAGES, toApiLanguage } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { MonacoEditor } from "shared/ui";
 import clsx from "clsx";
@@ -60,8 +68,13 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const [localCode, setLocalCode] = useState<string>(initialCode);
     const [localLanguage, setLocalLanguage] = useState<LANGUAGES>(initialLanguage);
+    const [mountedEditor, setMountedEditor] =
+        useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorCleanupRef = useRef<(() => void) | null>(null);
+    const previousCursorLineRef = useRef<number | null>(null);
+    const pendingPasteMetaRef = useRef<{ beginLine: number; charsCount: number } | null>(null);
+    const pendingCutRef = useRef(false);
 
     const taskKey =
         duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
@@ -87,6 +100,17 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     const onLanguageChange = (language: LANGUAGES) => {
         if (mode === "opponent") return;
         setLocalLanguage(language);
+
+        const duelIdNumber = duelId ? Number(duelId) : NaN;
+        if (Number.isFinite(duelIdNumber) && currentUser?.id) {
+            trackChooseLanguageAction({
+                duel_id: duelIdNumber,
+                task_key: selectedTaskKey ?? undefined,
+                user_id: currentUser.id,
+                language: toApiLanguage(language),
+            });
+        }
+
         if (taskKey) {
             debouncedLanguageCb(language, taskKey);
         }
@@ -94,6 +118,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const handleEditorMount = useCallback<OnMount>((editor) => {
         editorRef.current = editor;
+        setMountedEditor(editor);
     }, []);
 
     useEffect(() => {
@@ -102,7 +127,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
         if (mode !== "opponent") return;
 
-        const editor = editorRef.current;
+        const editor = mountedEditor;
         const domNode = editor?.getDomNode();
 
         if (!editor || !domNode) return;
@@ -168,7 +193,144 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
             editorCleanupRef.current?.();
             editorCleanupRef.current = null;
         };
-    }, [mode]);
+    }, [mode, mountedEditor]);
+
+    useEffect(() => {
+        const editor = mountedEditor;
+        const duelIdNumber = duelId ? Number(duelId) : NaN;
+        const userId = currentUser?.id;
+
+        if (!editor || mode === "opponent" || !canEdit) return;
+        if (!Number.isFinite(duelIdNumber) || !userId) return;
+
+        const getCursorLine = () => editor.getPosition()?.lineNumber ?? 1;
+        const getCodeLength = () => editor.getModel()?.getLineCount() ?? 0;
+        const getTaskKey = () => selectedTaskKey ?? undefined;
+
+        previousCursorLineRef.current = getCursorLine();
+
+        const changeDisposable = editor.onDidChangeModelContent((event) => {
+            if (event.isFlush) return;
+
+            const cursorLine = getCursorLine();
+            const codeLength = getCodeLength();
+            const taskKeyValue = getTaskKey();
+            const insertedChars = event.changes.reduce(
+                (acc, change) => acc + change.text.length,
+                0,
+            );
+            const deletedChars = event.changes.reduce((acc, change) => acc + change.rangeLength, 0);
+
+            if (pendingPasteMetaRef.current) {
+                const pasteMeta = pendingPasteMetaRef.current;
+                const insertedLinesCount = Math.max(
+                    1,
+                    event.changes.reduce(
+                        (acc, change) => acc + change.text.split("\n").length - 1,
+                        0,
+                    ) + 1,
+                );
+                const endLine = pasteMeta.beginLine + insertedLinesCount - 1;
+
+                trackPasteCodeAction({
+                    duel_id: duelIdNumber,
+                    task_key: taskKeyValue,
+                    user_id: userId,
+                    code_length: codeLength,
+                    cursor_line: cursorLine,
+                    begin_line: pasteMeta.beginLine,
+                    end_line: endLine,
+                    chars_count: insertedChars > 0 ? insertedChars : pasteMeta.charsCount,
+                });
+
+                pendingPasteMetaRef.current = null;
+                return;
+            }
+
+            if (pendingCutRef.current && deletedChars > 0) {
+                pendingCutRef.current = false;
+                return;
+            }
+
+            if (insertedChars > deletedChars) {
+                trackWriteCodeAction({
+                    duel_id: duelIdNumber,
+                    task_key: taskKeyValue,
+                    user_id: userId,
+                    code_length: codeLength,
+                    cursor_line: cursorLine,
+                });
+                return;
+            }
+
+            if (deletedChars > insertedChars) {
+                trackDeleteCodeAction({
+                    duel_id: duelIdNumber,
+                    task_key: taskKeyValue,
+                    user_id: userId,
+                    code_length: codeLength,
+                    cursor_line: cursorLine,
+                });
+            }
+        });
+
+        const cursorDisposable = editor.onDidChangeCursorPosition((event) => {
+            const previousLine = previousCursorLineRef.current ?? event.position.lineNumber;
+            const cursorLine = event.position.lineNumber;
+            previousCursorLineRef.current = cursorLine;
+
+            if (cursorLine === previousLine) return;
+
+            trackMoveCursorAction({
+                duel_id: duelIdNumber,
+                task_key: getTaskKey(),
+                user_id: userId,
+                code_length: getCodeLength(),
+                cursor_line: cursorLine,
+                previous_cursor_line: previousLine,
+            });
+        });
+
+        const pasteDisposable = editor.onDidPaste((event) => {
+            const charsCount = event.clipboardEvent?.clipboardData?.getData("text")?.length ?? 0;
+            pendingPasteMetaRef.current = {
+                beginLine: event.range.startLineNumber,
+                charsCount,
+            };
+        });
+
+        const domNode = editor.getDomNode();
+        const cutListener = () => {
+            const model = editor.getModel();
+            const selection = editor.getSelection();
+            if (!model || !selection) return;
+
+            const selectedText = model.getValueInRange(selection);
+            if (!selectedText) return;
+
+            trackCutCodeAction({
+                duel_id: duelIdNumber,
+                task_key: getTaskKey(),
+                user_id: userId,
+                code_length: model.getLineCount(),
+                cursor_line: getCursorLine(),
+                begin_line: selection.startLineNumber,
+                end_line: selection.endLineNumber,
+                chars_count: selectedText.length,
+            });
+            pendingCutRef.current = true;
+        };
+
+        domNode?.addEventListener("cut", cutListener);
+
+        return () => {
+            changeDisposable.dispose();
+            cursorDisposable.dispose();
+            pasteDisposable.dispose();
+            domNode?.removeEventListener("cut", cutListener);
+        };
+    }, [canEdit, currentUser?.id, duelId, mode, mountedEditor, selectedTaskKey]);
+
     const onSubmissionStart = () => {
         if (!duelId) return;
         const nextParams = new URLSearchParams(location.search);
