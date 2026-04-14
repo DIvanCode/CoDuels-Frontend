@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { selectCurrentUser } from "entities/user";
 import { useActionsAutoFlush } from "features/anti-cheat";
 import { selectAuthToken } from "features/auth";
+import { selectDuelSession } from "features/duel-session";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { CodePanel } from "widgets/code-panel";
 import { TaskPanel } from "widgets/task-panel";
@@ -12,10 +13,12 @@ const DuelPage = () => {
     const { duelId } = useParams();
     const user = useAppSelector(selectCurrentUser);
     const token = useAppSelector(selectAuthToken);
+    const { phase } = useAppSelector(selectDuelSession);
 
     useActionsAutoFlush({
         enabled: Boolean(duelId && user?.id),
         token: token ?? null,
+        shouldSend: phase === "active",
     });
 
     return (

@@ -44,6 +44,7 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                         status: result.status ?? "Queued",
                                         language: result.language ?? data.language,
                                         created_at: result.created_at ?? new Date().toISOString(),
+                                        message: result.message ?? null,
                                         verdict: result.verdict ?? null,
                                         is_upsolving: result.is_upsolving ?? false,
                                     };
@@ -64,9 +65,7 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 const { duelId, taskKey } = normalizeSubmissionsArg(arg);
                 return {
                     url: `/duels/${duelId}/submissions`,
-                    params: {
-                        ...(taskKey ? { taskKey } : {}),
-                    },
+                    ...(taskKey ? { params: { taskKey } } : {}),
                 };
             },
             providesTags: (result, _error, arg) => {
@@ -131,18 +130,9 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                     draft[submissionIndex] = {
                                         ...draft[submissionIndex],
                                         status: data.status,
+                                        message: data.message,
                                         verdict: data.verdict,
                                     };
-                                } else {
-                                    const newSubmission: SubmissionItem = {
-                                        submission_id: data.id,
-                                        status: data.status,
-                                        verdict: data.verdict,
-                                        created_at: data.created_at,
-                                        language: data.language,
-                                        is_upsolving: data.is_upsolving,
-                                    };
-                                    draft.unshift(newSubmission);
                                 }
                             },
                         ),

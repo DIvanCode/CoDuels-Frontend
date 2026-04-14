@@ -29,15 +29,27 @@ export const pushActionEvent = (input: ActionEventInput) => {
     queue.push(makeEvent(input));
 };
 
-export const flushActionEvents = async ({ baseUrl, token }: { baseUrl: string; token: string }) => {
+export const flushActionEvents = async ({
+    baseUrl,
+    token,
+    shouldSend,
+}: {
+    baseUrl: string;
+    token: string;
+    shouldSend: boolean;
+}) => {
     if (isFlushing || queue.length === 0) return;
 
     isFlushing = true;
     try {
-        while (queue.length > 0) {
-            const batch = queue.slice(0, MAX_BATCH_SIZE);
+        if (!shouldSend) {
+            return;
+        }
 
-            const response = await fetch(`${baseUrl}/actions`, {
+        for (let start = 0; start < queue.length; start += MAX_BATCH_SIZE) {
+            const batch = queue.slice(start, start + MAX_BATCH_SIZE);
+
+            await fetch(`${baseUrl}/actions`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -46,15 +58,10 @@ export const flushActionEvents = async ({ baseUrl, token }: { baseUrl: string; t
                 body: JSON.stringify({ actions: batch }),
                 keepalive: true,
             });
-
-            if (!response.ok) {
-                break;
-            }
-
-            const sentIds = new Set(batch.map((event) => event.event_id));
-            queue = queue.filter((event) => !sentIds.has(event.event_id));
         }
     } finally {
+        queue = [];
+        sequenceByActor.clear();
         isFlushing = false;
     }
 };

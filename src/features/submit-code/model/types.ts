@@ -13,6 +13,7 @@ export interface SubmissionItem {
     status: SubmissionStatus;
     language: ApiLanguageValue;
     created_at: string;
+    message?: string | null;
     verdict?: string | null;
     is_upsolving: boolean;
 }
