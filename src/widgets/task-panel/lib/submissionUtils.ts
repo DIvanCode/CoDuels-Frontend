@@ -67,7 +67,7 @@ const getDisplayText = (
     }
 
     if (status === "Running") {
-        return message || "Running";
+        return message || "Testing in progress";
     }
 
     if (status === "Done") {

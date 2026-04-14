@@ -14,8 +14,7 @@ interface SubmissionRowProps {
 
 export const TaskSubmissionRow = ({ submission, duelId, taskKey }: SubmissionRowProps) => {
     const navigate = useNavigate();
-
-    const { status, verdict, language, created_at } = submission;
+    const { status, verdict, message, language, created_at } = submission;
     const verdictValue = verdict ?? undefined;
     const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 
@@ -27,8 +26,8 @@ export const TaskSubmissionRow = ({ submission, duelId, taskKey }: SubmissionRow
     return (
         <tr onClick={handleRowClick} className={styles.clickableRow} style={{ cursor: "pointer" }}>
             <td>
-                <ResultTitle variant={getVerdictVariant(verdictValue, status)}>
-                    {getDisplayText(status, verdictValue)}
+                <ResultTitle variant={getVerdictVariant(verdictValue, status, message)}>
+                    {getDisplayText(status, verdictValue, message)}
                 </ResultTitle>
             </td>
             <td>{languageLabel}</td>

@@ -257,6 +257,9 @@ const updateSubmissionCaches = (
                     if (payload.verdict !== undefined) {
                         draft[submissionIndex].verdict = payload.verdict;
                     }
+                    if (payload.message !== undefined) {
+                        draft[submissionIndex].message = payload.message;
+                    }
                 },
             ),
         );
@@ -265,7 +268,6 @@ const updateSubmissionCaches = (
 
 const getLanguageValue = (language?: string | null) => fromApiLanguage(language);
 
-// TODO: ���� ������������ ������� ����� � ������ � WebSocket.
 export const duelSessionApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         startDuelSearch: builder.mutation<void, void>({
@@ -779,9 +781,12 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                     codeSyncIntervalId = setInterval(() => {
                         const currentState = getState() as RootState;
 
-                        if (currentState.duelSession.phase !== "active") return;
-
-                        const duelId = currentState.duelSession.activeDuelId;
+                        const duelIdFromPath = Number(
+                            window.location.pathname.match(/\/duel\/(\d+)/)?.[1] ?? NaN,
+                        );
+                        const duelId =
+                            currentState.duelSession.activeDuelId ??
+                            (Number.isFinite(duelIdFromPath) ? duelIdFromPath : null);
                         if (!duelId) return;
 
                         const duelEntry =

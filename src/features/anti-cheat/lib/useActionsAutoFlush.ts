@@ -6,9 +6,11 @@ const FLUSH_INTERVAL_MS = 5000;
 export const useActionsAutoFlush = ({
     enabled,
     token,
+    shouldSend,
 }: {
     enabled: boolean;
     token: string | null;
+    shouldSend: boolean;
 }) => {
     useEffect(() => {
         if (!token) {
@@ -21,7 +23,7 @@ export const useActionsAutoFlush = ({
 
         const baseUrl = import.meta.env.VITE_BASE_URL;
         const flush = () => {
-            void flushActionEvents({ baseUrl, token });
+            void flushActionEvents({ baseUrl, token, shouldSend });
         };
 
         const intervalId = window.setInterval(flush, FLUSH_INTERVAL_MS);
@@ -45,5 +47,5 @@ export const useActionsAutoFlush = ({
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             flush();
         };
-    }, [enabled, token]);
+    }, [enabled, token, shouldSend]);
 };
