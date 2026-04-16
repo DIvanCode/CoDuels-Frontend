@@ -22,7 +22,7 @@ jobs:
               run: |
                   cd ansible/build
                   ansible-playbook -i inventory playbook.yml \
-                    --extra-vars="version=${{ github.sha }}"
+                    --extra-vars="version=${{ github.sha }} vite_base_url=${{ vars.VITE_BASE_URL }}"
 
     deploy:
         needs: build
