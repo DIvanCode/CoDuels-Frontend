@@ -9,12 +9,12 @@ RUN pnpm install
 
 COPY . .
 
-ARG VITE_BASE_URL=/api
+ARG VITE_BASE_URL
 ENV VITE_BASE_URL=${VITE_BASE_URL}
 
 RUN pnpm build
 
-FROM nginx:alpine
+FROM nginx:alpine-slim
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /app/dist/ /usr/share/nginx/html/
