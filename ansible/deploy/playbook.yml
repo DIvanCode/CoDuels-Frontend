@@ -1,0 +1,19 @@
+- name: Deploy
+  hosts: Production
+  remote_user: root
+  tasks:
+      - name: Pull frontend image
+        docker_image:
+            name: divancode74/coduels-frontend
+            tag: "{{ version }}"
+            source: pull
+            force_source: true
+      - name: Run frontend container
+        docker_container:
+            name: frontend
+            image: "divancode74/coduels-frontend:{{ version }}"
+            recreate: yes
+            restart: yes
+            restart_policy: unless-stopped
+            ports:
+                - "80:80"

@@ -5,21 +5,16 @@ RUN npm i -g pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
-RUN pnpm i
-
-COPY src src
-COPY public public
-COPY *.ts *.js *.json *.yaml *.yml *.html ./
+COPY . .
 
 ARG VITE_BASE_URL=/api
 ENV VITE_BASE_URL=${VITE_BASE_URL}
 
 RUN pnpm build
 
-FROM nginx:alpine-slim
+FROM nginx:alpine
 
-COPY ./nginx.conf /etc/nginx/nginx.conf
-
-COPY --from=builder /app/dist/ /var/www
-
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
