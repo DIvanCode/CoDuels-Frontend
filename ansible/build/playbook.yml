@@ -1,0 +1,13 @@
+- name: Build and push
+  hosts: Localhost
+  connection: local
+  tasks:
+      - name: Build frontend image
+        command: >
+            docker build
+            --build-arg VITE_BASE_URL={{ vite_base_url }}
+            -t divancode74/coduels-frontend:{{ version }}
+            ../../
+      - name: Push frontend image
+        command: >
+            docker push divancode74/coduels-frontend:{{ version }}
