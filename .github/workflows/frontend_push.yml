@@ -47,7 +47,7 @@ jobs:
                   cd ansible/deploy
                   ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory playbook.yml \
                     --private-key ~/.ssh/deploy_key.pem \
-                    --extra-vars="version=${{ github.sha }} ansible_user=root"
+                    --extra-vars="version=${{ github.sha }} ansible_user=ubuntu"
             - name: Clean up SSH key
               if: always()
               run: rm -f ~/.ssh/deploy_key.pem
