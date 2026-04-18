@@ -1,4 +1,54 @@
 .testData {
     display: flex;
     gap: 1em;
+    flex-wrap: wrap;
+}
+
+.runButton {
+    border: none;
+    background: transparent;
+    padding: 0.18em 0.24em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+}
+
+.runTriangle {
+    width: 0;
+    height: 0;
+    border-top: 0.55em solid transparent;
+    border-bottom: 0.55em solid transparent;
+    border-left: 0.95em solid #2ea44f;
+    margin-left: 0.04em;
+}
+
+.runResult {
+    margin-top: 0.25em;
+    padding: 0.75em 1em;
+    border-radius: 0.5em;
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--card-secondary));
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+
+    pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.95em;
+    }
+}
+
+.runResultError {
+    border-color: color-mix(in srgb, #d02f2f 55%, var(--card-secondary));
+}
+
+.runResultTitle {
+    margin-bottom: 0.45em;
+    font-size: 0.9em;
+    color: var(--text-secondary);
 }

@@ -28,3 +28,139 @@
     flex-direction: column;
     row-gap: 1em;
 }
+
+.runButton {
+    border: none;
+    background: transparent;
+    padding: 0.18em 0.24em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+}
+
+.runPlayIcon {
+    width: 0;
+    height: 0;
+    border-top: 0.55em solid transparent;
+    border-bottom: 0.55em solid transparent;
+    border-left: 0.95em solid #2ea44f;
+    margin-left: 0.04em;
+}
+
+.runGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+}
+
+.runColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45em;
+}
+
+.runColumnTitle {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.runInputContainer {
+    position: relative;
+}
+
+.runInput {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 9.5em;
+    border: 1px solid color-mix(in srgb, var(--text-secondary) 30%, transparent);
+    border-radius: 0.5em;
+    background: color-mix(in srgb, var(--card-secondary) 65%, transparent);
+    color: var(--text-primary);
+    padding: 0.75em 2.6em 0.75em 0.75em;
+    font-family: monospace;
+    font-size: 1.25em;
+    resize: vertical;
+}
+
+.runInputReadOnly {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 9.5em;
+    border: 1px solid color-mix(in srgb, var(--text-secondary) 30%, transparent);
+    border-radius: 0.5em;
+    background: color-mix(in srgb, var(--card-secondary) 65%, transparent);
+    color: var(--text-primary);
+    padding: 0.75em 2.6em 0.75em 0.75em;
+
+    pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: monospace;
+        font-size: 1.25em;
+    }
+}
+
+.runInputIconButton {
+    position: absolute;
+    top: 0.45em;
+    right: 0.45em;
+    width: 1.8em;
+    height: 1.8em;
+    border: 1px solid color-mix(in srgb, var(--text-secondary) 30%, transparent);
+    border-radius: 0.4em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+    color: var(--icon-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1;
+
+    svg {
+        width: 1em;
+        height: 1em;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.runInputSaveIcon {
+    font-size: 1.05em;
+    line-height: 1;
+    color: var(--icon-secondary);
+}
+
+.runOutput {
+    min-height: 9.5em;
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--card-secondary));
+    border-radius: 0.5em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+    padding: 0.75em;
+
+    pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 1.25em;
+    }
+}
+
+.runOutputError {
+    border-color: color-mix(in srgb, #d02f2f 55%, var(--card-secondary));
+}
+
+@media (max-width: 960px) {
+    .runGrid {
+        grid-template-columns: 1fr;
+    }
+}

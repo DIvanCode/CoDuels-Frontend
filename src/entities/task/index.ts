@@ -5,6 +5,9 @@ export {
     useGetTaskFileQuery,
     useGetTaskTestsQuery,
     useGetTaskTopicsQuery,
+    useCreateCodeRunMutation,
+    useGetCodeRunQuery,
+    useLazyGetCodeRunQuery,
 } from "./api/taskApi";
 
 export { TaskDescription } from "./ui/TaskDescription/TaskDescription";
