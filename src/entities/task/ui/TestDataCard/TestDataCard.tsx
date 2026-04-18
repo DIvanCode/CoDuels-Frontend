@@ -4,14 +4,15 @@ import styles from "./TestDataCard.module.scss";
 interface Props {
     title: string;
     testData: string;
+    showCopy?: boolean;
 }
 
-export const TestDataCard = ({ title, testData }: Props) => {
+export const TestDataCard = ({ title, testData, showCopy = true }: Props) => {
     return (
         <div className={styles.testDataCard}>
             <header>
                 <strong>{title}</strong>
-                <CopyButton textToCopy={testData} />
+                {showCopy ? <CopyButton textToCopy={testData} /> : null}
             </header>
 
             <pre>{testData}</pre>

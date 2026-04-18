@@ -2,7 +2,15 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiSlice } from "shared/api";
 import { StructError } from "superstruct";
 
-import { Task, TaskResponse, TaskTopicsResponse, TestCase, TestCaseStruct } from "../model/types";
+import {
+    CodeRun,
+    CreateCodeRunRequest,
+    Task,
+    TaskResponse,
+    TaskTopicsResponse,
+    TestCase,
+    TestCaseStruct,
+} from "../model/types";
 
 const buildTaskFileRequest = (taskId: string, filename: string) => ({
     url: `/task/${encodeURIComponent(taskId)}/${encodeURIComponent(filename)}`,
@@ -56,8 +64,25 @@ export const taskApiSlice = apiSlice.injectEndpoints({
         getTaskTopics: builder.query<TaskTopicsResponse, void>({
             query: () => "/task/topics",
         }),
+        createCodeRun: builder.mutation<CodeRun, CreateCodeRunRequest>({
+            query: (body) => ({
+                url: "/code-runs",
+                method: "POST",
+                body,
+            }),
+        }),
+        getCodeRun: builder.query<CodeRun, number>({
+            query: (id) => `/code-runs/${id}`,
+        }),
     }),
 });
 
-export const { useGetTaskQuery, useGetTaskFileQuery, useGetTaskTestsQuery, useGetTaskTopicsQuery } =
-    taskApiSlice;
+export const {
+    useGetTaskQuery,
+    useGetTaskFileQuery,
+    useGetTaskTestsQuery,
+    useGetTaskTopicsQuery,
+    useCreateCodeRunMutation,
+    useGetCodeRunQuery,
+    useLazyGetCodeRunQuery,
+} = taskApiSlice;

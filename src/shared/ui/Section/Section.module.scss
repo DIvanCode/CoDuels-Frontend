@@ -3,3 +3,14 @@
     flex-direction: column;
     row-gap: 0.5em;
 }
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.sectionHeaderInline {
+    justify-content: flex-start;
+}

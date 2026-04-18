@@ -1,4 +1,5 @@
 import { Infer, number, object, string } from "superstruct";
+import { ApiLanguageValue } from "shared/config";
 
 export interface Task {
     id: string;
@@ -29,3 +30,21 @@ export const TestCaseStruct = object({
 });
 
 export type TestCase = Infer<typeof TestCaseStruct>;
+
+export type CodeRunStatus = "Queued" | "Running" | "Done";
+
+export interface CreateCodeRunRequest {
+    code: string;
+    language: ApiLanguageValue;
+    input: string;
+}
+
+export interface CodeRun {
+    id: number;
+    code: string;
+    language: ApiLanguageValue;
+    input: string;
+    status: CodeRunStatus;
+    output: string | null;
+    error: string | null;
+}
