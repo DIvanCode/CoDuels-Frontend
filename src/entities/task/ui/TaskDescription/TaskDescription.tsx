@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { trackRunSampleTestAction } from "features/anti-cheat";
+import { trackRunCustomTestAction, trackRunSampleTestAction } from "features/anti-cheat";
 import { useCreateCodeRunMutation, useLazyGetCodeRunQuery } from "entities/task";
 import { LanguageValue, toApiLanguage } from "shared/config";
 import { Task, TestCase } from "entities/task/model/types";
@@ -31,6 +31,8 @@ type PersistedRunPanelState = {
     isRunInputEditing: boolean;
     runState: RunState;
 };
+
+type RunTriggerSource = "sample" | "custom";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 45000;
@@ -311,7 +313,7 @@ export const TaskDescription = ({
         });
     };
 
-    const runWithInput = async (input: string) => {
+    const runWithInput = async (input: string, source: RunTriggerSource) => {
         const panelKey = runPanelStorageKey;
         const trimmedCode = code.trim();
         if (!trimmedCode) {
@@ -338,11 +340,17 @@ export const TaskDescription = ({
         try {
             if (duelId && userId) {
                 try {
-                    trackRunSampleTestAction({
+                    const actionPayload = {
                         duel_id: duelId,
                         user_id: userId,
                         task_key: taskKey ?? undefined,
-                    });
+                    };
+
+                    if (source === "sample") {
+                        trackRunSampleTestAction(actionPayload);
+                    } else {
+                        trackRunCustomTestAction(actionPayload);
+                    }
                 } catch {
                     // Tracking must not block code execution run.
                 }
@@ -419,7 +427,7 @@ export const TaskDescription = ({
         setRunInput(input);
         setRunInputDraft(input);
         setIsRunInputEditing(false);
-        void runWithInput(input);
+        void runWithInput(input, "sample");
     };
 
     const onRunEditedInput = () => {
@@ -429,7 +437,7 @@ export const TaskDescription = ({
             setIsRunInputEditing(false);
         }
 
-        void runWithInput(inputToRun);
+        void runWithInput(inputToRun, "custom");
     };
 
     const onEditRunInput = () => {
