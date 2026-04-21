@@ -361,8 +361,16 @@ export const TaskDescription = ({
                 throw new Error(`Неподдерживаемый язык: ${language}`);
             }
 
+            if (!duelId || !taskKey) {
+                throw new Error("Не удалось определить duel_id или task_key для запуска.");
+            }
+
             const run = await withTimeout(
                 createCodeRun({
+                    duel_id: duelId,
+                    task_key: taskKey,
+                    time_limit: task.tl,
+                    memory_limit: task.ml,
                     code: trimmedCode,
                     language: apiLanguage,
                     input,

@@ -34,6 +34,10 @@ export type TestCase = Infer<typeof TestCaseStruct>;
 export type CodeRunStatus = "Queued" | "Running" | "Done";
 
 export interface CreateCodeRunRequest {
+    duel_id: number;
+    task_key: string;
+    time_limit: number;
+    memory_limit: number;
     code: string;
     language: ApiLanguageValue;
     input: string;
