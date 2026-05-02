@@ -359,7 +359,6 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
             <EditorHeader
                 code={localCode}
                 language={localLanguage}
-                onCodeChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}

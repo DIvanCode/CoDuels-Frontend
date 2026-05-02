@@ -11,9 +11,10 @@ interface Props {
     textToCopy: string;
     className?: string;
     size?: "small" | "medium";
+    onCopy?: (text: string) => Promise<void> | void;
 }
 
-export const CopyButton = ({ textToCopy, className, size = "small" }: Props) => {
+export const CopyButton = ({ textToCopy, className, size = "small", onCopy }: Props) => {
     const copyIcons = {
         idleCopy: <CopyIcon className={styles.copyIdle} />,
         successCopy: <CopySuccessIcon className={styles.copySuccess} />,
@@ -24,7 +25,7 @@ export const CopyButton = ({ textToCopy, className, size = "small" }: Props) => 
     const handleCopy = async (text: string) => {
         if (isCopyCoolDown) return;
 
-        await copyToClipboard(text);
+        await (onCopy ? onCopy(text) : copyToClipboard(text));
         setCopyIconState("successCopy");
         setIsCopyCoolDown(true);
         setTimeout(() => {
