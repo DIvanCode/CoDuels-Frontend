@@ -49,6 +49,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId));
     const canEdit =
         !isDuelLoading && (duel?.participants ?? []).some((p) => p.id === currentUser?.id);
+    const isReadOnly = mode === "opponent" || !canEdit;
     const { selectedTaskId, selectedTaskKey } = useDuelTaskSelection(duel);
 
     const initialCode = useAppSelector((state) => {
@@ -90,7 +91,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     );
 
     const onCodeChange = (code: string) => {
-        if (mode === "opponent") return;
+        if (isReadOnly) return;
         setLocalCode(code);
         if (taskKey) {
             debouncedCodeCb(code, taskKey);
@@ -98,7 +99,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     };
 
     const onLanguageChange = (language: LANGUAGES) => {
-        if (mode === "opponent") return;
+        if (isReadOnly) return;
         setLocalLanguage(language);
 
         const duelIdNumber = duelId ? Number(duelId) : NaN;
@@ -125,7 +126,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         editorCleanupRef.current?.();
         editorCleanupRef.current = null;
 
-        if (mode !== "opponent") return;
+        if (!isReadOnly) return;
 
         const editor = mountedEditor;
         const domNode = editor?.getDomNode();
@@ -193,7 +194,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
             editorCleanupRef.current?.();
             editorCleanupRef.current = null;
         };
-    }, [mode, mountedEditor]);
+    }, [isReadOnly, mountedEditor]);
 
     useEffect(() => {
         const editor = mountedEditor;
@@ -355,7 +356,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     if (!duelId) return null;
 
     return (
-        <div className={clsx(styles.codeEditor, mode === "opponent" && styles.noSelect)}>
+        <div className={clsx(styles.codeEditor, isReadOnly && styles.noSelect)}>
             <EditorHeader
                 code={localCode}
                 language={localLanguage}
@@ -363,7 +364,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
                 onSubmissionStart={onSubmissionStart}
                 duelId={duelId}
                 taskKey={selectedTaskKey}
-                readOnly={mode === "opponent"}
+                readOnly={isReadOnly}
             />
 
             <MonacoEditor
@@ -374,10 +375,10 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
                 theme={theme}
                 options={{
                     ...baseEditorConfig,
-                    readOnly: mode === "opponent" || !canEdit,
-                    domReadOnly: mode === "opponent",
-                    contextmenu: mode !== "opponent",
-                    selectionClipboard: mode !== "opponent",
+                    readOnly: isReadOnly,
+                    domReadOnly: isReadOnly,
+                    contextmenu: !isReadOnly,
+                    selectionClipboard: !isReadOnly,
                 }}
                 className={styles.editor}
                 onEditorMount={handleEditorMount}

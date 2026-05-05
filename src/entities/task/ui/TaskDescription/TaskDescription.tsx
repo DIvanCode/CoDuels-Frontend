@@ -18,6 +18,7 @@ interface Props {
     duelId?: number;
     taskKey?: string | null;
     userId?: number;
+    canRunCode?: boolean;
 }
 
 type RunState = {
@@ -162,6 +163,7 @@ export const TaskDescription = ({
     duelId,
     taskKey,
     userId,
+    canRunCode = true,
 }: Props) => {
     const [createCodeRun, { isLoading: isCreating }] = useCreateCodeRunMutation();
     const [fetchCodeRun] = useLazyGetCodeRunQuery();
@@ -481,82 +483,87 @@ export const TaskDescription = ({
                         testCase={testCase}
                         onRun={onRunExample}
                         isRunDisabled={isRunning}
+                        canRun={canRunCode}
                     />
                 )) ?? "No test cases"}
             </Section>
 
-            <div ref={runPanelRef}>
-                <Section
-                    title="Запуск"
-                    titleActionPosition="inline"
-                    titleAction={
-                        <button
-                            type="button"
-                            className={styles.runButton}
-                            onClick={onRunEditedInput}
-                            disabled={isRunLaunchDisabled}
-                            aria-label="Запустить"
-                            title="Запустить"
-                        >
-                            <span className={styles.runPlayIcon} />
-                        </button>
-                    }
-                >
-                    <div className={styles.runGrid}>
-                        <div className={styles.runColumn}>
-                            <div className={styles.runColumnTitle}>Ввод</div>
-                            <div className={styles.runInputContainer}>
-                                {isRunInputEditing ? (
-                                    <button
-                                        type="button"
-                                        className={styles.runInputIconButton}
-                                        onClick={onSaveRunInput}
-                                        disabled={isRunning}
-                                        aria-label="Сохранить ввод"
-                                    >
-                                        <span className={styles.runInputSaveIcon}>✓</span>
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        className={styles.runInputIconButton}
-                                        onClick={onEditRunInput}
-                                        disabled={isRunning}
-                                        aria-label="Редактировать ввод"
-                                    >
-                                        <EditIcon />
-                                    </button>
-                                )}
-                                {isRunInputEditing ? (
-                                    <textarea
-                                        className={styles.runInput}
-                                        value={runInputDraft}
-                                        onChange={(event) => setRunInputDraft(event.target.value)}
-                                        placeholder="Введите входные данные"
-                                    />
-                                ) : (
-                                    <div className={styles.runInputReadOnly}>
-                                        <pre>{runInput || ""}</pre>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className={styles.runColumn}>
-                            <div className={styles.runColumnTitle}>Вывод</div>
-                            <div
-                                className={
-                                    runState.type === "error"
-                                        ? `${styles.runOutput} ${styles.runOutputError}`
-                                        : styles.runOutput
-                                }
+            {canRunCode && (
+                <div ref={runPanelRef}>
+                    <Section
+                        title="Запуск"
+                        titleActionPosition="inline"
+                        titleAction={
+                            <button
+                                type="button"
+                                className={styles.runButton}
+                                onClick={onRunEditedInput}
+                                disabled={isRunLaunchDisabled}
+                                aria-label="Запустить"
+                                title="Запустить"
                             >
-                                <pre>{runState.type === "idle" ? "" : runState.text}</pre>
+                                <span className={styles.runPlayIcon} />
+                            </button>
+                        }
+                    >
+                        <div className={styles.runGrid}>
+                            <div className={styles.runColumn}>
+                                <div className={styles.runColumnTitle}>Ввод</div>
+                                <div className={styles.runInputContainer}>
+                                    {isRunInputEditing ? (
+                                        <button
+                                            type="button"
+                                            className={styles.runInputIconButton}
+                                            onClick={onSaveRunInput}
+                                            disabled={isRunning}
+                                            aria-label="Сохранить ввод"
+                                        >
+                                            <span className={styles.runInputSaveIcon}>✓</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className={styles.runInputIconButton}
+                                            onClick={onEditRunInput}
+                                            disabled={isRunning}
+                                            aria-label="Редактировать ввод"
+                                        >
+                                            <EditIcon />
+                                        </button>
+                                    )}
+                                    {isRunInputEditing ? (
+                                        <textarea
+                                            className={styles.runInput}
+                                            value={runInputDraft}
+                                            onChange={(event) =>
+                                                setRunInputDraft(event.target.value)
+                                            }
+                                            placeholder="Введите входные данные"
+                                        />
+                                    ) : (
+                                        <div className={styles.runInputReadOnly}>
+                                            <pre>{runInput || ""}</pre>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className={styles.runColumn}>
+                                <div className={styles.runColumnTitle}>Вывод</div>
+                                <div
+                                    className={
+                                        runState.type === "error"
+                                            ? `${styles.runOutput} ${styles.runOutputError}`
+                                            : styles.runOutput
+                                    }
+                                >
+                                    <pre>{runState.type === "idle" ? "" : runState.text}</pre>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Section>
-            </div>
+                    </Section>
+                </div>
+            )}
         </div>
     );
 };

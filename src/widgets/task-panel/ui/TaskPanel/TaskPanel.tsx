@@ -1,4 +1,5 @@
 ﻿import clsx from "clsx";
+import { useEffect } from "react";
 import {
     matchPath,
     Outlet,
@@ -9,9 +10,11 @@ import {
 } from "react-router-dom";
 
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
+import { selectCurrentUser } from "entities/user";
 import DescriptionIcon from "shared/assets/icons/document.svg?react";
 import SubmissionsIcon from "shared/assets/icons/inbox.svg?react";
 import { AppRoutes } from "shared/config";
+import { useAppSelector } from "shared/lib/storeHooks";
 import type { ITab } from "shared/ui";
 import { Button, TabbedCard } from "shared/ui";
 import styles from "./TaskPanel.module.scss";
@@ -23,10 +26,23 @@ export const TaskPanel = () => {
     const { data: duel } = useGetDuelQuery(duelId ? Number(duelId) : NaN, {
         skip: !duelId,
     });
+    const currentUser = useAppSelector(selectCurrentUser);
     const [searchParams] = useSearchParams();
     const { tasks, selectedTaskKey } = useDuelTaskSelection(duel);
     const selectedTaskValue = selectedTaskKey ?? tasks[0]?.key ?? "";
     const showTaskSelect = tasks.length > 0 && Boolean(selectedTaskValue);
+    const isParticipant = (duel?.participants ?? []).some(
+        (participant) => participant.id === currentUser?.id,
+    );
+    const isSubmissionsRoute =
+        matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null ||
+        matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null;
+
+    useEffect(() => {
+        if (duel && !isParticipant && isSubmissionsRoute) {
+            navigate({ pathname: "description", search: location.search }, { replace: true });
+        }
+    }, [duel, isParticipant, isSubmissionsRoute, location.search, navigate]);
 
     const tabs: ITab[] = [
         {
@@ -35,15 +51,16 @@ export const TaskPanel = () => {
             active: matchPath(AppRoutes.DUEL_TASK_DESCRIPTION, location.pathname) !== null,
             onClick: () => navigate({ pathname: "description", search: location.search }),
         },
-        {
+    ];
+
+    if (isParticipant) {
+        tabs.push({
             label: "Посылки",
             leadingIcon: <SubmissionsIcon />,
-            active:
-                matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null ||
-                matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null,
+            active: isSubmissionsRoute,
             onClick: () => navigate({ pathname: "submissions", search: location.search }),
-        },
-    ];
+        });
+    }
 
     return (
         <div className={styles.taskPanel}>
