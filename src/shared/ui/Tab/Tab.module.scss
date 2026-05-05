@@ -1,7 +1,7 @@
 .tab {
     display: flex;
     align-items: center;
-    column-gap: 0.25em;
+    column-gap: 0.4em;
 
     cursor: pointer;
     color: var(--text-secondary);
@@ -17,8 +17,12 @@
     height: 1.25em;
 }
 
+.label {
+    line-height: 1.25em;
+}
+
 .active {
-    &:not(:only-child) {
+    &:not(:only-child) .label {
         border-bottom: 1px solid var(--text-primary);
     }
 

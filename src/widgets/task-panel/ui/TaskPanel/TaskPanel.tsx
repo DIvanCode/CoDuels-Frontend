@@ -1,7 +1,7 @@
 ﻿import clsx from "clsx";
-import { useEffect } from "react";
 import {
     matchPath,
+    Navigate,
     Outlet,
     useLocation,
     useNavigate,
@@ -37,12 +37,8 @@ export const TaskPanel = () => {
     const isSubmissionsRoute =
         matchPath(AppRoutes.DUEL_TASK_SUBMISSIONS, location.pathname) !== null ||
         matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null;
-
-    useEffect(() => {
-        if (duel && !isParticipant && isSubmissionsRoute) {
-            navigate({ pathname: "description", search: location.search }, { replace: true });
-        }
-    }, [duel, isParticipant, isSubmissionsRoute, location.search, navigate]);
+    const isSubmissionCodeRoute =
+        matchPath(AppRoutes.DUEL_TASK_SUBMISSION_CODE, location.pathname) !== null;
 
     const tabs: ITab[] = [
         {
@@ -51,16 +47,13 @@ export const TaskPanel = () => {
             active: matchPath(AppRoutes.DUEL_TASK_DESCRIPTION, location.pathname) !== null,
             onClick: () => navigate({ pathname: "description", search: location.search }),
         },
-    ];
-
-    if (isParticipant) {
-        tabs.push({
+        {
             label: "Посылки",
             leadingIcon: <SubmissionsIcon />,
             active: isSubmissionsRoute,
             onClick: () => navigate({ pathname: "submissions", search: location.search }),
-        });
-    }
+        },
+    ];
 
     return (
         <div className={styles.taskPanel}>
@@ -92,7 +85,14 @@ export const TaskPanel = () => {
                 </div>
             ) : null}
             <TabbedCard tabs={tabs} contentClassName={styles.taskPanelContent}>
-                <Outlet />
+                {duel && !isParticipant && isSubmissionCodeRoute ? (
+                    <Navigate
+                        to={{ pathname: `/duel/${duelId}/submissions`, search: location.search }}
+                        replace
+                    />
+                ) : (
+                    <Outlet />
+                )}
             </TabbedCard>
         </div>
     );

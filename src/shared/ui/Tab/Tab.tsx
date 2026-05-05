@@ -15,7 +15,7 @@ export const Tab = ({ label, active, onClick, leadingIcon, className }: ITab) =>
     return (
         <div className={clsx(styles.tab, active && styles.active, className)} onClick={onClick}>
             {leadingIcon && <span className={styles.leadingIcon}>{leadingIcon}</span>}
-            {label}
+            <span className={styles.label}>{label}</span>
         </div>
     );
 };
