@@ -3,15 +3,22 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { Loader, Table } from "shared/ui";
 import { useGetSubmissionsQuery } from "features/submit-code";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
+import { selectCurrentUser } from "entities/user";
+import { useAppSelector } from "shared/lib/storeHooks";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
 export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
     const [searchParams] = useSearchParams();
+    const currentUser = useAppSelector(selectCurrentUser);
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId!), {
         skip: !duelId,
     });
+    const isParticipant = (duel?.participants ?? []).some(
+        (participant) => participant.id === currentUser?.id,
+    );
+    const isViewer = Boolean(duel && !isParticipant);
     const { selectedTaskKey } = useDuelTaskSelection(duel);
     const taskKeyFromQuery = searchParams.get("task");
     const resolvedTaskKey =
@@ -64,6 +71,7 @@ export const TaskSubmissionsContent = () => {
         <Table className={styles.submissionsTable}>
             <thead>
                 <tr>
+                    {isViewer && <th>Участник</th>}
                     <th>Статус</th>
                     <th>Язык</th>
                     <th>Время отправки</th>
@@ -77,6 +85,8 @@ export const TaskSubmissionsContent = () => {
                         submission={submission}
                         duelId={duelId}
                         taskKey={resolvedTaskKey}
+                        showAuthor={isViewer}
+                        canOpenDetail={!isViewer}
                     />
                 ))}
             </tbody>

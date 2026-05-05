@@ -1,6 +1,7 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Loader, MonacoEditor, ResultTitle, DropdownMenu, Button, CopyButton } from "shared/ui";
 import { useGetSubmissionDetailQuery } from "features/submit-code";
+import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import KeyboardArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import {
     formatDate,
@@ -10,14 +11,17 @@ import {
 } from "widgets/task-panel/lib/submissionUtils";
 
 import { baseEditorConfig, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
-import { useAppSelector } from "shared/lib/storeHooks";
+import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { selectThemeMode } from "features/theme";
+import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
+import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
 import styles from "./TaskSubmissionCodeContent.module.scss";
 
 export const TaskSubmissionCodeContent = () => {
     const { duelId, submissionId } = useParams<{ duelId: string; submissionId: string }>();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const dispatch = useAppDispatch();
 
     const {
         data: submissionDetail,
@@ -29,6 +33,8 @@ export const TaskSubmissionCodeContent = () => {
             skip: !duelId || !submissionId,
         },
     );
+    const { data: duel } = useGetDuelQuery(Number(duelId), { skip: !duelId });
+    const { selectedTaskId } = useDuelTaskSelection(duel);
     const theme = useAppSelector(selectThemeMode);
 
     const handleBackClick = () => {
@@ -58,6 +64,15 @@ export const TaskSubmissionCodeContent = () => {
     const { language, created_at, solution } = submissionDetail;
     const solutionText = solution ?? "";
     const languageValue = mapLanguageToLanguageValue(submissionDetail.language);
+    const editorTaskKey =
+        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
+
+    const handleApplyCodeToEditor = () => {
+        if (!editorTaskKey) return;
+
+        dispatch(setCode({ taskKey: editorTaskKey, code: solutionText }));
+        dispatch(setLanguage({ taskKey: editorTaskKey, language: languageValue }));
+    };
     const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 
     return (
@@ -117,6 +132,7 @@ export const TaskSubmissionCodeContent = () => {
                 <div className={styles.editorWrapper}>
                     <CopyButton
                         textToCopy={solutionText}
+                        onCopy={handleApplyCodeToEditor}
                         className={styles.copyCodeButton}
                         size="medium"
                     />

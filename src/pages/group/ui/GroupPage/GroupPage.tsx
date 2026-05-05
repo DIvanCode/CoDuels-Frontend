@@ -691,9 +691,10 @@ const GroupPage = () => {
             <button
                 type="button"
                 className={styles.userLink}
-                onClick={() =>
-                    navigate(AppRoutes.PROFILE.replace(":userNickname", String(nickname)))
-                }
+                onClick={(event) => {
+                    event.stopPropagation();
+                    navigate(AppRoutes.PROFILE.replace(":userNickname", String(nickname)));
+                }}
             >
                 {nickname}
             </button>
@@ -994,10 +995,24 @@ const GroupPage = () => {
                                                 !duel.is_accepted_by_user2;
                                             const opponentForUser1 = duel.user2?.nickname;
                                             const opponentForUser2 = duel.user1?.nickname;
+                                            const duelPath = duelData
+                                                ? AppRoutes.DUEL.replace(
+                                                      ":duelId",
+                                                      String(duelData.id),
+                                                  )
+                                                : null;
 
                                             return (
                                                 <tr
                                                     key={`duel-${duelData?.id ?? "pending"}-${duel.created_at}-${duel.user1.id}-${duel.user2.id}`}
+                                                    className={
+                                                        duelPath ? styles.duelRow : undefined
+                                                    }
+                                                    onClick={() => {
+                                                        if (duelPath) {
+                                                            navigate(duelPath);
+                                                        }
+                                                    }}
                                                 >
                                                     <td>
                                                         <div className={styles.duelPlayerCell}>
@@ -1009,13 +1024,14 @@ const GroupPage = () => {
                                                                         className={
                                                                             styles.pendingAcceptButton
                                                                         }
-                                                                        onClick={() =>
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
                                                                             void handleAcceptPendingGroupDuel(
                                                                                 opponentForUser1,
                                                                                 resolvedGroupId,
                                                                                 duelConfigurationId,
-                                                                            )
-                                                                        }
+                                                                            );
+                                                                        }}
                                                                         disabled={
                                                                             isAcceptingGroupDuel
                                                                         }
@@ -1098,13 +1114,14 @@ const GroupPage = () => {
                                                                         className={
                                                                             styles.pendingAcceptButton
                                                                         }
-                                                                        onClick={() =>
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
                                                                             void handleAcceptPendingGroupDuel(
                                                                                 opponentForUser2,
                                                                                 resolvedGroupId,
                                                                                 duelConfigurationId,
-                                                                            )
-                                                                        }
+                                                                            );
+                                                                        }}
                                                                         disabled={
                                                                             isAcceptingGroupDuel
                                                                         }

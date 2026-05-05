@@ -16,6 +16,9 @@ export const TaskInfoContent = () => {
     const user = useAppSelector(selectCurrentUser);
     const { data: duel } = useGetDuelQuery(duelIdNumber, { skip: !isValidDuelId });
     const { selectedTaskId, selectedTaskKey } = useDuelTaskSelection(duel);
+    const isParticipant = (duel?.participants ?? []).some(
+        (participant) => participant.id === user?.id,
+    );
     const code = useAppSelector((state) =>
         isValidDuelId ? selectDuelCode(state, duelIdNumber, selectedTaskId) : "",
     );
@@ -52,6 +55,7 @@ export const TaskInfoContent = () => {
             duelId={isValidDuelId ? duelIdNumber : undefined}
             taskKey={selectedTaskKey}
             userId={user?.id}
+            canRunCode={isParticipant}
         />
     );
 };

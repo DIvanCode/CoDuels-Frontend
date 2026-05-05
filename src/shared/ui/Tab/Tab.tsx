@@ -13,7 +13,15 @@ export interface ITab {
 
 export const Tab = ({ label, active, onClick, leadingIcon, className }: ITab) => {
     return (
-        <div className={clsx(styles.tab, active && styles.active, className)} onClick={onClick}>
+        <div
+            className={clsx(
+                styles.tab,
+                leadingIcon && styles.withLeadingIcon,
+                active && styles.active,
+                className,
+            )}
+            onClick={onClick}
+        >
             {leadingIcon && <span className={styles.leadingIcon}>{leadingIcon}</span>}
             {label}
         </div>
