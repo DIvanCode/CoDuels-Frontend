@@ -71,17 +71,21 @@
     color: var(--text-secondary);
 }
 
-.duelsTable :global(tbody tr:hover) {
-    cursor: default;
-    background: transparent;
-}
-
 .duelsTable :global(th) {
     text-align: center;
 }
 
 .duelsTable :global(td) {
     text-align: center;
+}
+
+.duelRow {
+    transition: background 0.15s ease;
+}
+
+.duelRow:hover {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--card-secondary) 72%, transparent);
 }
 
 .tournamentsTable :global(th) {
