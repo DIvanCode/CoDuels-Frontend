@@ -64,6 +64,11 @@ const tournamentMatchmakingOptions: Array<{
         title: "Single Elimination Bracket",
         description: "Турнир на выбывание: проигравший вылетает, победитель идет дальше.",
     },
+    {
+        value: "GroupStage",
+        title: "Group Stage",
+        description: "Каждый участник играет дуэль с каждым. Победа дает 3 очка, ничья - 1, поражение - 0.",
+    },
 ];
 
 const isManagerRole = (role: GroupRole | null) => role === "Creator" || role === "Manager";

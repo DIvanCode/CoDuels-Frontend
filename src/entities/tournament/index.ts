@@ -15,5 +15,8 @@ export type {
     TournamentDetailsResponse,
     TournamentBracketNode,
     SingleEliminationBracket,
+    GroupStage,
+    GroupStageDuel,
+    GroupStageStanding,
     CreateTournamentRequest,
 } from "./model/types";
