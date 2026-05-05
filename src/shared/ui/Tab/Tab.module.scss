@@ -21,8 +21,14 @@
     line-height: 1.25em;
 }
 
+.labelWrapper {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+}
+
 .active {
-    &:not(:only-child) .label {
+    &:not(:only-child) .labelWrapper {
         border-bottom: 1px solid var(--text-primary);
     }
 
