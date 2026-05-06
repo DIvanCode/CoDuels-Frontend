@@ -1,53 +1,53 @@
 name: Frontend
 
 on:
-    push:
-        branches:
-            - master
+  push:
+    branches:
+      - master
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-            - name: Set up python and ansible
-              run: |
-                  sudo apt update
-                  sudo apt install -y python3-pip
-                  pip3 install ansible docker
-            - name: Log in to docker hub
-              run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u divancode74 --password-stdin
-            - name: Run ansible playbook
-              run: |
-                  cd ansible/build
-                  ansible-playbook -i inventory playbook.yml \
-                    --extra-vars="version=${{ github.sha }} vite_base_url=${{ vars.VITE_BASE_URL }}"
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up python and ansible
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip
+          pip3 install ansible docker
+      - name: Log in to docker hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u divancode74 --password-stdin
+      - name: Run ansible playbook
+        run: |
+          cd ansible/build
+          ansible-playbook -i inventory playbook.yml \
+            --extra-vars="version=${{ github.sha }} vite_base_url=${{ vars.VITE_BASE_URL }}"
 
-    deploy:
-        needs: build
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-            - name: Set up python and ansible
-              run: |
-                  sudo apt update
-                  sudo apt install -y python3-pip
-                  pip3 install ansible docker
-            - name: Log in to docker hub
-              run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u divancode74 --password-stdin
-            - name: Create SSH private key file
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key.pem
-                  chmod 600 ~/.ssh/deploy_key.pem
-            - name: Run ansible playbook
-              run: |
-                  cd ansible/deploy
-                  ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory playbook.yml \
-                    --private-key ~/.ssh/deploy_key.pem \
-                    --extra-vars="version=${{ github.sha }} ansible_user=ubuntu"
-            - name: Clean up SSH key
-              if: always()
-              run: rm -f ~/.ssh/deploy_key.pem
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up python and ansible
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip
+          pip3 install ansible docker
+      - name: Log in to docker hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u divancode74 --password-stdin
+      - name: Create SSH private key file
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+      - name: Run ansible playbook
+        run: |
+          cd ansible/deploy
+          ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory playbook.yml \
+            --private-key ~/.ssh/deploy_key.pem \
+            --extra-vars="version=${{ github.sha }} ansible_user=ubuntu"
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key.pem

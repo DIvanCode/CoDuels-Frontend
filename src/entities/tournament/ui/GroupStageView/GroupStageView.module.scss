@@ -1,0 +1,90 @@
+.groupStage {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    min-width: 0;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    min-width: 0;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.standingsTable,
+.duelsTable {
+    width: 100%;
+}
+
+.standingsTable :global(th),
+.standingsTable :global(td),
+.duelsTable :global(th),
+.duelsTable :global(td) {
+    text-align: center;
+}
+
+.standingsTable :global(th:first-child),
+.standingsTable :global(td:first-child) {
+    text-align: left;
+}
+
+.duelRow {
+    transition: background 0.15s ease;
+}
+
+.duelRow:hover {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--card-secondary) 72%, transparent);
+}
+
+.duelPlayerCell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1em;
+    font-weight: 600;
+}
+
+.duelMetaText {
+    color: var(--text-secondary);
+}
+
+.duelResultFinishedCell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.duelResultLetter {
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.1;
+    display: inline-block;
+    min-width: 1ch;
+    text-align: center;
+}
+
+.duelResultWin {
+    color: var(--positive);
+}
+
+.duelResultLoss {
+    color: var(--error);
+}
+
+.duelResultDraw {
+    color: var(--text-secondary);
+}
+
+.emptyState {
+    padding: 0.85em 1em;
+    border-radius: 0.65em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+    color: var(--text-secondary);
+}

@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import type { TournamentDetailsResponse, TournamentMatchmakingType } from "../../model/types";
+import { GroupStageView } from "../GroupStageView/GroupStageView";
 import { SingleEliminationBracketView } from "../SingleEliminationBracketView/SingleEliminationBracketView";
 
 interface TournamentBracketRendererProps {
@@ -11,6 +12,7 @@ type TournamentBracketRenderer = ComponentType<TournamentBracketRendererProps>;
 
 const bracketRenderers: Record<TournamentMatchmakingType, TournamentBracketRenderer> = {
     SingleEliminationBracket: SingleEliminationBracketView,
+    GroupStage: GroupStageView,
 };
 
 interface Props {
