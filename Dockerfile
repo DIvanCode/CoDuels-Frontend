@@ -4,8 +4,8 @@ RUN npm i -g pnpm
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN HUSKY=0 pnpm install --frozen-lockfile
 
 COPY . .
 
