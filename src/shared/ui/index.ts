@@ -14,7 +14,9 @@ export { TabbedCard } from "./TabbedCard/TabbedCard";
 export { TabPanel } from "./TabPanel/TabPanel";
 export type { ITab } from "./Tab/Tab";
 
+export { HtmlSection } from "./HtmlSection/HtmlSection";
 export { MarkdownSection } from "./MarkdownSection/MarkdownSection";
+export { TaskSection } from "./TaskSection/TaskSection";
 export { Section } from "./Section/Section";
 
 export { MainCard } from "./MainCard/MainCard";
