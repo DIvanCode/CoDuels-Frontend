@@ -465,7 +465,7 @@ export const TaskDescription = ({
 
     return (
         <div className={styles.taskDescription}>
-            <TaskSection content={taskDescription} />
+            <TaskSection content={taskDescription} filename={task.statement} />
 
             <Section title="Ограничения">
                 <dl className={styles.runtimeLimits}>
