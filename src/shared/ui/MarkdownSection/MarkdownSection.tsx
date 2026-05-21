@@ -16,7 +16,7 @@ export const MarkdownSection = ({ content }: Props) => {
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
-                    a: ({ node, ...props }) => (
+                    a: ({ node: _node, ...props }) => (
                         <a target="_blank" rel="noopener noreferrer" {...props}>
                             {props.children}
                         </a>

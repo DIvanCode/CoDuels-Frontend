@@ -5,7 +5,7 @@ import { LanguageValue, toApiLanguage } from "shared/config";
 import { Task, TestCase } from "entities/task/model/types";
 import EditIcon from "shared/assets/icons/edit.svg?react";
 
-import { MarkdownSection, Section } from "shared/ui";
+import { Section, TaskSection } from "shared/ui";
 import { TestCaseSection } from "../TestCaseSection/TestCaseSection";
 import styles from "./TaskDescription.module.scss";
 
@@ -465,7 +465,7 @@ export const TaskDescription = ({
 
     return (
         <div className={styles.taskDescription}>
-            <MarkdownSection content={taskDescription} />
+            <TaskSection content={taskDescription} />
 
             <Section title="Ограничения">
                 <dl className={styles.runtimeLimits}>
