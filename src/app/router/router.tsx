@@ -7,7 +7,7 @@ import { GroupsPage } from "pages/groups";
 import { GroupPage } from "pages/group";
 import { TournamentPage } from "pages/tournament";
 import { Suspense } from "react";
-import { createBrowserRouter, Navigate, useParams } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import { Fallback, Loader } from "shared/ui";
 
@@ -16,13 +16,8 @@ import {
     TaskSubmissionsContent,
     TaskSubmissionCodeContent,
 } from "widgets/task-panel";
+import { GroupRedirect } from "./GroupRedirect";
 import { ProtectedRoute } from "./ProtectedRoute";
-
-const GroupRedirect = () => {
-    const { groupId } = useParams();
-    if (!groupId) return <Navigate to={AppRoutes.GROUPS} replace />;
-    return <Navigate to={AppRoutes.GROUP_MEMBERS.replace(":groupId", groupId)} replace />;
-};
 
 export const router = createBrowserRouter([
     {
