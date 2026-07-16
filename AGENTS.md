@@ -22,3 +22,30 @@
 - There is currently no `test` script in `package.json`; do not claim a Frontend unit test suite ran.
 - Set `VITE_BASE_URL=http://localhost/api` for the normal local Nginx-backed environment.
 - This repository has no production deployment workflow. After a validated change is merged here, release it by advancing the `Frontend` submodule in a pull request to root `CoDuels`.
+
+## Frontend process documentation
+
+- Before changing a user process, read its document in `docs/processes`.
+- Do not analyze a React component independently of Redux, RTK Query, browser storage, and backend events.
+- For every duel-flow change, check the HTTP request, WebSocket event, Redux transition, cache update, navigation, reload behavior, and multiple-tab behavior.
+- The backend is the source of truth for duel, invitation, group, tournament, and submission state.
+- Persisted Redux must not automatically be treated as current backend state.
+- When adding a persisted field, document its owner, reset trigger, schema version, user-switch behavior, and tab behavior.
+- Keep one authenticated WebSocket lifecycle in `features/duel-session/api/duelSessionApi.ts` when changing realtime behavior.
+- Do not create a second competing user WebSocket.
+- A WebSocket-event change requires corresponding frontend handler, applicable runtime validation, process documentation, backend contract documentation, and tests.
+- Matchmaking changes must account for disconnect and backend cleanup of pending duels.
+- Invitation-flow changes must treat Friendly, Group, and Tournament types separately.
+- An RTK Query endpoint change must account for every cache entry and manual cache update that represents the affected state.
+- Do not treat cache invalidation as equivalent to an immediate UI change.
+- Submission-flow changes must account for out-of-order and duplicate WebSocket events.
+- A terminal submission state must not be replaced by an older non-terminal state.
+- Code-editor state changes must account for reload, logout, user switch, and multiple tabs.
+- Code-sync changes must account for privacy configuration and `should_show_opponent_solution`.
+- Anti-cheat tracking changes must remain synchronized with Duely and Analyzer.
+- Do not claim reliable delivery from browser lifecycle events without evidence.
+- UI permission checks do not replace backend authorization.
+- If documentation and code differ, report the mismatch explicitly.
+- Current behavior must not automatically be treated as the correct product requirement.
+- Keep `Proposed requirements` separate from `Current behavior`.
+- When a process changes, update or add tests for state transitions, reload, multiple tabs, duplicate events, out-of-order events, HTTP failure, WebSocket failure, cache reconciliation, permission errors, and persisted state.

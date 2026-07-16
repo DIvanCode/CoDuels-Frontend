@@ -1,0 +1,59 @@
+# CoDuels Frontend processes
+
+This directory documents end-to-end client behavior observed in the current
+React/Redux code and the corresponding Duely, Taski, Exesh, and Analyzer
+contracts. An implementation fact is not automatically a product requirement.
+
+## Process map
+
+| User/client process | Document | Primary client owner |
+| --- | --- | --- |
+| Store rehydration, theme, routes, protected pages | [Application bootstrap and routing](application-bootstrap-and-routing.md) | `app` |
+| Login, logout, and refresh mutex | [Authentication and token refresh](authentication-and-token-refresh.md) | `features/auth`, `shared/api` |
+| Redux, cache, local/component/browser state catalog | [Client state ownership](client-state-ownership.md) | store and browser |
+| Ticket, socket, events, code sync, two tabs | [Realtime connection](realtime-connection.md) | `features/duel-session` |
+| Persisted `idle/searching/active` reconciliation | [Duel session lifecycle](duel-session-lifecycle.md) | duel-session slice/manager |
+| Start/cancel rating search | [Ranked matchmaking](ranked-matchmaking.md) | Home/session button |
+| Friendly, group-membership, and tournament invitations | [Duel invitations](duel-invitations.md) | Home and invitation APIs |
+| Membership, roles, permissions, sections | [Groups](groups.md) | group pages/entities |
+| Manager-created two-user duels | [Group duels](group-duels.md) | Group page |
+| Create/start/bracket/duel invitations | [Tournaments](tournaments.md) | group/tournament pages |
+| Duel access, nested routes, tasks opening | [Duel page and task navigation](duel-page-and-task-navigation.md) | Duel page/widgets |
+| Monaco persistence and opponent synchronization | [Editor state and code sync](editor-state-and-code-sync.md) | code panel/session socket |
+| Submit and reconcile judging state | [Submissions](submissions.md) | submit-code and task panel |
+| Capture/batch behavior actions | [Anti-cheat actions](anti-cheat-actions.md) | anti-cheat feature |
+| Endpoint cache keys/tags/manual changes | [RTK Query cache](rtk-query-cache.md) | shared API slice |
+| Browser persistence and tab conflicts | [Reload recovery and multiple tabs](reload-recovery-and-multiple-tabs.md) | redux-persist/storage |
+| Cross-process degraded paths | [Failure handling](failure-handling.md) | all layers |
+| HTTP and WebSocket field compatibility | [Backend contracts](backend-contracts.md) | Frontend plus backend producers |
+
+Use the [glossary](glossary.md) to distinguish local session, RTK cache, backend
+state, and browser-storage scopes. Unresolved intent and confirmed/potential
+defects are consolidated in [open questions](open-questions.md).
+
+## Current production data path
+
+```mermaid
+flowchart LR
+    ui["React pages/widgets"] --> redux["Redux + persisted slices"]
+    ui --> cache["RTK Query cache"]
+    cache --> duely["Duely HTTP"]
+    manager["DuelSessionManager"] --> socket["one WebSocket per tab"]
+    socket <--> duely
+    duely --> taski["Taski testing"]
+    taski --> exesh["Exesh execution"]
+    editor["Monaco action queue"] --> duely
+    duely --> analyzer["Analyzer after duel"]
+```
+
+Taski/Exesh production status propagation is REST polling inside the backend;
+the browser sees derived Duely WebSocket messages, not their raw histories.
+
+## Test and validation baseline
+
+There are no `*.test.*`/`*.spec.*` files, test script, Storybook, Playwright,
+Cypress, or MSW handlers/mock data. `msw` is installed but unused in source.
+The available source checks are `pnpm lint`, `pnpm fsd:lint`, and `pnpm build`;
+they are not required for this Markdown-only change. No Markdown-lint
+configuration is present.
+
