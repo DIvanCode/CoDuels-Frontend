@@ -140,7 +140,7 @@ finish/logout does not update another except through backend events/storage race
 - `src/features/duel-session/ui/{DuelSessionManager,DuelSessionButton}`
 - `src/pages/home/ui/HomePage.tsx`
 - `src/entities/duel/api/duelApi.ts`
-- Backend docs: `../../../Backend/docs/processes/duel-lifecycle.md`
+- CoDuels-Backend: `docs/processes/duel-lifecycle.md`
 
 ## Test coverage
 
@@ -168,4 +168,3 @@ Represent backend-verified session generation/type; reconcile active and pending
 state globally after rehydration/reconnect; dispatch restore correctly; make
 transitions event/order safe; navigate by an explicit global policy; and test
 every persisted/inconsistent state.
-

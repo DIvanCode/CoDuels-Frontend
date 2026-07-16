@@ -19,8 +19,10 @@ ticket/socket open, outgoing solution message, and incoming backend event.
 ## Preconditions
 
 `VITE_BASE_URL` identifies the API prefix (normally `/api` via Nginx). JSON uses
-the backend's snake_case/casing strings. Authorization headers and one-use socket
-ticket are valid. Backend code is the operational source of truth.
+the backend's snake_case/casing strings. Authorization headers and the stored
+socket ticket value are valid. The ticket is intended for one use, but its
+backend read and clearing are not atomic. Backend code is the operational source
+of truth.
 
 ## Current behavior
 
@@ -92,7 +94,8 @@ changes, and recovery until a later query.
 
 RTK attaches current token and refreshes selected failures. Raw WebSocket URL is
 built with `ws:` even when the page/base may require `wss:`, risking mixed
-content. Ticket is one-use and backend stores a single connection per user.
+content. Ticket lookup then clearing is not an atomic consume operation, and the
+backend stores one process-local connection per user.
 Outgoing `SolutionUpdated` sends full snake_case payload with duel/task/language/
 solution; anti-cheat uses raw fetch and bypasses RTK refresh/status handling.
 
@@ -100,7 +103,9 @@ solution; anti-cheat uses raw fetch and bypasses RTK refresh/status handling.
 
 Queries tolerate repeats. Domain mutations generally have no client idempotency
 key. Events have no current replay ID/generation, so duplicates/stale messages
-cannot be reliably classified. Anti-cheat event UUIDs can support backend dedup.
+cannot be reliably classified. Anti-cheat UUIDs do not currently prevent
+duplicates because Duely neither looks up `EventId` before insert nor enforces a
+unique constraint.
 
 ## Ordering assumptions
 

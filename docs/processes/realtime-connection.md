@@ -20,7 +20,9 @@ or second tab connects.
 ## Preconditions
 
 Auth Redux has token and current user. `VITE_BASE_URL` forms a valid URL, Duely
-can issue a one-use ticket, and browser permits the constructed `ws:` URL.
+can issue an intended single-use ticket, and browser permits the constructed
+`ws:` URL. Backend ticket lookup and clearing are separate read/write steps and
+are not an atomic consume operation.
 
 ## Current behavior
 
@@ -28,7 +30,9 @@ The single normally-mounted manager dispatches one `subscribeToDuelStates`
 query subscription. Its cache lifecycle obtains `POST /users/ticket`, constructs
 `{basePath}/users/connect?ticket=...` while forcing protocol `ws:`, closes any
 local prior socket, then constructs WebSocket. Tickets are random, stored on the
-user, overwritten by a new ticket, and consumed once; no expiry timestamp exists.
+user, and overwritten by a new ticket. Connect reads a matching ticket, clears
+it, and saves, but concurrent handlers can both read it before either clear is
+committed; no expiry timestamp exists.
 
 Ticket request or constructor failure schedules another full ticket/connect in
 3000 ms after clearing the previous timer. `onopen` clears that timer and
@@ -90,7 +94,7 @@ sequenceDiagram
     T->>B: connect same user
     B->>A: close "Replaced by new connection"
     B->>B: register Tab B socket
-    A->>B: old finally removes user entry and cancels pending duels
+    A->>B: old finally may remove user entry and cancel pending duels
     A-->>A: phase searching -> idle; interrupted modal
     Note over B,T: Tab B socket may stay open but no longer be registry target
 ```
@@ -104,10 +108,14 @@ changes only if a noncurrent envelope supplies it.
 
 ## Backend state assumptions
 
-Duely is authoritative and allows one registered socket/user. Disconnect always
-runs `CancelPendingDuels`; replacing a socket therefore affects matchmaking.
-Frontend assumes ticket response/string, flat event fields/enums, and server
-authorization of `SolutionUpdated`. No replay endpoint reconciles missed events.
+Duely is authoritative and keeps one process-local registered socket/user. On
+the ordinary handler-exit path, `finally` attempts to close the socket, remove
+the user registration, and send `CancelPendingDuels`. If current-socket
+`CloseAsync` throws, the later removal and pending cleanup can be skipped. An old
+handler can instead reach those statements after replacement and remove the new
+socket registration. Frontend assumes ticket response/string, flat event
+fields/enums, and server authorization of `SolutionUpdated`. No replay endpoint
+reconciles missed events.
 
 ## State ownership
 
@@ -150,16 +158,21 @@ casts assume backend names/fields remain compatible.
 ## Failure handling
 
 Ticket/constructor failures log and retry. Socket error alone logs; close needs
-manual reload. Malformed JSON/string payload is ignored. Unknown events are
-silent. Missed events rely on later HTTP refetch, but reconnect invalidation does
-not cover all real tags. Mixed-content `ws:` may prevent connection under HTTPS.
+manual reload. The backend's ordinary `finally` path attempts registration and
+pending-state cleanup, but process termination or an uncaught current-socket
+`CloseAsync` failure can prevent it. Malformed JSON/string payload is ignored.
+Unknown events are silent. Missed events rely on later HTTP refetch, but
+reconnect invalidation does not cover all real tags. Mixed-content `ws:` may
+prevent connection under HTTPS.
 
 ## Reload and multiple tabs
 
 Reload destroys/recreates socket with a new ticket and empty cache. Each tab
 opens its own socket and has independent timers/cache/sessionStorage but shared
-persisted Redux bytes. Backend replacement interrupts the old tab and cleanup
-can cancel search/remove the new registry entry. Tabs have no leader election.
+persisted Redux bytes. Backend replacement interrupts the old tab; if the old
+handler reaches cleanup after the new registration, it can cancel pending state
+and remove the new registry entry. Conversely, a close failure can skip that
+cleanup. Tabs have no leader election.
 
 ## Implementation references
 
@@ -167,7 +180,7 @@ can cancel search/remove the new registry entry. Tabs have no leader election.
 - `src/features/duel-session/ui/DuelSessionManager/DuelSessionManager.tsx`
 - `src/features/duel-session/lib/const.ts`
 - Backend `UserWebSocketHandler`, `WebSocketMessageSender`, message types
-- Backend docs: `../../../Backend/docs/processes/user-connection-lifecycle.md`
+- CoDuels-Backend: `docs/processes/user-connection-lifecycle.md`
 
 ## Test coverage
 
@@ -184,7 +197,9 @@ can cancel search/remove the new registry entry. Tabs have no leader election.
 Normal app tree has one subscription per tab; pre-open failures retry at 3000
 ms; open clears the scheduled timer; cache removal clears owned timers/socket;
 current flat backend event names listed as handled produce the documented
-mutations; code sync checks cached privacy flag and open readyState.
+mutations; code sync checks cached privacy flag and open readyState. These facts
+do not guarantee atomic single-use ticket consumption or backend cleanup after
+every connection termination.
 
 ## Open questions
 
@@ -196,6 +211,6 @@ cache reconciliation are unresolved.
 
 Use secure scheme derived from base URL; model socket state/generation; reconnect
 with backoff and replay cursor or full reconciliation; runtime-validate/version
-events; handle all backend message types; guarantee cleanup on unmount; elect a
-cross-tab owner or support multi-connection backend; and E2E-test replacement.
-
+events; handle all backend message types; add explicit frontend subscription
+cleanup on unmount; elect a cross-tab owner or support multi-connection backend;
+and E2E-test replacement.

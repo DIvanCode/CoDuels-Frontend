@@ -63,16 +63,26 @@ actions that are discarded on the next disabled flush.
 
 ## Backend state assumptions
 
-Duely verifies authenticated user against payload, unfinished duel, membership,
-UUID, positive sequence, timestamp, duel ID, and one-character task key, then
-persists accepted events. Analyzer expects synchronized action names/fields and
-ordered feature input. Client-generated identity/sequence is not trusted truth.
+Duely rejects the whole batch if any action's `UserId` differs from the
+authenticated command user. It structurally validates a non-empty `EventId`, a
+positive sequence and duel ID, a non-default timestamp, and a non-default
+one-character `TaskKey`. It then saves actions whose duel exists and is not
+finished, silently filtering actions for missing or finished duels.
+
+The save path does **not** verify that the authenticated user participates in
+the referenced duel, does not verify that `TaskKey` exists in that duel, and
+does not use `EventId` to detect retransmission. Analyzer expects synchronized
+action names/fields and ordered feature input, but client-generated identity,
+sequence, and event IDs are not proof of a valid or unique domain event.
 
 ## State ownership
 
-The browser owns unsent memory only. Duely owns accepted durable actions and
-deduplication constraints. Analyzer owns derived features/score. Neither Redux
-nor browser storage retains the queue; no client receipt proves persistence.
+The browser owns unsent memory only. Duely owns the durable action rows it
+accepts, but the current persistence model has no unique constraint on
+`EventId`; multiple rows can represent the same retransmitted client event.
+Analyzer owns derived features/score. Neither Redux nor browser storage retains
+the queue, and the client receives no per-event acceptance or deduplication
+receipt.
 
 ## UI effects
 
@@ -88,10 +98,13 @@ and payload/platform limits apply; it is not a delivery guarantee.
 
 ## Idempotency and duplicate handling
 
-UUID event IDs allow backend deduplication if a batch is retried, but the client
-does not retry. Sequence restarts create repeated low values across batches;
-ordering must not assume global monotonicity. Concurrent tabs create independent
-UUID/sequence streams for the same duel/user.
+Action upload is not idempotent. The Frontend generates UUID `event_id` values,
+but Duely neither looks them up before insert nor enforces a unique database
+constraint. Reposting the same batch can therefore create duplicate rows with
+the same `EventId` and sequence. The current client does not retry automatically,
+but user/browser/network behavior or a future retry can still retransmit.
+Sequence restarts create repeated low values across batches, and concurrent tabs
+create independent UUID/sequence streams for the same duel/user.
 
 ## Ordering assumptions
 
@@ -124,23 +137,34 @@ editing session.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing Frontend tests:** none. Focused Backend tests cover matching/mixed
+  user IDs and filtering finished-duel actions; they do not establish
+  participant authorization, task existence, or duplicate prevention.
 - **Needed unit/integration:** every action payload, batches 1/200/201, non-2xx,
-  rejection, events-during-flush, token change, sequence/dedup validation.
+  rejection, events-during-flush, token change, repeated `EventId`/batch,
+  missing/finished duel, non-participant user, and nonexistent task key.
 - **Needed E2E:** real editing/run/submit order, offline/reload/close/hidden,
   inactive phase, two tabs, refresh expiry, and Analyzer-compatible dataset.
 
 ## Current guarantees
 
 Known actions receive UUIDs and ISO timestamps; a normal eligible online flush
-sends no more than 200 per request in queue order; Duely revalidates identity and
-domain constraints; action types currently match the Analyzer contract.
+sends no more than 200 per request in queue order. Duely rejects actions whose
+payload `UserId` differs from the authenticated user, applies structural
+validation, and persists only actions referencing an existing unfinished duel.
+It does not currently guarantee duel participation, task existence, unique
+`EventId`, or duplicate suppression. Action types currently match the Analyzer
+contract.
 
 ## Open questions
 
-Required delivery rate, sequence scope, retry/retention/privacy policy, accepted
-response schema, clock handling, cross-tab semantics, and observability thresholds
-must be defined before calling this reliable telemetry.
+Should Duely require the authenticated user to participate in the referenced
+duel and require `TaskKey` to exist? Is `EventId` intended to become an
+idempotency key, and if so what migration/conflict policy applies to existing
+duplicates? Required delivery rate, sequence scope, retry/retention/privacy
+policy, accepted-count/duplicate response schema, clock handling, cross-tab
+semantics, and observability thresholds must be defined before calling this
+reliable telemetry.
 
 ## Proposed requirements
 
@@ -148,4 +172,3 @@ Check HTTP status and use acknowledged retry with bounded durable/user-scoped
 outbox; keep monotonic stream sequence/revision; serialize concurrent flushes;
 coordinate tabs; refresh auth safely; publish loss metrics; contract-test Duely
 and Analyzer schemas; never claim unload delivery is guaranteed.
-
