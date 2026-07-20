@@ -10,17 +10,16 @@ import { fromApiLanguage, LANGUAGES, toApiLanguage } from "shared/config";
 import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
 import { setCode, setLanguage, setOpponentCode } from "widgets/code-panel/model/codeEditorSlice";
 import {
-    setActiveDuelId,
+    applyDuelSearchCanceled,
+    completeFinishedDuel,
+    markDuelFinished,
+    markDuelSessionInterrupted,
     setDuelCanceled,
     setDuelCanceledOpponentNickname,
-    setPhase,
     setLastEventId,
-    setSearchInvitationType,
-    setSearchTournamentId,
-    setSessionInterrupted,
-    resetDuelSession,
 } from "../model/duelSessionSlice";
-import { DuelMessage } from "../model/types";
+import { confirmDuelStartedFromServer, reconcileDuelSession } from "../model/thunks";
+import type { DuelMessage, DuelSessionEventMetadata } from "../model/types";
 import { WS_RETRY_TIMEOUT } from "../lib/const";
 
 const buildUserConnectUrl = (ticket: string) => {
@@ -44,13 +43,41 @@ type DuelSocketEnvelope = {
     payload?: unknown;
     lastEventId?: string;
     last_event_id?: string;
+    eventId?: string;
+    event_id?: string;
+    revision?: number | string;
+    serverRevision?: number | string;
+    server_revision?: number | string;
+    generation?: string;
+    sessionGeneration?: string;
+    session_generation?: string;
 };
 
 const extractEventName = (envelope: DuelSocketEnvelope) =>
     envelope.event ?? envelope.type ?? envelope.name ?? null;
 
 const extractLastEventId = (envelope: DuelSocketEnvelope) =>
-    envelope.lastEventId ?? envelope.last_event_id ?? null;
+    envelope.eventId ?? envelope.event_id ?? envelope.lastEventId ?? envelope.last_event_id ?? null;
+
+const extractEventMetadata = (envelope: DuelSocketEnvelope): DuelSessionEventMetadata => {
+    const rawRevision = envelope.revision ?? envelope.serverRevision ?? envelope.server_revision;
+    const revision =
+        typeof rawRevision === "number"
+            ? rawRevision
+            : typeof rawRevision === "string" && rawRevision.trim() !== ""
+              ? Number(rawRevision)
+              : null;
+
+    return {
+        eventId: extractLastEventId(envelope),
+        generation:
+            envelope.generation ??
+            envelope.sessionGeneration ??
+            envelope.session_generation ??
+            null,
+        revision: revision != null && Number.isFinite(revision) ? revision : null,
+    };
+};
 
 const normalizeEventName = (eventName: string) => eventName.replace(/[^a-zA-Z]/g, "").toLowerCase();
 
@@ -320,15 +347,16 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                     const duelStartedListener = (
                         payload: DuelMessage | null,
-                        lastEventId: string | null,
+                        metadata: DuelSessionEventMetadata,
                     ) => {
                         if (!payload) return;
 
-                        dispatch(setActiveDuelId(payload.duel_id));
-
-                        if (lastEventId) {
-                            dispatch(setLastEventId(lastEventId));
-                        }
+                        void dispatch(
+                            confirmDuelStartedFromServer({
+                                duelId: payload.duel_id,
+                                metadata,
+                            }),
+                        );
 
                         dispatch(
                             duelApiSlice.util.invalidateTags([
@@ -339,26 +367,41 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                     const duelFinishedListener = (
                         payload: DuelMessage | null,
-                        lastEventId: string | null,
+                        metadata: DuelSessionEventMetadata,
                     ) => {
                         if (!payload) return;
 
-                        if (lastEventId) {
-                            dispatch(setLastEventId(lastEventId));
-                        }
+                        const duelId = payload.duel_id;
+                        const previousSession = (getState() as RootState).duelSession;
+                        const expectedGeneration = previousSession.generation;
+                        dispatch(markDuelFinished({ duelId, expectedGeneration, ...metadata }));
 
-                        const duelId =
-                            payload.duel_id ??
-                            (getState() as RootState).duelSession.activeDuelId ??
-                            null;
-
-                        dispatch(setPhase("idle"));
-                        dispatch(resetDuelSession());
-
-                        if (duelId) {
-                            dispatch(
-                                duelApiSlice.util.invalidateTags([{ type: "Duel", id: duelId }]),
+                        const currentSession = (getState() as RootState).duelSession;
+                        if (
+                            previousSession.phase === "active" &&
+                            previousSession.activeDuelId === duelId &&
+                            currentSession.phase === "finished" &&
+                            currentSession.activeDuelId === duelId &&
+                            currentSession.generation === expectedGeneration
+                        ) {
+                            const resultRequest = dispatch(
+                                duelApiSlice.endpoints.getDuel.initiate(duelId, {
+                                    forceRefetch: true,
+                                    subscribe: false,
+                                }),
                             );
+
+                            void resultRequest
+                                .unwrap()
+                                .then(() => {
+                                    dispatch(
+                                        completeFinishedDuel({
+                                            duelId,
+                                            generation: expectedGeneration,
+                                        }),
+                                    );
+                                })
+                                .catch(() => undefined);
                         }
 
                         dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
@@ -366,14 +409,20 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                     const duelCanceledListener = (
                         payload: { opponent_nickname?: string | null } | null,
-                        lastEventId: string | null,
+                        metadata: DuelSessionEventMetadata,
                     ) => {
-                        if (lastEventId) {
-                            dispatch(setLastEventId(lastEventId));
-                        }
+                        const currentSession = (getState() as RootState).duelSession;
+                        dispatch(
+                            applyDuelSearchCanceled({
+                                expectedGeneration: currentSession.generation,
+                                ...metadata,
+                            }),
+                        );
+                        const wasApplied =
+                            currentSession.phase !== "idle" &&
+                            (getState() as RootState).duelSession.phase === "idle";
+                        if (!wasApplied) return;
 
-                        dispatch(setPhase("idle"));
-                        dispatch(resetDuelSession());
                         dispatch(
                             setDuelCanceledOpponentNickname(payload?.opponent_nickname ?? null),
                         );
@@ -395,6 +444,30 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: duelId }]),
                             );
                         }
+                    };
+
+                    const applyMatchingSearchCancellation = (
+                        invitationPayload: {
+                            opponent_nickname?: string | null;
+                            configuration_id?: number | null;
+                            tournament_id?: number | null;
+                        } | null,
+                        metadata: DuelSessionEventMetadata,
+                    ) => {
+                        const currentState = getState() as RootState;
+                        if (!matchInvitationPayload(invitationPayload, currentState)) return false;
+
+                        const currentSession = currentState.duelSession;
+                        dispatch(
+                            applyDuelSearchCanceled({
+                                expectedGeneration: currentSession.generation,
+                                ...metadata,
+                            }),
+                        );
+                        return (
+                            currentSession.phase !== "idle" &&
+                            (getState() as RootState).duelSession.phase === "idle"
+                        );
                     };
 
                     const closeSocket = () => {
@@ -438,6 +511,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                         const eventName = extractEventName(parsed);
                         const lastEventId = extractLastEventId(parsed);
+                        const eventMetadata = extractEventMetadata(parsed);
                         const rawPayload =
                             parsed.data ?? parsed.payload ?? (parsed as unknown as DuelMessage);
                         let payload: unknown = rawPayload;
@@ -451,10 +525,6 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                             }
                         }
 
-                        if (lastEventId) {
-                            dispatch(setLastEventId(lastEventId));
-                        }
-
                         if (!eventName) {
                             if (payload && typeof payload === "object" && "duel_id" in payload) {
                                 duelChangedListener(payload as DuelMessage, lastEventId);
@@ -465,19 +535,19 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                         const normalized = normalizeEventName(eventName);
 
                         if (normalized === "duelstarted") {
-                            duelStartedListener(payload as DuelMessage, lastEventId);
+                            duelStartedListener(payload as DuelMessage, eventMetadata);
                             return;
                         }
 
                         if (normalized === "duelfinished") {
-                            duelFinishedListener(payload as DuelMessage, lastEventId);
+                            duelFinishedListener(payload as DuelMessage, eventMetadata);
                             return;
                         }
 
                         if (normalized === "duelcanceled") {
                             duelCanceledListener(
                                 payload as { opponent_nickname?: string | null },
-                                lastEventId,
+                                eventMetadata,
                             );
                             return;
                         }
@@ -519,16 +589,13 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 ]),
                             );
 
-                            const currentState = getState() as RootState;
                             const invitationPayload = payload as {
                                 opponent_nickname?: string | null;
                                 configuration_id?: number | null;
                                 tournament_id?: number | null;
                             } | null;
 
-                            if (matchInvitationPayload(invitationPayload, currentState)) {
-                                dispatch(setPhase("idle"));
-                            }
+                            applyMatchingSearchCancellation(invitationPayload, eventMetadata);
                             return;
                         }
 
@@ -542,16 +609,13 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 ]),
                             );
 
-                            const currentState = getState() as RootState;
                             const invitationPayload = payload as {
                                 opponent_nickname?: string | null;
                                 configuration_id?: number | null;
                                 tournament_id?: number | null;
                             } | null;
 
-                            if (matchInvitationPayload(invitationPayload, currentState)) {
-                                dispatch(setPhase("idle"));
-                            }
+                            applyMatchingSearchCancellation(invitationPayload, eventMetadata);
                             return;
                         }
 
@@ -571,15 +635,13 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
                                 ]),
                             );
 
-                            const currentState = getState() as RootState;
                             const invitationPayload = payload as {
                                 opponent_nickname?: string | null;
                                 configuration_id?: number | null;
                                 tournament_id?: number | null;
                             } | null;
 
-                            if (matchInvitationPayload(invitationPayload, currentState)) {
-                                dispatch(setPhase("idle"));
+                            if (applyMatchingSearchCancellation(invitationPayload, eventMetadata)) {
                                 dispatch(
                                     setDuelCanceledOpponentNickname(
                                         invitationPayload?.opponent_nickname ?? null,
@@ -741,7 +803,7 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                         socket.onopen = () => {
                             clearReconnectTimeout();
-                            dispatch(setSessionInterrupted(false));
+                            void dispatch(reconcileDuelSession());
                             dispatch(
                                 apiSlice.util.invalidateTags([
                                     { type: "Duel", id: "LIST" },
@@ -764,15 +826,8 @@ export const duelSessionApiSlice = apiSlice.injectEndpoints({
 
                         socket.onclose = () => {
                             const latestState = getState() as RootState;
-
-                            if (latestState.duelSession.phase === "searching") {
-                                dispatch(setPhase("idle"));
-                                dispatch(setSearchInvitationType(null));
-                                dispatch(setSearchTournamentId(null));
-                            }
-
                             if (!latestState.auth.token) return;
-                            dispatch(setSessionInterrupted(true));
+                            dispatch(markDuelSessionInterrupted());
                         };
                     };
 

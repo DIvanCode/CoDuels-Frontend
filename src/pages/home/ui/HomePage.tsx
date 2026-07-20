@@ -1,7 +1,6 @@
 ﻿import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useGetActiveDuelQuery } from "entities/duel";
 import type { DuelConfiguration } from "entities/duel-configuration";
 import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
 import {
@@ -21,18 +20,20 @@ import { roleLabels } from "entities/group";
 import { selectCurrentUser } from "entities/user";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
 import {
+    beginDuelConfiguration,
+    beginDuelSearch,
+    confirmDuelSearch,
     DuelSessionButton,
+    failDuelSearch,
+    finishDuelConfiguration,
     selectDuelSession,
-    useStartDuelSearchMutation,
-} from "features/duel-session";
-import {
     setDuelCanceled,
-    setPhase,
     setSearchConfigurationId,
     setSearchInvitationType,
     setSearchNickname,
     setSearchTournamentId,
-} from "features/duel-session/model/duelSessionSlice";
+    useStartDuelSearchMutation,
+} from "features/duel-session";
 import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { useSessionStorage } from "shared/lib/useSessionStorage";
@@ -86,6 +87,7 @@ const HomePage = () => {
         activeDuelId,
         duelCanceled,
         duelCanceledOpponentNickname,
+        pendingOperation,
         searchInvitationType,
     } = useAppSelector(selectDuelSession);
     const dispatch = useAppDispatch();
@@ -142,8 +144,6 @@ const HomePage = () => {
     const [denyGroupInvitation, { isLoading: isDenyingGroupInvitation }] =
         useDenyGroupInvitationMutation();
     const [startDuelSearch] = useStartDuelSearchMutation();
-    useGetActiveDuelQuery(undefined, { skip: !user });
-
     useEffect(() => {
         if (!user?.id) return;
         // Duel invitations are loaded via useGetDuelInvitationsQuery per type.
@@ -151,7 +151,7 @@ const HomePage = () => {
     }, [user?.id, loadGroupInvitations]);
 
     useEffect(() => {
-        if (phase === "idle") return;
+        if (phase === "idle" || phase === "configuring") return;
 
         setShowStartPanel(false);
         setShowConfigPicker(false);
@@ -225,6 +225,11 @@ const HomePage = () => {
     >("home.pendingGroupInvitationId", null);
 
     const handleStartPanelToggle = () => {
+        if (showStartPanel) {
+            dispatch(finishDuelConfiguration());
+        } else {
+            dispatch(beginDuelConfiguration());
+        }
         setShowStartPanel((prev) => !prev);
         if (showStartPanel) {
             setShowConfigPicker(false);
@@ -238,23 +243,29 @@ const HomePage = () => {
     };
 
     const handleStartPanelClose = () => {
+        dispatch(finishDuelConfiguration());
         setShowStartPanel(false);
         setSelectedConfigId(null);
     };
 
     const handleQuickSearch = async () => {
-        dispatch(setSearchNickname(null));
-        dispatch(setSearchConfigurationId(null));
-        dispatch(setSearchInvitationType(null));
-        dispatch(setSearchTournamentId(null));
+        const { generation } = dispatch(
+            beginDuelSearch({
+                nickname: null,
+                configurationId: null,
+                invitationType: "Ranked",
+                tournamentId: null,
+            }),
+        ).payload;
 
         try {
             await startDuelSearch().unwrap();
         } catch {
+            dispatch(failDuelSearch({ generation }));
             return;
         }
 
-        dispatch(setPhase("searching"));
+        dispatch(confirmDuelSearch({ generation }));
         setWaitingForStart(false);
         setShowStartPanel(false);
         setShowConfigPicker(false);
@@ -280,6 +291,7 @@ const HomePage = () => {
     };
 
     const handleConfigClose = () => {
+        dispatch(finishDuelConfiguration());
         setShowConfigPicker(false);
         setSelectedConfigId(null);
         dispatch(setSearchConfigurationId(null));
@@ -319,6 +331,7 @@ const HomePage = () => {
     };
 
     const handleFriendlyClose = () => {
+        dispatch(finishDuelConfiguration());
         setShowFriendlyForm(false);
         setFriendlyNickname("");
         setSelectedConfigId(null);
@@ -345,6 +358,14 @@ const HomePage = () => {
         }
 
         const configurationId = selectedDefaultConfig ? null : selectedConfigId;
+        const { generation } = dispatch(
+            beginDuelSearch({
+                nickname: trimmedNickname,
+                configurationId: configurationId ?? null,
+                invitationType: "Friendly",
+                tournamentId: null,
+            }),
+        ).payload;
 
         try {
             setInviteError(null);
@@ -353,6 +374,7 @@ const HomePage = () => {
                 configuration_id: configurationId ?? undefined,
             }).unwrap();
         } catch (error) {
+            dispatch(failDuelSearch({ generation }));
             if (
                 error &&
                 typeof error === "object" &&
@@ -369,11 +391,7 @@ const HomePage = () => {
             return;
         }
 
-        dispatch(setSearchNickname(trimmedNickname));
-        dispatch(setSearchConfigurationId(configurationId ?? null));
-        dispatch(setSearchInvitationType("Friendly"));
-        dispatch(setSearchTournamentId(null));
-        dispatch(setPhase("searching"));
+        dispatch(confirmDuelSearch({ generation }));
         setWaitingForStart(false);
         setShowStartPanel(false);
         setShowConfigPicker(false);
@@ -397,6 +415,16 @@ const HomePage = () => {
         if (invitationType === "Group" && !groupId) return;
         if (invitationType === "Tournament" && !tournamentId) return;
 
+        const { generation } = dispatch(
+            beginDuelSearch({
+                nickname,
+                configurationId: configurationId ?? null,
+                invitationType: invitationType ?? "Ranked",
+                tournamentId: tournamentId ?? null,
+            }),
+        ).payload;
+        setWaitingForStart(true);
+
         try {
             if (invitationType === "Group") {
                 await acceptGroupDuelInvitation({
@@ -415,15 +443,12 @@ const HomePage = () => {
                 }).unwrap();
             }
         } catch {
+            dispatch(failDuelSearch({ generation }));
+            setWaitingForStart(false);
             return;
         }
 
-        dispatch(setSearchNickname(nickname));
-        dispatch(setSearchConfigurationId(configurationId ?? null));
-        dispatch(setSearchInvitationType(invitationType ?? "Ranked"));
-        dispatch(setSearchTournamentId(tournamentId ?? null));
-        dispatch(setPhase("searching"));
-        setWaitingForStart(true);
+        dispatch(confirmDuelSearch({ generation }));
     };
 
     const handleInvitationDeny = async (nickname: string, configurationId?: number | null) => {
@@ -486,7 +511,11 @@ const HomePage = () => {
                         <IdleStateContent nickname={user?.nickname ?? "Аноним"} />
                     )}
 
-                    {phase === "searching" || phase === "active" ? (
+                    {phase === "searching" ||
+                    phase === "active" ||
+                    phase === "finished" ||
+                    phase === "interrupted" ||
+                    (phase === "configuring" && pendingOperation === "cancel") ? (
                         <div className={styles.duelAction}>
                             <DuelSessionButton />
                         </div>

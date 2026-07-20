@@ -3,11 +3,12 @@ import {
     useStartDuelSearchMutation,
 } from "features/duel-session/api/duelSessionApi";
 import {
-    setPhase,
-    setSearchConfigurationId,
-    setSearchInvitationType,
-    setSearchNickname,
-    setSearchTournamentId,
+    beginDuelSearch,
+    beginDuelSearchCancellation,
+    confirmDuelSearch,
+    confirmDuelSearchCancellation,
+    failDuelSearch,
+    failDuelSearchCancellation,
 } from "features/duel-session/model/duelSessionSlice";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { DuelSessionPhase } from "features/duel-session/model/types";
@@ -21,7 +22,7 @@ export const DuelSessionButton = () => {
 
     const dispatch = useAppDispatch();
 
-    const { phase, activeDuelId } = useAppSelector(selectDuelSession);
+    const { phase, activeDuelId, pendingOperation } = useAppSelector(selectDuelSession);
     const prevPhaseRef = useRef<DuelSessionPhase>(phase);
     const [startDuelSearch] = useStartDuelSearchMutation();
     const [cancelDuelSearch] = useCancelDuelSearchMutation();
@@ -36,24 +37,31 @@ export const DuelSessionButton = () => {
 
     const handleClick = async () => {
         if (phase === "idle") {
-            dispatch(setSearchNickname(null));
-            dispatch(setSearchConfigurationId(null));
-            dispatch(setSearchInvitationType(null));
-            dispatch(setSearchTournamentId(null));
+            const { generation } = dispatch(
+                beginDuelSearch({
+                    nickname: null,
+                    configurationId: null,
+                    invitationType: "Ranked",
+                    tournamentId: null,
+                }),
+            ).payload;
 
             try {
                 await startDuelSearch().unwrap();
             } catch {
+                dispatch(failDuelSearch({ generation }));
                 return;
             }
-            dispatch(setPhase("searching"));
+            dispatch(confirmDuelSearch({ generation }));
         } else if (phase === "searching") {
+            const { generation } = dispatch(beginDuelSearchCancellation()).payload;
             try {
                 await cancelDuelSearch().unwrap();
             } catch {
+                dispatch(failDuelSearchCancellation({ generation }));
                 return;
             }
-            dispatch(setPhase("idle"));
+            dispatch(confirmDuelSearchCancellation({ generation }));
         } else if (phase === "active" && activeDuelId) {
             navigate("/duel/" + activeDuelId);
         }
@@ -63,12 +71,28 @@ export const DuelSessionButton = () => {
         if (phase === "idle") {
             return "Начать поиск";
         } else if (phase === "searching") {
-            return "Отменить";
+            return pendingOperation === "start" ? "Запуск..." : "Отменить";
         } else if (phase === "active") {
             return "Перейти к дуэли";
+        } else if (phase === "finished") {
+            return "Загрузка результата...";
+        } else if (phase === "interrupted") {
+            return "Соединение прервано";
+        } else if (phase === "configuring" && pendingOperation === "cancel") {
+            return "Отмена...";
         }
         return "Начать поиск";
     };
 
-    return <Button onClick={handleClick}>{duelButtonText()}</Button>;
+    const disabled =
+        phase === "finished" ||
+        phase === "interrupted" ||
+        (phase === "searching" && pendingOperation === "start") ||
+        (phase === "configuring" && pendingOperation === "cancel");
+
+    return (
+        <Button onClick={handleClick} disabled={disabled}>
+            {duelButtonText()}
+        </Button>
+    );
 };

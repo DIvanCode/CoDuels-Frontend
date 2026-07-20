@@ -1,6 +1,9 @@
 import { apiSlice } from "shared/api";
 
-import { Duel, GroupDuelEntry } from "../model/types";
+import { ActiveDuelResponse, Duel, GroupDuelEntry } from "../model/types";
+
+export const getActiveDuelId = (response: ActiveDuelResponse) =>
+    "duel_id" in response ? response.duel_id : response.id;
 
 export const duelApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -18,9 +21,11 @@ export const duelApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Duel", id: "LIST" }],
         }),
-        getActiveDuel: builder.query<Duel, void>({
+        getActiveDuel: builder.query<ActiveDuelResponse, void>({
             query: () => `/duels/active`,
-            providesTags: (result) => [{ type: "Duel", id: result?.id ?? "ACTIVE" }],
+            providesTags: (result) => [
+                { type: "Duel", id: result ? (getActiveDuelId(result) ?? "ACTIVE") : "ACTIVE" },
+            ],
         }),
         getGroupDuels: builder.query<GroupDuelEntry[], number>({
             query: (groupId) => `/groups/${groupId}/duels`,

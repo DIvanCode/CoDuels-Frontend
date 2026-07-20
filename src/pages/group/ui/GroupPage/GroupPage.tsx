@@ -23,11 +23,7 @@ import {
     type TournamentMatchmakingType,
     type TournamentStatus,
 } from "entities/tournament";
-import {
-    setPhase,
-    setSearchConfigurationId,
-    setSearchNickname,
-} from "features/duel-session/model/duelSessionSlice";
+import { beginDuelSearch, confirmDuelSearch, failDuelSearch } from "features/duel-session";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import EditIcon from "shared/assets/icons/edit.svg?react";
@@ -67,7 +63,8 @@ const tournamentMatchmakingOptions: Array<{
     {
         value: "GroupStage",
         title: "Group Stage",
-        description: "Каждый участник играет дуэль с каждым. Победа дает 3 очка, ничья - 1, поражение - 0.",
+        description:
+            "Каждый участник играет дуэль с каждым. Победа дает 3 очка, ничья - 1, поражение - 0.",
     },
 ];
 
@@ -670,6 +667,16 @@ const GroupPage = () => {
     ) => {
         if (!opponentNickname) return;
 
+        const { generation } = dispatch(
+            beginDuelSearch({
+                nickname: opponentNickname,
+                configurationId: configurationId ?? null,
+                invitationType: "Group",
+                tournamentId: null,
+            }),
+        ).payload;
+        sessionStorage.setItem("home.waitingForStart", JSON.stringify(true));
+
         try {
             await acceptGroupDuelInvitation({
                 group_id: groupId,
@@ -677,12 +684,11 @@ const GroupPage = () => {
                 configuration_id: configurationId ?? undefined,
             }).unwrap();
 
-            dispatch(setSearchNickname(opponentNickname));
-            dispatch(setSearchConfigurationId(configurationId ?? null));
-            dispatch(setPhase("searching"));
-            sessionStorage.setItem("home.waitingForStart", JSON.stringify(true));
+            dispatch(confirmDuelSearch({ generation }));
             navigate(AppRoutes.INDEX);
         } catch {
+            dispatch(failDuelSearch({ generation }));
+            sessionStorage.removeItem("home.waitingForStart");
             return;
         }
     };

@@ -2,13 +2,12 @@
 import { duelSessionApiSlice } from "features/duel-session/api/duelSessionApi";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import {
+    dismissDuelSessionInterrupted,
     resetDuelSession,
-    setPhase,
-    setSessionInterrupted,
 } from "features/duel-session/model/duelSessionSlice";
+import { reconcileDuelSession } from "features/duel-session/model/thunks";
 import { useEffect, useRef, useState } from "react";
-import { useAppSelector, useAppDispatch } from "shared/lib/storeHooks";
-import { restoreDuelSession } from "features/duel-session/model/thunks";
+import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 import styles from "./DuelSessionManager.module.scss";
 
@@ -16,23 +15,24 @@ export const DuelSessionManager = () => {
     const dispatch = useAppDispatch();
 
     const user = useAppSelector(selectCurrentUser);
-    const { phase, activeDuelId, sessionInterrupted } = useAppSelector(selectDuelSession);
+    const { sessionInterrupted } = useAppSelector(selectDuelSession);
     const [isReconnecting, setIsReconnecting] = useState(false);
 
     const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
-    const didHandleReloadRef = useRef(false);
+    const reconciledUserIdRef = useRef<number | null>(null);
 
     useEffect(() => {
-        // If user logged in and he has an active duel but phase is idle, try to restore session
-        if (user && activeDuelId && phase === "idle") {
-            dispatch(restoreDuelSession(activeDuelId));
-        }
-    }, [user, activeDuelId, phase, dispatch]);
+        if (!user || reconciledUserIdRef.current === user.id) return;
+
+        reconciledUserIdRef.current = user.id;
+        void dispatch(reconcileDuelSession());
+    }, [user, dispatch]);
 
     // Full cleanup on user logout
     useEffect(() => {
         if (user) return;
 
+        reconciledUserIdRef.current = null;
         dispatch(resetDuelSession());
         if (subscriptionRef.current) {
             subscriptionRef.current.unsubscribe();
@@ -54,21 +54,6 @@ export const DuelSessionManager = () => {
             );
         }
     }, [user, dispatch]);
-
-    useEffect(() => {
-        if (!user || didHandleReloadRef.current) return;
-
-        const navigationEntry = performance.getEntriesByType("navigation")[0] as
-            | PerformanceNavigationTiming
-            | undefined;
-        const navigationType = navigationEntry?.type ?? null;
-
-        if (navigationType === "reload" && phase === "searching" && !activeDuelId) {
-            dispatch(setPhase("idle"));
-        }
-
-        didHandleReloadRef.current = true;
-    }, [user, phase, activeDuelId, dispatch]);
 
     const handleReconnect = () => {
         if (!user) return;
@@ -103,7 +88,7 @@ export const DuelSessionManager = () => {
                     showCloseButton={false}
                     closeOnOverlay={false}
                     onClose={() => {
-                        dispatch(setSessionInterrupted(false));
+                        dispatch(dismissDuelSessionInterrupted());
                         setIsReconnecting(false);
                     }}
                 >

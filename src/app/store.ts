@@ -17,10 +17,13 @@ const authPersistConfig = {
 const duelSessionPersistConfig = {
     key: "duelSession",
     storage,
-    version: 1,
+    version: 2,
     whitelist: [
         "activeDuelId",
+        "generation",
         "lastEventId",
+        "lastServerRevision",
+        "recentEventIds",
         "phase",
         "searchNickname",
         "searchConfigurationId",

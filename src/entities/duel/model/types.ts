@@ -34,6 +34,12 @@ export interface Duel {
     task_id?: string;
 }
 
+export interface ActiveDuelReference {
+    duel_id: number | null;
+}
+
+export type ActiveDuelResponse = Duel | ActiveDuelReference;
+
 export interface GroupDuelEntry {
     duel: Duel | null;
     configuration_id?: number | null;

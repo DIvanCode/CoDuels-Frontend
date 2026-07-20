@@ -1,4 +1,4 @@
-export { duelApiSlice } from "./api/duelApi";
+export { duelApiSlice, getActiveDuelId } from "./api/duelApi";
 
 export {
     useGetDuelQuery,
@@ -10,7 +10,13 @@ export {
 export { DuelResult } from "./ui/DuelResult/DuelResult";
 export { DuelHistory } from "./ui/DuelHistory/DuelHistory";
 
-export type { DuelResultType, Duel, DuelTaskRef } from "./model/types";
+export type {
+    ActiveDuelReference,
+    ActiveDuelResponse,
+    DuelResultType,
+    Duel,
+    DuelTaskRef,
+} from "./model/types";
 
 export { getDuelResultForUser } from "./lib/duelResultHelpers";
 export { useDuelTaskSelection } from "./lib/useDuelTaskSelection";
