@@ -21,7 +21,7 @@
 - Run `pnpm lint`, `pnpm fsd:lint`, and `pnpm build` for source changes.
 - There is currently no `test` script in `package.json`; do not claim a Frontend unit test suite ran.
 - Set `VITE_BASE_URL=http://localhost/api` for the normal local Nginx-backed environment.
-- This repository has no production deployment workflow. After a validated change is merged here, release it by advancing the `Frontend` submodule in a pull request to root `CoDuels`.
+- The pull-request workflow validates, builds, and deploys the pull-request revision to production after validation succeeds. Pushes to `master` do not deploy Frontend.
 
 ## Frontend process documentation
 
