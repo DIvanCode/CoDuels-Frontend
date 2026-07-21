@@ -21,7 +21,7 @@
 - Run `pnpm lint`, `pnpm fsd:lint`, and `pnpm build` for source changes.
 - There is currently no `test` script in `package.json`; do not claim a Frontend unit test suite ran.
 - Set `VITE_BASE_URL=http://localhost/api` for the normal local Nginx-backed environment.
-- The pull-request workflow validates, builds, and deploys the pull-request revision to production after validation succeeds. Pushes to `master` do not deploy Frontend.
+- The pull-request workflow validates, builds, and deploys the pull-request revision. The deploy job checks out its playbook from the trusted base revision. Pushes to `master` do not deploy Frontend.
 
 ## Frontend process documentation
 
