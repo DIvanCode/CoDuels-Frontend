@@ -21,7 +21,8 @@
 - Run `pnpm lint`, `pnpm fsd:lint`, and `pnpm build` for source changes.
 - There is currently no `test` script in `package.json`; do not claim a Frontend unit test suite ran.
 - Set `VITE_BASE_URL=http://localhost/api` for the normal local Nginx-backed environment.
-- The pull-request workflow validates, builds, and deploys the pull-request revision. The deploy job checks out its playbook from the trusted base revision. Pushes to `master` do not deploy Frontend.
+- The pull-request workflow runs ESLint, reports FSD lint without blocking on it, builds and pushes the pull-request image, and deploys it automatically without a GitHub Environment approval. The deploy job checks out its playbook from the trusted base revision while keeping the image tag at the pull-request `github.sha`. Pushes to `master` do not deploy Frontend.
+- Pushing to an open same-repository Frontend pull request can start its production deployment. Do it only when the user explicitly authorizes the push and its deployment effect.
 
 ## Frontend process documentation
 
