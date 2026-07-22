@@ -1,33 +1,37 @@
 name: Frontend
 
 on:
-  pull_request:
-    branches:
-      - master
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+        branches: [master]
+
+permissions:
+    contents: read
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm lint
-      - name: Check Feature-Sliced Design boundaries
-        # The current codebase has pre-existing FSD violations; keep reporting them
-        # without blocking unrelated changes until a dedicated cleanup is merged.
-        continue-on-error: true
-        run: pnpm fsd:lint
-      - name: Build
-        run: pnpm build
+    check:
+        if: ${{ github.event.pull_request.draft == false }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Lint
+              run: pnpm lint
+            - name: Check Feature-Sliced Design boundaries
+              # The current codebase has pre-existing FSD violations; keep reporting them
+              # without blocking unrelated changes until a dedicated cleanup is merged.
+              continue-on-error: true
+              run: pnpm fsd:lint
+            - name: Build
+              run: pnpm build
