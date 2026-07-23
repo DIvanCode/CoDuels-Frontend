@@ -2,9 +2,29 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SolutionPublisher, type SolutionSnapshot } from "../solutionPublisher";
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+});
 
 describe("SolutionPublisher", () => {
+    it("invokes browser timers with the global object as receiver", () => {
+        const setIntervalSpy = vi
+            .spyOn(globalThis, "setInterval")
+            .mockReturnValue(1 as ReturnType<typeof setInterval>);
+        const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval").mockImplementation(() => {});
+        const publisher = new SolutionPublisher({
+            getSnapshot: () => null,
+            send: vi.fn(),
+        });
+
+        publisher.start();
+        expect(setIntervalSpy.mock.contexts[0]).toBe(globalThis);
+
+        publisher.stop();
+        expect(clearIntervalSpy.mock.contexts[0]).toBe(globalThis);
+    });
+
     it("throttles ordered snapshots, deduplicates successful sends, and retries failures", () => {
         vi.useFakeTimers();
         let snapshot: SolutionSnapshot | null = {

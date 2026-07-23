@@ -32,7 +32,9 @@ do not render until bootstrapping completes and the page can be blank meanwhile.
 AppRouter reads persisted theme, applies `.app--{mode}`, mounts exactly one
 DuelSessionManager outside RouterProvider, then starts the browser router.
 Layout always renders Header and Outlet. Suspense uses Loader for route elements,
-although pages are currently static imports. Root `errorElement` is Fallback.
+although pages are currently static imports. The global error boundary logs the
+caught error and renders a router-independent Fallback with a normal home link;
+the router's `errorElement` uses the same component.
 
 `/auth` is public even when already authenticated. Protected routes are `/`,
 `/profile/:userNickname`, `/groups`, `/groups/:groupId`,
@@ -118,10 +120,12 @@ binds them.
 
 ## Failure handling
 
-ErrorBoundary catches render errors. Storage parsing has library/default
-fallback behavior but no app migration UI. Missing base URL/network can cause
-getMe Loader, refresh/logout, or page errors. No explicit offline route, retry
-button, 404 page, or original-location return exists.
+ErrorBoundary catches and logs render/effect errors. Its fallback does not depend
+on Router context, so an error in the globally mounted manager cannot collapse
+the error screen into an empty root. Storage parsing has library/default fallback
+behavior but no app migration UI. Missing base URL/network can cause getMe Loader,
+refresh/logout, or page errors. No explicit offline route, retry button, 404 page,
+or original-location return exists.
 
 ## Reload and multiple tabs
 
@@ -140,7 +144,8 @@ initial state. A second tab can replace the first backend socket.
 
 ## Test coverage
 
-- **Existing tests/MSW:** none; MSW has no handlers.
+- **Existing tests:** the global Fallback renders without Router context; MSW has
+  no handlers.
 - **Needed unit/integration:** persist configs, ProtectedRoute result matrix,
   router paths/redirects, error boundary, manager mount/unmount.
 - **Needed browser/E2E:** authorized cold load, corrupt/old storage, offline

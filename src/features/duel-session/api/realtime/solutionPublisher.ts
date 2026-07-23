@@ -22,8 +22,11 @@ export class SolutionPublisher {
 
     constructor(private readonly options: SolutionPublisherOptions) {
         this.intervalMs = options.intervalMs ?? 1_000;
-        this.setIntervalFn = options.setIntervalFn ?? setInterval;
-        this.clearIntervalFn = options.clearIntervalFn ?? clearInterval;
+        this.setIntervalFn =
+            options.setIntervalFn ??
+            ((callback, delayMs) => globalThis.setInterval(callback, delayMs));
+        this.clearIntervalFn =
+            options.clearIntervalFn ?? ((intervalId) => globalThis.clearInterval(intervalId));
     }
 
     start() {

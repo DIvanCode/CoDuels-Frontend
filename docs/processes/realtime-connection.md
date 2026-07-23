@@ -90,8 +90,9 @@ invalidations are repeatable, and submission states cannot move backward from
 `Running`/`Done`. Opponent solution order cannot be proven without a backend
 revision.
 
-`SolutionPublisher` polls the selected snapshot once per second, serializes
-sends synchronously, and records a snapshot only after `send` succeeds. It
+`SolutionPublisher` polls the selected snapshot once per second through a
+browser-global timer wrapper, serializes sends synchronously, and records a
+snapshot only after `send` succeeds. It
 deduplicates duel/task/language/solution together, retries a failed send on a
 later tick, and resets after reconnect so the latest snapshot is republished.
 Snapshots require an in-progress privacy-enabled duel and the current user to be
@@ -162,7 +163,7 @@ formal cross-tab owner or backend multi-connection support is still required.
 
 Vitest covers authenticated realtime identity, HTTP/HTTPS URL selection,
 established disconnect/reconnect with backoff, ticket abort and listener/timer
-cleanup, flat/enveloped validation, malformed/unknown events,
+cleanup, browser timer receiver binding, flat/enveloped validation, malformed/unknown events,
 duplicate/out-of-order cursors, handler isolation, publisher
 throttle/dedup/retry, initial-open reconciliation, manual reconnect, logout
 cleanup, and same-runtime user-session replacement.
