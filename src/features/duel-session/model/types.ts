@@ -1,4 +1,4 @@
-import type { PendingDuelType } from "entities/duel-invitation/model/types";
+import type { PendingDuelType } from "entities/duel-invitation";
 
 export interface DuelMessage {
     duel_id: number;

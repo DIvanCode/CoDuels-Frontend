@@ -1,9 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { duelApiSlice, type DuelTaskRef } from "entities/duel";
-import type { PendingDuelType } from "entities/duel-invitation/model/types";
+import type { PendingDuelType } from "entities/duel-invitation";
 import { DuelSessionState, DuelSessionPhase } from "./types";
-import { restoreDuelSession } from "./thunks";
 
 const isNotFoundError = (error: unknown) =>
     typeof error === "object" &&
@@ -57,6 +56,9 @@ const duelSessionSlice = createSlice({
     initialState,
     reducers: {
         setPhase: (state, action: PayloadAction<DuelSessionPhase>) => {
+            if (action.payload === "searching" && state.activeDuelId !== null) {
+                return;
+            }
             state.phase = action.payload;
             if (action.payload === "idle") {
                 state.activeDuelId = null;
@@ -143,7 +145,11 @@ const duelSessionSlice = createSlice({
             duelApiSlice.endpoints.getActiveDuel.matchFulfilled,
             (state, { payload }) => {
                 state.activeDuelId = payload.id;
-                restoreDuelSession(state.activeDuelId);
+                state.phase = "active";
+                state.searchNickname = null;
+                state.searchConfigurationId = null;
+                state.searchInvitationType = null;
+                state.searchTournamentId = null;
             },
         );
         builder.addMatcher(

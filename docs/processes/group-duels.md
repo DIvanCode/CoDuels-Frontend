@@ -72,35 +72,36 @@ sessionStorage. Route/component state owns form selection; it is not durable.
 ## UI effects
 
 Managers see creation controls; members see pending acceptance when returned by
-the query. Active/finished rows are navigable. A pushed invitation is not shown
-immediately unless another invalidation/refetch occurs because current socket
-event names are unhandled.
+the query. Active/finished rows are navigable. Pushed group-duel invitation and
+cancellation events invalidate the invitation and group projections.
 
 ## Network effects
 
 HTTP loads, creates, and accepts group duels. Mutations invalidate `Duel` group
-and invitation tags. Current Duely emits `GroupDuelInvitation` and
-`GroupDuelInvitationCanceled`; the WebSocket parser accepts arbitrary events but
-has no handlers for either.
+and invitation tags. Current `GroupDuelInvitation` and
+`GroupDuelInvitationCanceled` payloads are runtime-validated and routed to the
+invitation/group handlers; reconnect broadly refreshes both projections.
 
 ## Idempotency and duplicate handling
 
 No client request ID covers create/accept. Duplicate clicks/tabs rely on Duely
-to reject repeated transitions. List invalidation is safe to repeat, while
-duplicate/stale starts are not tied to the group-duel invitation generation.
+to reject repeated transitions. List invalidation is safe to repeat. Supplied
+event cursors are deduplicated, but current cursorless starts are not tied to a
+group-duel invitation generation.
 
 ## Ordering assumptions
 
-Acceptance assumes its HTTP response precedes `DuelStarted`, and navigation to
-Home occurs before the event watcher needs `waitingForStart`. An early event can
-be overwritten by the late `searching` assignment or fail to trigger navigation.
+Acceptance still assumes navigation to Home occurs before the local
+`waitingForStart` watcher is needed. An early `DuelStarted` can no longer be
+overwritten by a late `searching` assignment, but can still miss that local
+navigation watcher.
 
 ## Failure handling
 
 Mutation errors remain on the form/list. A lost successful accept response can
-leave a created duel without local waiting state. Missed group events leave
-cache stale. Generic cancel may reset local state without proving the group-duel
-invitation was canceled.
+leave a created duel without local waiting state. Reconnect refreshes group and
+invitation caches. Generic cancel may reset local state without proving the
+group-duel invitation was canceled.
 
 ## Reload and multiple tabs
 
@@ -118,7 +119,8 @@ sockets, so one may accept while another keeps a pending row or sends a repeat.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** realtime parser/router/session tests cover event isolation,
+  duplicate/unknown handling, reconnect, and lifecycle cleanup.
 - **Needed integration:** roles/members, create/accept duplicates, tag coverage,
   exact group WebSocket types, response/event ordering, cancel semantics.
 - **Needed E2E:** manager plus two member browsers, reload during acceptance,
@@ -138,7 +140,6 @@ contract.
 
 ## Proposed requirements
 
-Handle both current backend events; persist an immutable group-duel invitation
-ID/context; make accept/cancel idempotent; reconcile lists on reconnect; and make
-HTTP/event transitions generation-aware.
-
+Persist an immutable group-duel invitation ID/context, make accept/cancel
+idempotent, define navigation independent of page-local watchers, and publish a
+server event revision.

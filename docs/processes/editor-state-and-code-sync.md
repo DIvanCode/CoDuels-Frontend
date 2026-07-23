@@ -33,11 +33,11 @@ The selected `my/opponent` tab is sessionStorage key `duel.{duelId}.codeTab` and
 privacy forces `my` when opponent view is unavailable. Read-only mode also
 blocks copy/cut/context menu.
 
-Every second, the session manager chooses active/route duel and selected/first
-task, reads code/language, requires an open socket and cached duel privacy, and
-sends a full `SolutionUpdated` payload when different from one `lastSent` value.
-It does not explicitly require participant identity, active phase, or unfinished
-status; backend rejects invalid sends. Incoming opponent updates require a
+Every second, the standalone solution publisher chooses the active/route duel
+and selected/first task, reads code/language, requires an open socket, an
+in-progress privacy-enabled cached duel, and current-user participation, then
+sends a full `SolutionUpdated` payload when the complete duel/task/language/code
+snapshot changed. Incoming opponent updates require a validated event and a
 privacy-enabled cached duel, map task key to ID, and update opponent state.
 
 ```mermaid
@@ -89,15 +89,18 @@ whether the latest edit reached Duely.
 ## Network effects
 
 The interval sends the entire solution, not deltas, over the authenticated
-socket. Switching task/language resends. Last edits made just before close may
-never be sent. Incoming updates patch Redux only, not RTK duel solutions.
+socket. Switching task/language resends. A failed send is retried on a later
+tick, and reconnect resets deduplication and immediately flushes the latest
+snapshot. Last edits made just before close may still never be acknowledged.
+Incoming updates patch Redux only, not RTK duel solutions.
 
 ## Idempotency and duplicate handling
 
-Identical consecutive payloads in one manager instance are suppressed by
-`lastSent`. There is no message ID/version/acknowledgement; reconnect/remount/task
-switch may resend. Backend must tolerate duplicate full-state updates. Two tabs
-can alternately overwrite the same solution.
+Identical consecutive complete snapshots in one publisher instance are
+suppressed only after a successful socket send. There is no message ID/version/
+acknowledgement; reconnect deliberately resends the latest snapshot. Backend
+must tolerate duplicate full-state updates. Two tabs can alternately overwrite
+the same solution.
 
 ## Ordering assumptions
 
@@ -108,10 +111,11 @@ duel/task and is not checked against the current route/active ID.
 
 ## Failure handling
 
-Closed socket skips sends without durable queue. Backend rejection is not shown.
-Reload preserves own draft but loses last-sent/opponent state; next eligible
-interval can resend. Malformed/unknown task updates are ignored. No final flush
-is guaranteed on navigation or unload.
+Closed socket skips sends without a durable queue; the current snapshot is tried
+again after reconnect. Backend rejection is not shown. Reload preserves own
+draft but loses last-sent/opponent state; the next eligible connection flushes
+again. Malformed/unknown task updates are ignored. No final flush is guaranteed
+on navigation or unload.
 
 ## Reload and multiple tabs
 
@@ -130,7 +134,8 @@ backend solution. Logout in one tab is not an atomic purge in the others.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** publisher tests cover throttle, complete-snapshot dedup,
+  ordering, failed-send retry, reconnect reset, and interval cleanup.
 - **Needed unit/integration:** language mapping, debounce/refetch order, privacy,
   task switch, duplicate suppression, invalid event/task, logout cleanup.
 - **Needed E2E:** edit/reload/offline/close, two tabs/users, spectator attempts,
@@ -153,4 +158,3 @@ semantics need explicit product requirements.
 Define versioned server/client solution revisions and acknowledgements; gate
 sends by verified participant/status; scope/prune encrypted or safer persistence;
 coordinate tabs; preserve unsent drafts; expose sync state; and test all races.
-

@@ -32,19 +32,23 @@ leave Loader indefinitely. Base query tries refresh on `401` and also
 Many pages show local errors, with special cases such as duel/group `403/404`
 and friendly invitation `409`.
 
-Ticket or WebSocket-constructor failure retries every 3 seconds. An established
-socket `onclose` sets interrupted state but does not schedule reconnect; the
-modal's recovery reloads the page. Socket parse errors warn, unknown messages
-are ignored. RTK manual patches and tag gaps can leave stale data. Storage writes
-fail silently. Submission `.unwrap()` rejection is not locally caught.
-Anti-cheat non-2xx/rejection clears events. Code sync has no ack/retry queue.
+Ticket, constructor, established socket, timeout, and ready-state health
+failures retry with bounded exponential backoff and jitter. The modal exposes
+immediate retry without reloading the page. Known realtime payloads are
+runtime-validated; unknown/malformed events and individual handler exceptions
+are isolated. Every open broadly invalidates domain projections and force-reads
+the active duel. Storage writes still fail silently. Submission `.unwrap()`
+rejection is not locally caught. Anti-cheat non-2xx/rejection clears events.
+Code sync retries a failed socket send after reconnect but has no server
+acknowledgement or durable queue.
 
 ## Client state transitions
 
 Errors often retain prior Redux/cache/form state. Refresh failure logs out;
 logout resets auth/session and editor but not RTK or all browser keys. Socket
-close resets searching to idle and sets interruption for authenticated users.
-Reload discards unpersisted state and reconstructs only selected caches.
+close resets searching to idle, sets interruption for the current user, and
+enters automatic retry. Reconnect reconciles safe reads without discarding the
+page runtime.
 
 ## Backend state assumptions
 
@@ -63,15 +67,16 @@ downstream execution identifiers.
 ## UI effects
 
 Effects range from loader, inline/modal error, disabled/stale control, redirect,
-full reload prompt, or no visible feedback. Similar failures receive different
+reconnect prompt, or no visible feedback. Similar failures receive different
 treatment. Some stale states look successful: ignored group invites, partial
 batch invitations, non-delivered actions, or stale tournament/submission status.
 
 ## Network effects
 
-RTK may refresh/replay, refetch matching tags, or keep prior data. Socket ticket
-creation retries; established close does not. No general backoff/circuit breaker
-or offline queue covers mutations. Lifecycle raw fetches bypass refresh logic.
+RTK may refresh/replay, refetch matching tags, or keep prior data. The socket
+lifecycle retries ticket and established failures and immediately retries when
+the browser reports online. No general circuit breaker or offline queue covers
+mutations. Lifecycle raw fetches bypass refresh logic.
 
 ## Idempotency and duplicate handling
 
@@ -97,8 +102,7 @@ described as guaranteeing delivery or exactly-once behavior.
 
 ## Reload and multiple tabs
 
-Reload is the primary socket recovery but loses caches/queues and can preserve
-stale workflow/form flags. Another tab may still mutate with old auth/session or
+Reload is no longer socket recovery. Another tab may still mutate with old auth/session or
 replace the socket. No shared offline/identity/session coordinator fences it.
 
 ## Implementation references
@@ -112,7 +116,9 @@ replace the socket. No shared offline/identity/session coordinator fences it.
 
 ## Test coverage
 
-- **Existing automated tests:** none.
+- **Existing automated tests:** realtime tests cover retry/backoff, owned cleanup,
+  malformed/unknown/duplicate/order isolation, reconnect, logout/user
+  replacement, and publisher retry/deduplication.
 - **Needed integration:** status/error matrix per endpoint, refresh/replay,
   malformed contracts, lost response, event reorder, tag recovery, storage faults.
 - **Needed E2E/chaos:** offline/online, socket drop, backend restart, slow/duplicate
@@ -136,4 +142,3 @@ and multi-tab policy are undefined.
 Adopt typed/versioned errors and runtime DTO validation; add idempotency/status
 receipts; reconnect with backoff and full reconciliation; make states monotonic;
 atomically reset identity data; observe failures/loss; test fault matrices.
-

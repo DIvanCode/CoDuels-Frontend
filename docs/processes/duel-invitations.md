@@ -87,18 +87,20 @@ the current UI.
 
 ## Network effects
 
-RTK mutations create/accept/deny invitations. WebSocket invitation events mostly
-invalidate lists. Current frontend handlers do not recognize backend
-`GroupDuelInvitation` or `GroupDuelInvitationCanceled`, so those list changes can
-remain invisible. Tournament invitation events invalidate duel-invitation data,
-not the tournament bracket/detail.
+RTK mutations create/accept/deny invitations. Runtime-validated WebSocket
+handlers recognize direct, group-membership, group-duel, and tournament-duel
+invitation events. They invalidate their owning invitation projection;
+group-duel events also refresh groups, and tournament events refresh tournament
+projections. Every reconnect broadly invalidates all active invitation/group/
+tournament projections.
 
 ## Idempotency and duplicate handling
 
 No action sends a client idempotency key. Some buttons use mutation loading,
 but repeated clicks or multiple tabs can submit the same accept/deny. Backend
 must reject or make repeated transitions safe. Repeated list invalidation is
-safe; repeated session events are not generation-checked.
+safe. Supplied event cursors are deduplicated; current cursorless cancellation
+effects still require matching pending nickname/configuration/tournament data.
 
 ## Ordering assumptions
 
@@ -111,8 +113,9 @@ can be ignored or reset the wrong flow.
 
 HTTP errors remain local; `409` has special friendly-create messaging. A lost
 success response can leave a backend-accepted invitation while UI remains idle.
-Unknown/unhandled WebSocket events are silently ignored. No reconciliation step
-fetches the accepted pending duel workflow after every reconnect.
+Unknown/malformed WebSocket events are isolated. Every reconnect fetches the
+active duel and all active invitation lists, but the backend still exposes no
+single query for the precise outgoing pending workflow.
 
 ## Reload and multiple tabs
 
@@ -131,7 +134,8 @@ be presented to another user in the same tab.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** parser/router tests cover typed event isolation, and
+  realtime integration covers duplicate/unknown events and reconnect lifecycle.
 - **Needed integration:** all four invitation families, exact event types/fields,
   accept/event order permutations, duplicate accepts, cancellation matching.
 - **Needed E2E:** inviter/invitee browsers, reload and logout during wait,
@@ -154,4 +158,3 @@ cross-tab ownership require an explicit contract.
 Use a versioned discriminated invitation payload with immutable ID/type/context;
 support idempotent accept/deny/cancel; handle every backend event; reconcile
 pending state on load/reconnect; and remove identity from ad hoc nickname fields.
-

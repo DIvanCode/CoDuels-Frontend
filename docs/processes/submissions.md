@@ -32,11 +32,13 @@ manually prepends to the exact currently existing `{duelId, taskKey}` list and
 deduplicates by response `id`; this is post-response, not optimistic.
 
 List DTOs identify items as `submission_id`; detail/create use `id`. Cache keys
-separate filtered and unfiltered args. A WebSocket update iterates active list
-caches for the duel and patches a known ID plus detail; unknown submissions are
-not inserted or invalidated. Event patches prevent terminal `Done` from
-regressing, but normal HTTP merge/refetch has no equivalent terminal guard.
-Detail fetch updates only the unfiltered list. There is no polling.
+separate filtered and unfiltered args. A validated WebSocket update iterates
+active list caches for the duel and patches a known ID plus detail. Event
+updates enforce `Queued -> Running -> Done`, so a delayed queued/running event
+cannot regress newer state. If no current cache contains the submission, its
+duel-list and detail tags are invalidated instead of dropping the update. Normal
+HTTP merge/refetch still has no server revision guard. Detail fetch updates only
+the unfiltered list. There is no polling.
 
 ```mermaid
 sequenceDiagram
@@ -54,9 +56,9 @@ sequenceDiagram
     J-->>D: Status result
     D-->>C: SubmissionStatusUpdated
     alt Known cached ID
-        C->>C: Patch lists/detail; do not regress Done
+        C->>C: Patch lists/detail; do not regress status
     else Event before list/create response
-        Note over C: Update is lost; no insert/invalidation
+        C->>C: Invalidate matching list/detail tags
     end
 ```
 
@@ -91,15 +93,15 @@ visible. Failed submit after navigation can leave the target list unchanged.
 ## Network effects
 
 One authenticated POST creates; list/detail queries fetch; WebSocket drives
-status. Reconnect invalidates generic `Submission/LIST`, but actual lists provide
-`LIST-{duelId}`, so reconnect does not reliably refetch them.
+status. Reconnect invalidates the complete `Submission` tag type, so active
+filtered, unfiltered, and detail projections refetch through their actual tags.
 
 ## Idempotency and duplicate handling
 
 No client idempotency key accompanies submission. Rapid/two-tab retries can
 create multiple real submissions. Cache insertion deduplicates known response
-ID. WebSocket duplicate events are mostly safe and terminal-protected; filtered
-caches can still diverge.
+ID. WebSocket duplicate events are safe for status progression; filtered caches
+are all enumerated or invalidated.
 
 ## Ordering assumptions
 
@@ -111,8 +113,9 @@ filtered caches are not versioned.
 ## Failure handling
 
 A rejected `.unwrap()` is not caught locally. Lost successful response leaves no
-cache insertion but later list fetch can recover. Missed/early events remain
-stale without polling/matching invalidation. Unknown event IDs are ignored.
+cache insertion but later list fetch can recover. Missed/early events invalidate
+matching projections, while reconnect invalidates all active submission
+projections. There is still no polling or server status revision.
 
 ## Reload and multiple tabs
 
@@ -130,7 +133,8 @@ submit duplicates or display different statuses until independently refreshed.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** parser/router tests cover submission envelope validation,
+  malformed payload rejection, duplicate cursor isolation, and handler safety.
 - **Needed integration:** all DTO ID shapes, filters/cache keys, status-before-
   create, duplicates, terminal regression, unknown ID, reconnect invalidation.
 - **Needed E2E:** success/failure/response loss, reload/in-flight, spectator,
@@ -140,7 +144,8 @@ submit duplicates or display different statuses until independently refreshed.
 
 Normal accepted response is shown when the exact list cache exists; known
 WebSocket events update all enumerated active lists for that duel; event-only
-patching does not regress a cached `Done`; backend remains authoritative.
+patching cannot move status backward; absent entries and reconnects invalidate
+matching backend projections; backend remains authoritative.
 
 ## Open questions
 
@@ -153,4 +158,3 @@ experience are not fully specified.
 Use an idempotency key and normalized entity cache; version statuses and enforce
 terminal monotonicity for every response path; upsert unknown events or
 invalidate; align reconnect tags; catch/show create failures; test reordering.
-

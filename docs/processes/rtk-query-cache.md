@@ -28,23 +28,24 @@ only active/provided matching tags and is not itself a domain-state update.
 The API slice is not persisted and uses normal RTK Query cache lifetime. Major
 families are:
 
-| Family | Representative operations | Important provided keys |
-| --- | --- | --- |
-| Auth/user | login/register/getMe/ticket | `User/ME` |
-| Configurations | list/detail/create/update/delete | entity IDs, `DuelConfiguration/LIST` |
-| Duels | search/cancel/active/list/detail | entity IDs, `Duel/LIST`, group-scoped keys |
-| Invitations | direct/group/tournament membership/duel actions | entities, `DuelInvitation/LIST`, `GroupInvitation/LIST` |
-| Groups | list/detail/users/create/roles/leave/invite | `Group/LIST`, group IDs |
-| Tournaments | group list/detail/create/start/accept | entity ID, `Tournament/GROUP-{id}` |
-| Tasks | task/statement/files | endpoint-argument caches |
-| Runs | start/status | duel/task/run argument caches |
-| Submissions | create/list/detail | item IDs, `Submission/LIST-{duelId}` |
+| Family         | Representative operations                       | Important provided keys                                 |
+| -------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| Auth/user      | login/register/getMe/ticket                     | `User/ME`                                               |
+| Configurations | list/detail/create/update/delete                | entity IDs, `DuelConfiguration/LIST`                    |
+| Duels          | search/cancel/active/list/detail                | entity IDs, `Duel/LIST`, group-scoped keys              |
+| Invitations    | direct/group/tournament membership/duel actions | entities, `DuelInvitation/LIST`, `GroupInvitation/LIST` |
+| Groups         | list/detail/users/create/roles/leave/invite     | `Group/LIST`, group IDs                                 |
+| Tournaments    | group list/detail/create/start/accept           | entity ID, `Tournament/GROUP-{id}`                      |
+| Tasks          | task/statement/files                            | endpoint-argument caches                                |
+| Runs           | start/status                                    | duel/task/run argument caches                           |
+| Submissions    | create/list/detail                              | item IDs, `Submission/LIST-{duelId}`                    |
 
 Mutations usually invalidate tags; several flows manually patch only caches that
 already exist. `getDuel.fulfilled` also writes editor/session slices outside the
-API cache. Socket open performs broad invalidation, but generic
-`Submission/LIST` and `Tournament/LIST` do not match actual provided list tags;
-`Duel/LIST` and `Group/LIST` omit several detail/scoped projections.
+API cache. Every socket open invalidates each complete tag type rather than
+inventing generic list IDs, so active entity, filtered, detail, and group-scoped
+subscriptions refetch according to their actual provided tags. It also forces
+the active-duel query for session reconciliation.
 
 ## Client state transitions
 
@@ -92,14 +93,18 @@ client idempotency.
 
 HTTP responses, mutation invalidation, WebSocket patches, auth refresh/replay,
 and navigation are unordered. A late query can overwrite a newer event patch.
-Only the submission event path locally prevents terminal regression.
+The submission event path enforces `Queued -> Running -> Done` monotonicity and
+invalidates the relevant list/detail tags when the event identifies an entry
+that is absent from current caches. Normal HTTP merge/refetch still has no
+server revision for comparison.
 
 ## Failure handling
 
 Failed queries retain error/possibly prior data according to RTK behavior.
 ProtectedRoute can display Loader indefinitely for non-401 `getMe` errors.
-Manual patch exceptions/shape mismatches have no contract validation. Missing
-reconnect tags leave silently stale state.
+Known realtime payloads are runtime-validated before manual patches. A handler
+exception is isolated by the router. HTTP payloads and late-response ordering
+can still leave stale state without server entity revisions.
 
 ## Reload and multiple tabs
 
@@ -117,9 +122,10 @@ new cache reconciliation. A socket in one tab cannot patch another tab's cache.
 
 ## Test coverage
 
-- **Existing tests/MSW handlers:** none.
+- **Existing tests:** realtime connection/router integration covers reconnect
+  invalidation entry, event isolation, and user-session replacement.
 - **Needed integration:** endpoint-argument matrix, all provided/invalidated tag
-  pairs, late HTTP versus event, absent-cache patching, auth user switch/reset.
+  pairs, late HTTP versus event, absent-cache patching, and full auth cache reset.
 - **Needed E2E:** reconnect while every page is open, reload, filtered submissions,
   tournament finish, group invitation, stale detail, and multi-tab divergence.
 
@@ -137,7 +143,6 @@ fanout are not documented as product requirements.
 
 ## Proposed requirements
 
-Create a tested endpoint/tag matrix; align reconnect keys with provided tags;
-reset cache atomically on identity change; upsert/invalidate unknown events;
-version critical entities; define monotonic status merges; add MSW integration
-coverage before relying on manual cache surgery.
+Create a tested endpoint/tag matrix; reset cache atomically on identity change;
+version critical entities and HTTP merges; add MSW integration coverage before
+relying on manual cache surgery.

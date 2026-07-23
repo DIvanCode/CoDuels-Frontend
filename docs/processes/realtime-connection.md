@@ -2,215 +2,183 @@
 
 ## Purpose
 
-Maintain the authenticated user socket for one tab, translate Duely messages
-into Redux/cache/UI effects, and send best-effort opponent-code updates.
+Maintain one authenticated user socket per Frontend runtime, recover it without
+reloading the page, translate validated Duely events into domain effects, and
+publish eligible opponent-visible solutions at a bounded rate.
 
 ## Participants
 
-DuelSessionManager, duel-session RTK cache entry, auth/user ticket endpoint,
-browser WebSocket/timers, duel-session/editor Redux, RTK caches, Home/duel UI,
-Duely connection manager/outbox, and multiple tabs.
+`DuelSessionManager`, the duel-session RTK cache entry, the realtime transport,
+event parser/router, duel/invitation/group/tournament/submission handlers,
+initial-sync adapter, solution publisher, browser WebSocket/timers, RTK/Redux,
+Duely, and multiple tabs.
 
 ## Entry points
 
-Auth user becomes non-null, subscription cache entry is added/removed, ticket
-or socket fails, socket opens/messages/closes, logout, reload, reconnect button,
-or second tab connects.
+Authenticated user ID appears or changes, the RTK subscription is removed,
+ticket creation or connection fails, the socket opens/messages/closes, browser
+connectivity returns, the retry button is pressed, logout occurs, or another tab
+replaces the backend connection.
 
 ## Preconditions
 
-Auth Redux has token and current user. `VITE_BASE_URL` forms a valid URL, Duely
-can issue an intended single-use ticket, and browser permits the constructed
-`ws:` URL. Backend ticket lookup and clearing are separate read/write steps and
-are not an atomic consume operation.
+Auth Redux has a token and current user. `VITE_BASE_URL` is an HTTP(S) or WS(S)
+URL. Duely can issue a one-use ticket and accepts the current flat polymorphic
+message contract. The backend currently registers one socket per user.
 
 ## Current behavior
 
-The single normally-mounted manager dispatches one `subscribeToDuelStates`
-query subscription. Its cache lifecycle obtains `POST /users/ticket`, constructs
-`{basePath}/users/connect?ticket=...` while forcing protocol `ws:`, closes any
-local prior socket, then constructs WebSocket. Tickets are random, stored on the
-user, and overwritten by a new ticket. Connect reads a matching ticket, clears
-it, and saves, but concurrent handlers can both read it before either clear is
-committed; no expiry timestamp exists.
+The manager keys `subscribeToDuelStates` by user ID. React cleanup unsubscribes
+the old cache entry on logout, unmount, or same-runtime user change, so an old
+identity cannot keep dispatching after the new session starts. The cache
+lifecycle creates exactly one `DuelRealtimeSession`, registers its manual
+reconnect callback, and tears down the registration, outstanding initial sync,
+publisher, transport subscriptions, online listener, timers, ticket request,
+and socket when the entry is removed.
 
-Ticket request or constructor failure schedules another full ticket/connect in
-3000 ms after clearing the previous timer. `onopen` clears that timer and
-`sessionInterrupted`, then invalidates selected broad tags. `onerror` only logs.
-`onclose` resets local searching to idle, and if a token still exists sets the
-interrupted modal; it does not schedule reconnect or null the socket. The modal
-cannot be normally dismissed and its button reloads the page; its `onClose`
-handler would only clear the flag. Logout unsubscribes; cache removal clears
-interval/timer and closes the socket. The manager effect itself has no unmount
-cleanup, a risk for abnormal remounts.
+`RealtimeTransport` owns only ticket/connect/send/retry/health mechanics. It has
+no Redux, RTK tag, duel, invitation, or submission imports. It models `idle`,
+`connecting`, `open`, and `waiting`, fences asynchronous work with a connection
+generation, aborts superseded ticket requests, applies exponential retry from
+1 to 30 seconds with ±25% jitter, and reconnects established sockets after
+close or error. The UI retry and browser `online` event trigger an immediate
+attempt. A 15-second connect watchdog and periodic ready-state health check
+recover stuck connections. Duely has no application ping/pong message, so the
+health model does not invent an incompatible protocol heartbeat.
 
-The parser accepts flat backend objects or envelopes with `event|type|name`,
-`data|payload`, camel/snake last-event ID, and stringified payload. Event names
-remove nonletters and lowercase. Payloads are TypeScript-cast, not runtime-
-validated. Current Duely sends flat polymorphic JSON with `type` and fields; it
-does not send `lastEventId`, so the persisted field remains unused and no replay
-cursor is sent on reconnect.
+The WebSocket URL preserves the API host/path, replaces the query with the
+ticket, and derives `ws:` from HTTP or `wss:` from HTTPS. HTTPS deployments
+therefore cannot create a mixed-content socket.
 
-| Event name | Current backend payload | Redux mutation | Cache mutation | Navigation/UI effect |
-| --- | --- | --- | --- | --- |
-| `DuelStarted` | `duel_id` | active ID; phase becomes active; clear search | invalidate Duel ID | Navigation only in Home/session-button effects |
-| `DuelFinished` | `duel_id` | reset whole session | Duel ID + User ME | duel result comes from refetch; can reset unrelated active duel |
-| `DuelCanceled` | opponent optional | reset; canceled modal | None | Client handles it, current backend has no such type |
-| `DuelChanged` or nameless object with `duel_id` | current backend only `duel_id` | last ID only; full noncurrent envelope could overwrite code | invalidate Duel ID | task/result changes after refetch |
-| `DuelInvitation` | opponent/config | None | DuelInvitation LIST | invitation list refetch |
-| `DuelInvitationCanceled` | opponent/config | maybe phase idle if match | DuelInvitation LIST | waiting/search can stop |
-| `DuelInvitationDenied` | opponent/config | matching search -> idle + canceled dialog | DuelInvitation LIST | denial modal |
-| `TournamentDuelInvitation` (alias accepted) | tournament/opponent/config | None | DuelInvitation LIST | incoming list refetch |
-| tournament-canceled aliases | no current backend message | maybe phase idle when tournament ID matches | DuelInvitation LIST | dead compatibility path currently |
-| `GroupInvitation` | group/role/inviter | None | GroupInvitation LIST | membership invitation refetch |
-| `GroupInvitationCanceled` | group fields | None | GroupInvitation LIST | removal refetch |
-| `GroupDuelInvitation` / canceled | backend emits both | None | None | Unknown and silently ignored: confirmed mismatch |
-| `OpponentSolutionUpdated` | duel/task/language/solution | opponent editor maps when cached privacy flag true | None | opponent tab changes |
-| `SubmissionStatusUpdated` | duel/submission/status/message/verdict | None | patch existing detail/all cached duel lists; protect `Done` | rows/detail update if present |
-| `CodeRunStatusUpdated` | run/status/error | None | None | Unhandled; run UI uses HTTP polling |
-| Unknown/malformed | arbitrary | only last ID may be stored before unknown dispatch; malformed ignored | None | console warning only for parse failure |
+Every transition to `open` resets the solution publisher and starts one
+authoritative initial sync. Initial sync broadly invalidates all active Duel,
+DuelConfiguration, DuelInvitation, Group, GroupInvitation, Submission,
+Tournament, and User projections, then force-reads `/duels/active`. An active
+duel promotes the session to `active`; a backend 404 resets stale active or
+searching state. The result is accepted only while the same user ID still owns
+the session.
+
+Incoming text first passes the runtime parser. It accepts current flat messages
+and compatibility envelopes using `event|type|name`, `data|payload`, optional
+stringified payload, and camel/snake event cursors. Known events validate the
+required numeric/string/null fields before routing. Invalid known events,
+malformed JSON, and unknown names are isolated from domain handlers. Adding an
+event consists of a local parser variant and the relevant domain handler(s),
+without changing transport code.
+
+| Event                                            | Domain behavior                                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `DuelStarted`                                    | Invalidate that duel; activate it only when it does not conflict with another active ID, otherwise reconcile |
+| `DuelFinished`                                   | Invalidate duel/user/tournament projections; reset only when the finished ID is the current active duel      |
+| `DuelCanceled` compatibility event               | Reset a currently searching flow and show cancellation UI                                                    |
+| `DuelChanged` or nameless `duel_id`              | Invalidate that duel; HTTP fulfillment hydrates duel/editor state                                            |
+| Direct invitation create/cancel/deny             | Refresh invitation projections; change local pending state only when the payload matches                     |
+| Group membership invitation create/cancel        | Refresh membership invitations and group projections                                                         |
+| Group-duel invitation create/cancel              | Refresh duel invitations and group projections                                                               |
+| Tournament-duel invitation create/cancel aliases | Refresh duel invitations and tournament projections                                                          |
+| `OpponentSolutionUpdated`                        | Apply only to a validated cached privacy-enabled duel/task                                                   |
+| `SubmissionStatusUpdated`                        | Patch every matching cached list/detail monotonically; invalidate missing projections                        |
+| `CodeRunStatusUpdated`                           | Runtime-validated but intentionally unhandled because code runs use HTTP polling                             |
+
+When an envelope supplies an event ID, `EventCursor` suppresses repeated IDs and
+numeric IDs older than the accepted numeric cursor. Current Duely flat messages
+still have no ID. Without a server revision, domain handlers remain idempotent
+where possible: an old finish cannot reset another active duel, invitation
+invalidations are repeatable, and submission states cannot move backward from
+`Running`/`Done`. Opponent solution order cannot be proven without a backend
+revision.
+
+`SolutionPublisher` polls the selected snapshot once per second, serializes
+sends synchronously, and records a snapshot only after `send` succeeds. It
+deduplicates duel/task/language/solution together, retries a failed send on a
+later tick, and resets after reconnect so the latest snapshot is republished.
+Snapshots require an in-progress privacy-enabled duel and the current user to be
+a participant. There is still no server acknowledgement or durable unload
+flush.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> disconnected
-    disconnected --> requesting_ticket: subscription with token
-    requesting_ticket --> connecting: ticket returned
-    requesting_ticket --> requesting_ticket: 3s retry
-    connecting --> connected: onopen
-    connecting --> requesting_ticket: constructor failure / 3s retry
-    connected --> interrupted: onclose with token
-    interrupted --> disconnected: logout/cache removal
-    interrupted --> requesting_ticket: full page reload (new runtime)
+    [*] --> idle
+    idle --> connecting: authenticated subscription
+    connecting --> open: ticket + socket open
+    connecting --> waiting: ticket/constructor/error/timeout
+    open --> waiting: close/error/health failure
+    waiting --> connecting: backoff timer
+    waiting --> connecting: retry button / browser online
+    open --> idle: logout, user change, or cache removal
+    connecting --> idle: logout, user change, or cache removal
 ```
-
-Labels except `sessionInterrupted` are conceptual; no socket-state enum exists.
-
-```mermaid
-sequenceDiagram
-    participant A as Tab A
-    participant B as Duely connection registry
-    participant T as Tab B
-    A->>B: connect as user
-    T->>B: connect same user
-    B->>A: close "Replaced by new connection"
-    B->>B: register Tab B socket
-    A->>B: old finally may remove user entry and cancel pending duels
-    A-->>A: phase searching -> idle; interrupted modal
-    Note over B,T: Tab B socket may stay open but no longer be registry target
-```
-
-## Client state transitions
-
-`sessionInterrupted: false -> true on close -> false on open/modal handler`;
-`phase: searching -> idle on any close`; socket conceptual flow is above.
-Messages set `idle/searching/active` without event-order checks. `lastEventId`
-changes only if a noncurrent envelope supplies it.
 
 ## Backend state assumptions
 
-Duely is authoritative and keeps one process-local registered socket/user. On
-the ordinary handler-exit path, `finally` attempts to close the socket, remove
-the user registration, and send `CancelPendingDuels`. If current-socket
-`CloseAsync` throws, the later removal and pending cleanup can be skipped. An old
-handler can instead reach those statements after replacement and remove the new
-socket registration. Frontend assumes ticket response/string, flat event
-fields/enums, and server authorization of `SolutionUpdated`. No replay endpoint
-reconciles missed events.
+Duely is authoritative for user, pending/active duel, domain entities, and
+solution authorization. It still stores one process-local registered socket per
+user. A second tab replaces the first, and the backend old-handler cleanup can
+still remove the newer registration or cancel pending duels; Frontend reconnect
+cannot solve that server ownership race. Ticket consume/expiry and replay are
+also backend concerns.
 
 ## State ownership
 
-| State | Owner/source of truth | Redux | RTK Query | local state | sessionStorage | localStorage | Survives reload |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Socket/timers/last sent code | tab subscription | No | cache lifecycle | closure | No | No | No |
-| Interrupted flag/phase/active ID | client from backend | duelSession | No | manager reconnect flag | No | phase/ID persisted | Partial |
-| Event cursor | no current producer | duelSession | No | No | No | persisted field | Yes but unused |
-| Domain data | Duely | partial workflow | endpoint caches | No | No | No | No |
-| Opponent code | Duely messages/details | codeEditor | Duel supplies initial | Monaco mirror | code tab only | not whitelisted | No |
-
-## UI effects
-
-Close shows a blocking no-close-button modal; reload button displays local
-"reconnecting" until page unload. Searching loader disappears immediately on
-close. Events invalidate lists/details or mutate code/submissions, but socket
-manager itself does not navigate; only mounted workflow components do.
-
-## Network effects
-
-Ticket and connection retries are infinite only before a socket object opens.
-On open, invalidations that actually match can trigger concurrent requests.
-Socket receives flat messages and sends full selected-task solution/language at
-most once per second when changed and cached privacy flag is true. No ack exists.
-
-## Idempotency and duplicate handling
-
-No event-ID/order dedupe exists. Repeated invitation events repeat invalidation;
-submission patches protect terminal `Done` but unknown entries are ignored;
-duplicate/old duel starts/finishes repeat workflow resets. Code send suppresses
-only equality against one in-memory last-selected payload.
-
-## Ordering assumptions
-
-Start/finish/change events are assumed chronological and relevant to current
-session. HTTP start completion is assumed before `DuelStarted`, which is not
-guaranteed. Connection replacement/cleanup has no generation token. Payload
-casts assume backend names/fields remain compatible.
+| State                          | Owner/source of truth                     | Persistence                                       |
+| ------------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| Socket/generation/retry/health | realtime transport in one cache lifecycle | none                                              |
+| Event validation/routing       | parser/router                             | cursor mirrored in duelSession only when supplied |
+| Active/pending workflow        | Duely, locally projected in duelSession   | selected fields in redux-persist                  |
+| Domain projections             | Duely through RTK Query                   | RTK cache is not persisted                        |
+| Own draft                      | codeEditor/Monaco until accepted by Duely | own code/language persisted                       |
+| Opponent draft                 | Duely event/detail projection             | not persisted                                     |
 
 ## Failure handling
 
-Ticket/constructor failures log and retry. Socket error alone logs; close needs
-manual reload. The backend's ordinary `finally` path attempts registration and
-pending-state cleanup, but process termination or an uncaught current-socket
-`CloseAsync` failure can prevent it. Malformed JSON/string payload is ignored.
-Unknown events are silent. Missed events rely on later HTTP refetch, but
-reconnect invalidation does not cover all real tags. Mixed-content `ws:` may
-prevent connection under HTTPS.
+Safe reads reconcile after every open. Ticket, constructor, established socket,
+and health failures automatically retry; the modal exposes an immediate retry
+without `window.location.reload()`. A malformed or future event cannot escape
+the router into unrelated handlers. Handler exceptions are caught per handler
+so one domain failure does not stop dispatch of later messages. Reconnect cannot
+provide exactly-once delivery because the backend emits no cursor/replay.
 
 ## Reload and multiple tabs
 
-Reload destroys/recreates socket with a new ticket and empty cache. Each tab
-opens its own socket and has independent timers/cache/sessionStorage but shared
-persisted Redux bytes. Backend replacement interrupts the old tab; if the old
-handler reaches cleanup after the new registration, it can cancel pending state
-and remove the new registry entry. Conversely, a close failure can skip that
-cleanup. Tabs have no leader election.
+Reload still recreates the runtime, but it is no longer a connection-recovery
+mechanism. Persisted state is provisional until the first open initial sync.
+Tabs remain independent and contend for the backend's single user socket; a
+formal cross-tab owner or backend multi-connection support is still required.
 
 ## Implementation references
 
 - `src/features/duel-session/api/duelSessionApi.ts`
+- `src/features/duel-session/api/realtime/{transport,eventParser,eventRouter,eventCursor}.ts`
+- `src/features/duel-session/api/realtime/domain/*Handlers.ts`
+- `src/features/duel-session/api/realtime/{initialSync,session,solutionPublisher}.ts`
 - `src/features/duel-session/ui/DuelSessionManager/DuelSessionManager.tsx`
-- `src/features/duel-session/lib/const.ts`
-- Backend `UserWebSocketHandler`, `WebSocketMessageSender`, message types
-- CoDuels-Backend: `docs/processes/user-connection-lifecycle.md`
+- Backend `UserWebSocketHandler`, `WebSocketMessageSender`, and message types
 
 ## Test coverage
 
-- **Existing tests/MSW:** none.
-- **Needed unit/integration:** URL/scheme, ticket retries, lifecycle cleanup,
-  every event/flat-envelope/string payload, malformed/unknown/duplicate/order,
-  tag/manual patches, code send gating.
-- **Needed browser/E2E:** real socket open/close/reload, expired ticket, offline,
-  early event, missed event/refetch, two tabs/replacement/search cleanup, HTTPS,
-  logout/remount, and privacy/spectator flows.
+Vitest covers HTTP/HTTPS URL selection, established disconnect/reconnect with
+backoff, ticket abort and listener/timer cleanup, flat/enveloped validation,
+malformed/unknown events, duplicate/out-of-order cursors, handler isolation,
+publisher throttle/dedup/retry, initial-open reconciliation, manual reconnect,
+logout cleanup, and same-runtime user-session replacement.
+
+Browser/E2E coverage is still needed for a real Nginx HTTPS socket, offline and
+backend restart, multi-tab replacement, server cleanup races, and end-to-end
+domain refetches.
 
 ## Current guarantees
 
-Normal app tree has one subscription per tab; pre-open failures retry at 3000
-ms; open clears the scheduled timer; cache removal clears owned timers/socket;
-current flat backend event names listed as handled produce the documented
-mutations; code sync checks cached privacy flag and open readyState. These facts
-do not guarantee atomic single-use ticket consumption or backend cleanup after
-every connection termination.
+One cache entry owns one socket lifecycle for one user ID; transport has no
+business-cache knowledge; established failures retry without page reload;
+HTTPS selects `wss:`; every open runs broad HTTP reconciliation; known events
+are runtime-validated; supplied cursors deduplicate/order numeric events;
+cleanup removes owned sockets, requests, listeners, intervals, and timeouts.
+
+These guarantees do not imply replay, server acknowledgement, exactly-once
+events, or safe simultaneous tabs.
 
 ## Open questions
 
-Automatic reconnect/replay, scheme selection, event validation/versioning,
-multi-tab connection ownership, disconnect cleanup semantics, and complete
-cache reconciliation are unresolved.
-
-## Proposed requirements
-
-Use secure scheme derived from base URL; model socket state/generation; reconnect
-with backoff and replay cursor or full reconciliation; runtime-validate/version
-events; handle all backend message types; add explicit frontend subscription
-cleanup on unmount; elect a cross-tab owner or support multi-connection backend;
-and E2E-test replacement.
+Backend event/revision IDs and replay, ticket atomicity/expiry, multi-tab socket
+ownership, application heartbeat semantics, solution acknowledgement, and
+observable malformed-event telemetry remain cross-repository decisions.

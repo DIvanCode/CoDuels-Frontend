@@ -9,7 +9,7 @@
 ## Data and realtime rules
 
 - Add HTTP endpoints by injecting into the shared RTK Query `apiSlice`; keep authentication refresh in `shared/api`.
-- Keep the authenticated WebSocket lifecycle and duel event cache updates in `features/duel-session/api/duelSessionApi.ts`. Do not create a second competing socket.
+- Keep one authenticated WebSocket lifecycle in `features/duel-session`. Compose it in `api/duelSessionApi.ts`, keep business-agnostic connection mechanics under `api/realtime/transport.ts`, and keep validated domain effects under `api/realtime/domain`. Do not create a second competing socket or import domain caches into the transport.
 - Keep API payload names compatible with backend JSON contracts. Update runtime validation (`superstruct`) where an affected response already uses it.
 - Anti-cheat actions must stay synchronized with Duely and Analyzer. Use `$coduels-anticheat` for changes to editor/action tracking.
 - Persist only state that must survive reloads; review the redux-persist whitelists when adding persisted fields.
@@ -19,7 +19,7 @@
 
 - Install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm fsd:lint`, and `pnpm build` for source changes.
-- There is currently no `test` script in `package.json`; do not claim a Frontend unit test suite ran.
+- Run `pnpm test` for the Vitest unit/integration suite when the affected behavior has coverage.
 - Set `VITE_BASE_URL=http://localhost/api` for the normal local Nginx-backed environment.
 - The pull-request workflow runs ESLint, reports FSD lint without blocking on it, builds and pushes the pull-request image, and deploys it automatically without a GitHub Environment approval. The deploy job checks out its playbook from the trusted base revision while keeping the image tag at the pull-request `github.sha`. Pushes to `master` do not deploy Frontend.
 - Pushing to an open same-repository Frontend pull request can start its production deployment. Do it only when the user explicitly authorizes the push and its deployment effect.
@@ -32,7 +32,7 @@
 - The backend is the source of truth for duel, invitation, group, tournament, and submission state.
 - Persisted Redux must not automatically be treated as current backend state.
 - When adding a persisted field, document its owner, reset trigger, schema version, user-switch behavior, and tab behavior.
-- Keep one authenticated WebSocket lifecycle in `features/duel-session/api/duelSessionApi.ts` when changing realtime behavior.
+- Keep one authenticated WebSocket lifecycle composed by `features/duel-session/api/duelSessionApi.ts` when changing realtime behavior; extend the typed parser/router and owning domain handler rather than adding another event switch or socket.
 - Do not create a second competing user WebSocket.
 - A WebSocket-event change requires corresponding frontend handler, applicable runtime validation, process documentation, backend contract documentation, and tests.
 - Matchmaking changes must account for disconnect and backend cleanup of pending duels.
