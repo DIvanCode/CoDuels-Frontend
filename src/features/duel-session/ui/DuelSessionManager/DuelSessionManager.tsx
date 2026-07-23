@@ -1,22 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 
+import { useGetActiveDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
-import { duelSessionApiSlice } from "features/duel-session/api/duelSessionApi";
+import { startDuelRealtimeSession } from "features/duel-session/api/duelSessionApi";
 import { requestDuelSessionReconnect } from "features/duel-session/api/realtime/connectionRegistry";
+import { selectRealtimeUserId } from "features/duel-session/api/realtime/sessionIdentity";
 import { selectDuelSession } from "features/duel-session/model/selectors";
 import { resetDuelSession } from "features/duel-session/model/duelSessionSlice";
 import { restoreDuelSession } from "features/duel-session/model/thunks";
-import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 
 import styles from "./DuelSessionManager.module.scss";
 
 export const DuelSessionManager = () => {
     const dispatch = useAppDispatch();
+    const store = useAppStore();
     const userId = useAppSelector(selectCurrentUser)?.id ?? null;
+    const realtimeUserId = useAppSelector(selectRealtimeUserId);
     const { phase, activeDuelId, sessionInterrupted } = useAppSelector(selectDuelSession);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const previousUserIdRef = useRef<number | null>(userId);
+
+    useGetActiveDuelQuery(undefined, {
+        skip: realtimeUserId === null,
+        pollingInterval: phase === "searching" ? 2_000 : 0,
+        skipPollingIfUnfocused: true,
+        refetchOnReconnect: true,
+    });
 
     useEffect(() => {
         if (userId !== null && activeDuelId && phase === "idle") {
@@ -32,12 +43,13 @@ export const DuelSessionManager = () => {
     }, [userId, dispatch]);
 
     useEffect(() => {
-        if (userId === null) return;
-        const subscription = dispatch(
-            duelSessionApiSlice.endpoints.subscribeToDuelStates.initiate(userId),
-        );
-        return () => subscription.unsubscribe();
-    }, [userId, dispatch]);
+        if (realtimeUserId === null) return;
+        return startDuelRealtimeSession({
+            dispatch,
+            getState: store.getState,
+            userId: realtimeUserId,
+        });
+    }, [realtimeUserId, dispatch, store]);
 
     const handleReconnect = () => {
         if (userId === null || isReconnecting) return;

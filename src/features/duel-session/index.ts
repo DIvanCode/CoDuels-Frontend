@@ -1,10 +1,6 @@
 export { default as duelSessionReducer } from "./model/duelSessionSlice";
 
-export {
-    useCancelDuelSearchMutation,
-    useStartDuelSearchMutation,
-    useSubscribeToDuelStatesQuery,
-} from "./api/duelSessionApi";
+export { useCancelDuelSearchMutation, useStartDuelSearchMutation } from "./api/duelSessionApi";
 export { selectDuelSession } from "./model/selectors";
 
 export { DuelSessionButton } from "./ui/DuelSessionButton/DuelSessionButton";

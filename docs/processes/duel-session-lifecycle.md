@@ -39,10 +39,12 @@ active duel.
 
 The globally mounted realtime session runs `/duels/active` after every initial
 connect and reconnect. An in-progress result promotes the session to active;
-404 resets provisional persisted active/searching state. Home may also subscribe
-to the same endpoint. Its fulfilled reducer now performs the active transition
-directly instead of constructing an undispatched restore thunk. The manager's
-detail restore remains a pre-connect recovery path for `idle + activeDuelId`.
+404 resets provisional persisted active/searching state. The manager also owns
+the active-duel query and polls it every two seconds while locally searching,
+so a missed start event still promotes the session without waiting for a socket
+reconnect. Its fulfilled reducer performs the active transition directly. The
+manager's detail restore remains a pre-connect recovery path for
+`idle + activeDuelId`.
 
 `setPhase("searching")` is ignored once an active ID exists. This fences the
 race where an early `DuelStarted` arrives before the search/accept HTTP response
@@ -100,11 +102,11 @@ close can show idle Home plus blocking interruption modal.
 
 ## Network effects
 
-Start/cancel/accept mutations precede most local phase changes. Manager/Home
-perform active/detail GETs. Socket events invalidate duel data. Post-close
-reconnect is automatic with backoff, and every open performs active-session and
-broad cache reconciliation. There is still no pending-status endpoint or event
-replay.
+Start/cancel/accept mutations precede most local phase changes. Manager performs
+active/detail GETs and polls the active endpoint while searching. Socket events
+invalidate duel data. Post-close reconnect is automatic with backoff, and every
+open performs active-session and broad cache reconciliation. There is still no
+pending-status endpoint or event replay.
 
 ## Idempotency and duplicate handling
 
@@ -116,18 +118,17 @@ is keyed and fenced by the current authenticated user ID.
 
 ## Ordering assumptions
 
-HTTP mutation success is assumed before related socket event. Early start can
-be overwritten by later `setPhase(searching)`. Finish is assumed to concern the
-current active duel. Home navigation assumes phase transition occurs after the
-watcher mounts.
+HTTP mutation success is usually observed before the related socket event. An
+early start cannot be overwritten by a later `setPhase(searching)` once the
+active ID is present. Finish is assumed to concern the current active duel. Home
+navigation assumes phase transition occurs after the watcher mounts.
 
 ## Failure handling
 
-Mutation errors generally leave prior phase. Lost success response can leave
-backend changed/local unchanged until the next connect/reconnect active sync.
-Missed events are repaired when represented by `/duels/active` or invalidated
-domain queries; pending invitation/search state still has no complete backend
-status query.
+Mutation errors generally leave prior phase. Lost success responses and missed
+start events are repaired by the searching-time `/duels/active` poll or the next
+connect/reconnect sync. Pending invitation/search state still has no complete
+backend status query.
 
 ## Reload and multiple tabs
 
@@ -158,7 +159,8 @@ finish/logout does not update another except through backend events/storage race
 
 Only three phase strings compile; whitelisted session fields survive reload;
 non-null active ID promotes idle/searching to active; reset clears all session
-fields; every socket open globally reconciles `/duels/active`.
+fields; every socket open globally reconciles `/duels/active`; searching polls
+the same authoritative endpoint every two seconds.
 
 ## Open questions
 

@@ -62,7 +62,7 @@ sequenceDiagram
     R->>D: GET /users/iam with persisted token
     D-->>R: current user (or refresh path on 401)
     R-->>B: protected page
-    M->>D: POST ticket, then WebSocket after user is stored
+    M->>D: POST ticket, then WebSocket after user and token are ready
 ```
 
 ## Client state transitions
@@ -79,13 +79,13 @@ route-dependent; direct duel access relies on `GET /duels/:id` authorization.
 
 ## State ownership
 
-| State | Owner/source of truth | Redux | RTK Query | local state | sessionStorage | localStorage | Survives reload |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Tokens/user snapshot | Duely; client cache | auth | getMe | No | No | `persist:auth` | Yes |
-| Theme | client preference | theme | No | No | No | `persist:theme` | Yes |
-| Route/location | browser router | No | No | router | No | No | URL yes |
-| API cache | HTTP responses | API reducer | Yes | No | No | No | No |
-| Modal/page state | component | Usually no | No | Yes | Some Home state | Some explicit keys | Key-dependent |
+| State                | Owner/source of truth | Redux       | RTK Query | local state | sessionStorage  | localStorage       | Survives reload |
+| -------------------- | --------------------- | ----------- | --------- | ----------- | --------------- | ------------------ | --------------- |
+| Tokens/user snapshot | Duely; client cache   | auth        | getMe     | No          | No              | `persist:auth`     | Yes             |
+| Theme                | client preference     | theme       | No        | No          | No              | `persist:theme`    | Yes             |
+| Route/location       | browser router        | No          | No        | router      | No              | No                 | URL yes         |
+| API cache            | HTTP responses        | API reducer | Yes       | No          | No              | No                 | No              |
+| Modal/page state     | component             | Usually no  | No        | Yes         | Some Home state | Some explicit keys | Key-dependent   |
 
 ## UI effects
 
@@ -98,21 +98,23 @@ dedicated parent error view.
 ## Network effects
 
 ProtectedRoute subscribes to cached `getMe`; auth refresh can replay it. Manager
-starts ticket/socket only after `auth.user` is non-null. Header/child pages may
-start their own queries after route render. No cache is restored from disk.
+starts ticket/socket only after both `auth.user` and the access token are
+present, and owns active-duel reconciliation. Header/child pages may start their
+own queries after route render. No cache is restored from disk.
 
 ## Idempotency and duplicate handling
 
-StrictMode may replay effects in development. The manager ref prevents its
-normal effect from dispatching a second subscription in the same instance, and
-RTK Query deduplicates identical cache keys. The effect provides no component-
-unmount cleanup, so an abnormal manager remount can leave a subscription alive.
+StrictMode may replay effects in development. The manager effect cleanup fully
+stops the first realtime lifecycle before the replay starts the replacement.
+Unmount, logout, and same-runtime identity changes use the same cleanup path.
 
 ## Ordering assumptions
 
-PersistGate orders rehydration before AppRouter/managers/queries. `getMe` success
-must populate auth user before socket subscription. Route navigation and cache
-responses are otherwise asynchronous; no transaction binds them.
+PersistGate orders rehydration before AppRouter/managers/queries. Both token and
+current user must be present before the manager starts realtime; a later token
+transition from missing to present starts it without requiring a user-ID change.
+Route navigation and cache responses are otherwise asynchronous; no transaction
+binds them.
 
 ## Failure handling
 

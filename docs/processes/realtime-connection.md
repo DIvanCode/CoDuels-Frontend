@@ -8,17 +8,17 @@ publish eligible opponent-visible solutions at a bounded rate.
 
 ## Participants
 
-`DuelSessionManager`, the duel-session RTK cache entry, the realtime transport,
-event parser/router, duel/invitation/group/tournament/submission handlers,
-initial-sync adapter, solution publisher, browser WebSocket/timers, RTK/Redux,
-Duely, and multiple tabs.
+`DuelSessionManager`, the authenticated realtime lifecycle, the realtime
+transport, event parser/router, duel/invitation/group/tournament/submission
+handlers, initial-sync adapter, solution publisher, browser WebSocket/timers,
+RTK/Redux, Duely, and multiple tabs.
 
 ## Entry points
 
-Authenticated user ID appears or changes, the RTK subscription is removed,
-ticket creation or connection fails, the socket opens/messages/closes, browser
-connectivity returns, the retry button is pressed, logout occurs, or another tab
-replaces the backend connection.
+Authenticated user ID and access token become ready or change, the manager is
+unmounted, ticket creation or connection fails, the socket opens/messages/closes,
+browser connectivity returns, the retry button is pressed, logout occurs, or
+another tab replaces the backend connection.
 
 ## Preconditions
 
@@ -28,13 +28,13 @@ message contract. The backend currently registers one socket per user.
 
 ## Current behavior
 
-The manager keys `subscribeToDuelStates` by user ID. React cleanup unsubscribes
-the old cache entry on logout, unmount, or same-runtime user change, so an old
-identity cannot keep dispatching after the new session starts. The cache
-lifecycle creates exactly one `DuelRealtimeSession`, registers its manual
-reconnect callback, and tears down the registration, outstanding initial sync,
-publisher, transport subscriptions, online listener, timers, ticket request,
-and socket when the entry is removed.
+The manager derives a realtime identity only when both authenticated user and
+access token are present. Its effect directly starts one `DuelRealtimeSession`
+for that user ID. React cleanup stops the old lifecycle on logout, unmount, or
+same-runtime user change, so an old identity cannot keep dispatching after the
+new session starts. Cleanup removes the manual reconnect registration,
+outstanding initial sync, publisher, transport subscriptions, online listener,
+timers, ticket request, and socket.
 
 `RealtimeTransport` owns only ticket/connect/send/retry/health mechanics. It has
 no Redux, RTK tag, duel, invitation, or submission imports. It models `idle`,
@@ -56,7 +56,9 @@ DuelConfiguration, DuelInvitation, Group, GroupInvitation, Submission,
 Tournament, and User projections, then force-reads `/duels/active`. An active
 duel promotes the session to `active`; a backend 404 resets stale active or
 searching state. The result is accepted only while the same user ID still owns
-the session.
+the session. Independently, the globally mounted manager polls `/duels/active`
+every two seconds while the local phase is `searching`. This bounded fallback
+repairs a missed `DuelStarted` event without creating a second socket.
 
 Incoming text first passes the runtime parser. It accepts current flat messages
 and compatibility envelopes using `event|type|name`, `data|payload`, optional
@@ -99,7 +101,7 @@ flush.
 ```mermaid
 stateDiagram-v2
     [*] --> idle
-    idle --> connecting: authenticated subscription
+    idle --> connecting: authenticated user + token
     connecting --> open: ticket + socket open
     connecting --> waiting: ticket/constructor/error/timeout
     open --> waiting: close/error/health failure
@@ -120,23 +122,25 @@ also backend concerns.
 
 ## State ownership
 
-| State                          | Owner/source of truth                     | Persistence                                       |
-| ------------------------------ | ----------------------------------------- | ------------------------------------------------- |
-| Socket/generation/retry/health | realtime transport in one cache lifecycle | none                                              |
-| Event validation/routing       | parser/router                             | cursor mirrored in duelSession only when supplied |
-| Active/pending workflow        | Duely, locally projected in duelSession   | selected fields in redux-persist                  |
-| Domain projections             | Duely through RTK Query                   | RTK cache is not persisted                        |
-| Own draft                      | codeEditor/Monaco until accepted by Duely | own code/language persisted                       |
-| Opponent draft                 | Duely event/detail projection             | not persisted                                     |
+| State                          | Owner/source of truth                       | Persistence                                       |
+| ------------------------------ | ------------------------------------------- | ------------------------------------------------- |
+| Socket/generation/retry/health | realtime transport in one manager lifecycle | none                                              |
+| Event validation/routing       | parser/router                               | cursor mirrored in duelSession only when supplied |
+| Active/pending workflow        | Duely, locally projected in duelSession     | selected fields in redux-persist                  |
+| Domain projections             | Duely through RTK Query                     | RTK cache is not persisted                        |
+| Own draft                      | codeEditor/Monaco until accepted by Duely   | own code/language persisted                       |
+| Opponent draft                 | Duely event/detail projection               | not persisted                                     |
 
 ## Failure handling
 
-Safe reads reconcile after every open. Ticket, constructor, established socket,
-and health failures automatically retry; the modal exposes an immediate retry
-without `window.location.reload()`. A malformed or future event cannot escape
-the router into unrelated handlers. Handler exceptions are caught per handler
-so one domain failure does not stop dispatch of later messages. Reconnect cannot
-provide exactly-once delivery because the backend emits no cursor/replay.
+Safe reads reconcile after every open, and active-duel polling protects the
+searching workflow when an event is missed. Ticket, constructor, established
+socket, and health failures automatically retry; the modal exposes an immediate
+retry without `window.location.reload()`. A malformed or future event cannot
+escape the router into unrelated handlers. Handler exceptions are caught per
+handler so one domain failure does not stop dispatch of later messages.
+Reconnect cannot provide exactly-once delivery because the backend emits no
+cursor/replay.
 
 ## Reload and multiple tabs
 
@@ -156,11 +160,12 @@ formal cross-tab owner or backend multi-connection support is still required.
 
 ## Test coverage
 
-Vitest covers HTTP/HTTPS URL selection, established disconnect/reconnect with
-backoff, ticket abort and listener/timer cleanup, flat/enveloped validation,
-malformed/unknown events, duplicate/out-of-order cursors, handler isolation,
-publisher throttle/dedup/retry, initial-open reconciliation, manual reconnect,
-logout cleanup, and same-runtime user-session replacement.
+Vitest covers authenticated realtime identity, HTTP/HTTPS URL selection,
+established disconnect/reconnect with backoff, ticket abort and listener/timer
+cleanup, flat/enveloped validation, malformed/unknown events,
+duplicate/out-of-order cursors, handler isolation, publisher
+throttle/dedup/retry, initial-open reconciliation, manual reconnect, logout
+cleanup, and same-runtime user-session replacement.
 
 Browser/E2E coverage is still needed for a real Nginx HTTPS socket, offline and
 backend restart, multi-tab replacement, server cleanup races, and end-to-end
@@ -168,11 +173,12 @@ domain refetches.
 
 ## Current guarantees
 
-One cache entry owns one socket lifecycle for one user ID; transport has no
-business-cache knowledge; established failures retry without page reload;
-HTTPS selects `wss:`; every open runs broad HTTP reconciliation; known events
-are runtime-validated; supplied cursors deduplicate/order numeric events;
-cleanup removes owned sockets, requests, listeners, intervals, and timeouts.
+One manager effect owns one socket lifecycle for one authenticated user ID;
+transport has no business-cache knowledge; established failures retry without
+page reload; HTTPS selects `wss:`; every open runs broad HTTP reconciliation;
+known events are runtime-validated; supplied cursors deduplicate/order numeric
+events; searching also polls active-duel state; cleanup removes owned sockets,
+requests, listeners, intervals, and timeouts.
 
 These guarantees do not imply replay, server acknowledgement, exactly-once
 events, or safe simultaneous tabs.
