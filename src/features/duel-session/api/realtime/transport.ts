@@ -141,6 +141,7 @@ export class RealtimeTransport {
             return;
         }
 
+        const wasOpen = this.snapshot.status === "open";
         this.generation += 1;
         this.clearReconnectTimer();
         this.clearConnectionTimer();
@@ -148,6 +149,18 @@ export class RealtimeTransport {
         this.connectAbortController = null;
         this.closeSocket();
         this.retryAttempt = 0;
+
+        if (wasOpen) {
+            this.emitState({
+                status: "waiting",
+                attempt: 0,
+                connectedAt: null,
+                lastMessageAt: this.snapshot.lastMessageAt,
+                retryDelayMs: 0,
+                reason: "reconnect-requested",
+            });
+        }
+
         void this.connect();
     }
 

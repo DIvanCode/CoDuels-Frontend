@@ -119,4 +119,38 @@ describe("RealtimeTransport", () => {
         expect(removed).toBe(true);
         expect(vi.getTimerCount()).toBe(0);
     });
+
+    it("reports an established socket as disconnected before an immediate reconnect", async () => {
+        vi.useFakeTimers();
+        const sockets: FakeSocket[] = [];
+        const states: string[] = [];
+        let onlineListener: () => void = () => undefined;
+        const transport = new RealtimeTransport({
+            requestTicket: vi.fn(async () => "ticket"),
+            buildUrl: () => "wss://example.test/connect",
+            createSocket: () => {
+                const socket = new FakeSocket();
+                sockets.push(socket);
+                return socket;
+            },
+            subscribeOnline: (listener) => {
+                onlineListener = listener;
+                return () => undefined;
+            },
+        });
+        transport.subscribeState((snapshot) => states.push(snapshot.status));
+
+        transport.start();
+        await flushPromises();
+        sockets[0].open();
+
+        onlineListener();
+        await flushPromises();
+
+        expect(sockets[0].closed).toBe(true);
+        expect(sockets).toHaveLength(2);
+        expect(states.slice(-3)).toEqual(["open", "waiting", "connecting"]);
+
+        transport.stop();
+    });
 });
