@@ -2,10 +2,11 @@ export { SubmitCodeButton } from "./ui/SubmitCodeButton";
 export { FileLoader } from "shared/ui";
 
 export {
+    submitCodeApiSlice,
     useSubmitCodeMutation,
     useGetSubmissionsQuery,
     useGetSubmissionDetailQuery,
-} from "./api/submitCodeApi";
+} from "entities/submission";
 
 export { POOLING_INTERVAL } from "./lib/consts";
 
@@ -14,4 +15,4 @@ export type {
     SubmissionDetail,
     SubmitCodeRequestData,
     SubmissionStatus,
-} from "./model/types";
+} from "entities/submission";

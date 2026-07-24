@@ -31,42 +31,42 @@ matching/task notification state; null clears event/task state but does not
 itself set phase.
 
 `resetDuelSession` clears every field including unpersisted interrupted/task
-state. Logout manager invokes it. Socket close resets searching to idle and
-marks interrupted; finish resets before invalidating duel/user. Direct duel
-route does not set phase/ID.
+state. Logout and same-runtime user changes invoke it. A disconnected socket
+resets searching to idle because Duely cancels pending state on connection
+cleanup, then automatic reconnect begins. Finish resets only when its duel ID is
+the current active ID, so a duplicate or delayed finish cannot clear another
+active duel.
 
-Home subscribes to `getActiveDuel`. Fulfillment writes `activeDuelId` but the
-extra reducer merely calls `restoreDuelSession(...)` as a function, creating a
-thunk action object that is not dispatched. Manager later dispatches restore
-only when `user && activeDuelId && phase==idle`; it GETs the duel and sets active
-only if `InProgress`, otherwise resets. If persisted phase is already active or
-searching, that manager check does not run. A 404 active query resets only when
-phase is currently active.
+The globally mounted realtime session runs `/duels/active` after every initial
+connect and reconnect. An in-progress result promotes the session to active;
+404 resets provisional persisted active/searching state. The manager also owns
+the active-duel query and polls it every two seconds while locally searching,
+so a missed start event still promotes the session without waiting for a socket
+reconnect. Its fulfilled reducer performs the active transition directly. The
+manager's detail restore remains a pre-connect recovery path for
+`idle + activeDuelId`.
 
-On Navigation Timing `reload`, manager converts persisted searching/no active ID
-to idle without calling cancel. Browser reopen/history navigation is not treated
-as reload. Navigation from searching to active happens only in mounted Home
-waiting effect or DuelSessionButton; events received on another page only update
-Redux.
+`setPhase("searching")` is ignored once an active ID exists. This fences the
+race where an early `DuelStarted` arrives before the search/accept HTTP response
+and that later response tries to put the already-active session back into
+searching. Navigation from searching to active still belongs to mounted workflow
+components; the socket manager itself does not navigate.
 
 ```mermaid
 sequenceDiagram
     participant B as Browser reload
     participant S as persisted duelSession
     participant M as Manager
-    participant H as Home/getActiveDuel
+    participant R as Realtime initial sync
     participant D as Duely
     B->>S: rehydrate phase/activeDuelId
     S-->>M: provisional session
-    alt phase idle + activeDuelId
-        M->>D: GET /duels/:id via restore thunk
-        D-->>M: InProgress/finished/error
-        M->>S: active or reset
-    else Home mounted
-        H->>D: GET /duels/active
-        D-->>H: active or 404
-        H->>S: set ID; reducer's thunk call is not dispatched
-    end
+    M->>D: ticket + WebSocket
+    D-->>M: socket open
+    M->>R: reconcile current user
+    R->>D: GET /duels/active
+    D-->>R: active or 404
+    R->>S: active or reset provisional state
 ```
 
 ## Client state transitions
@@ -75,8 +75,7 @@ sequenceDiagram
 - `DuelStarted`: `idle|searching -> active`, non-null active ID.
 - cancel success/socket close while searching: `searching -> idle`.
 - finish/logout/reset: `active|searching|idle -> idle`, ID null.
-- `getActiveDuel` can create `phase unchanged + activeDuelId non-null`, including
-  inconsistent `searching + ID`.
+- `getActiveDuel` creates the consistent `active + activeDuelId` transition.
 
 ## Backend state assumptions
 
@@ -87,12 +86,12 @@ not compared with backend pending rows.
 
 ## State ownership
 
-| State | Owner/source of truth | Redux | RTK Query | local state | sessionStorage | localStorage | Survives reload |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Pending/search | Duely; client phase cache | duelSession | invitation lists | No | waiting flag | `persist:duelSession` | Yes, conditionally reset |
-| Active duel | Duely | ID/phase | active/detail | No | No | persisted ID/phase | Yes |
-| Matching fields | client correlation | duelSession | invitation DTOs | No | No | persisted | Yes |
-| Interrupted/task notifications | client | duelSession | Duel data | manager/modals | No | Not whitelisted | No |
+| State                          | Owner/source of truth     | Redux       | RTK Query        | local state    | sessionStorage | localStorage          | Survives reload          |
+| ------------------------------ | ------------------------- | ----------- | ---------------- | -------------- | -------------- | --------------------- | ------------------------ |
+| Pending/search                 | Duely; client phase cache | duelSession | invitation lists | No             | waiting flag   | `persist:duelSession` | Yes, conditionally reset |
+| Active duel                    | Duely                     | ID/phase    | active/detail    | No             | No             | persisted ID/phase    | Yes                      |
+| Matching fields                | client correlation        | duelSession | invitation DTOs  | No             | No             | persisted             | Yes                      |
+| Interrupted/task notifications | client                    | duelSession | Duel data        | manager/modals | No             | Not whitelisted       | No                       |
 
 ## UI effects
 
@@ -103,29 +102,33 @@ close can show idle Home plus blocking interruption modal.
 
 ## Network effects
 
-Start/cancel/accept mutations precede most local phase changes. Manager/ Home
-perform active/detail GETs. Socket events invalidate duel data. No pending-state
-polling, replay, or automatic post-close socket reconnect exists.
+Start/cancel/accept mutations precede most local phase changes. Manager performs
+active/detail GETs and polls the active endpoint while searching. Socket events
+invalidate duel data. Post-close reconnect is automatic with backoff, and every
+open performs active-session and broad cache reconciliation. There is still no
+pending-status endpoint or event replay.
 
 ## Idempotency and duplicate handling
 
-Repeated assignments are syntactically allowed, but duplicate/old events are
-not identified. Multiple HTTP requests can create/cancel competing backend
-state. Reset is idempotent locally. Persisted state has no generation/user ID.
+Supplied event IDs are deduplicated and numeric cursors are monotonic. Current
+Duely sends no cursor, so relevance checks protect active transitions and reset
+is locally idempotent. Multiple HTTP requests can still create/cancel competing
+backend state. Persisted state has no user ID, but the runtime socket lifecycle
+is keyed and fenced by the current authenticated user ID.
 
 ## Ordering assumptions
 
-HTTP mutation success is assumed before related socket event. Early start can
-be overwritten by later `setPhase(searching)`. Finish is assumed to concern the
-current active duel. Home navigation assumes phase transition occurs after the
-watcher mounts.
+HTTP mutation success is usually observed before the related socket event. An
+early start cannot be overwritten by a later `setPhase(searching)` once the
+active ID is present. Finish is assumed to concern the current active duel. Home
+navigation assumes phase transition occurs after the watcher mounts.
 
 ## Failure handling
 
-Mutation errors generally leave prior phase. Lost success response leaves
-backend changed/local unchanged. Missed start leaves searching; missed finish
-leaves active. A stale active ID may be repaired only in specific Home/idle/404
-paths. Searching can exist indefinitely after browser reopen.
+Mutation errors generally leave prior phase. Lost success responses and missed
+start events are repaired by the searching-time `/duels/active` poll or the next
+connect/reconnect sync. Pending invitation/search state still has no complete
+backend status query.
 
 ## Reload and multiple tabs
 
@@ -144,9 +147,10 @@ finish/logout does not update another except through backend events/storage race
 
 ## Test coverage
 
-- **Existing tests/MSW:** none.
-- **Needed unit/integration:** every reducer invariant, ineffective thunk call,
-  active query/restore matrix, duplicate/out-of-order events, early start.
+- **Existing tests:** realtime integration covers connect/reconcile, disconnect,
+  retry, duplicate/unknown events, logout cleanup, and user-session replacement.
+- **Needed unit/integration:** remaining reducer invariants and full active-query/
+  restore error matrices.
 - **Needed browser/E2E:** all three phases, reload/reopen/direct URL, response
   loss, missed start/finish, logout/disconnect, active event on other page, and
   two tabs.
@@ -154,17 +158,17 @@ finish/logout does not update another except through backend events/storage race
 ## Current guarantees
 
 Only three phase strings compile; whitelisted session fields survive reload;
-non-null active ID via its reducer promotes idle/searching to active; reset
-clears all session fields; Home supplies the only active-duel query on its mount.
+non-null active ID promotes idle/searching to active; reset clears all session
+fields; every socket open globally reconciles `/duels/active`; searching polls
+the same authoritative endpoint every two seconds.
 
 ## Open questions
 
-Phase invariants, global navigation, pending reconciliation, restore trigger,
-browser-reopen behavior, event relevance, and multi-tab authority are undefined.
+Global navigation, a backend pending-state query, browser reopen before socket
+open, cursorless event relevance, and multi-tab authority remain undefined.
 
 ## Proposed requirements
 
-Represent backend-verified session generation/type; reconcile active and pending
-state globally after rehydration/reconnect; dispatch restore correctly; make
-transitions event/order safe; navigate by an explicit global policy; and test
-every persisted/inconsistent state.
+Represent backend-verified pending generation/type, publish event revisions,
+navigate by an explicit global policy, scope persistence by user, and test every
+persisted/inconsistent state in a browser environment.

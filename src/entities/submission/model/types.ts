@@ -12,10 +12,7 @@ export interface SubmissionItem {
     submission_id: number;
     status: SubmissionStatus;
     language: ApiLanguageValue;
-    author?: {
-        id: number;
-        nickname: string;
-    };
+    author?: { id: number; nickname: string };
     created_at: string;
     message?: string | null;
     verdict?: string | null;

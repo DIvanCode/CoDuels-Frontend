@@ -44,8 +44,10 @@ temporary offline `FETCH_ERROR` can turn into logout. Refresh itself is excluded
 from recursive refresh.
 
 Header logout only dispatches `auth/logout`. Code editor also listens and clears;
-manager observes `user=null`, resets duel session and unsubscribes; token change
-clears anti-cheat queue. RTK Query cache, Home/run/code-tab sessionStorage,
+manager derives its realtime identity from both token and user ID, so logout or
+a missing token stops the socket and a later valid token starts it; user changes
+also reset duel session. Token change clears the anti-cheat queue. RTK
+Query cache, Home/run/code-tab sessionStorage,
 result flags, and local configuration cache are not explicitly cleared. Theme
 survives.
 
@@ -84,13 +86,13 @@ decode exists. Backend logout/revocation endpoint is not called.
 
 ## State ownership
 
-| State | Owner/source of truth | Redux | RTK Query | local state | sessionStorage | localStorage | Survives reload |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Access/refresh token | Duely-issued/client held | auth | No | No | No | `persist:auth` | Yes |
-| Current user snapshot | Duely `iam` | auth | getMe cache | No | No | `persist:auth` | Yes |
-| Refresh lock | one JS module/tab | No | No | module mutex | No | No | No |
-| Login form/status | component | No | mutation state | Yes | No | No | No |
-| Old API data | backend snapshots | API reducer | Yes | No | No | No | Until page refresh/cache expiry |
+| State                 | Owner/source of truth    | Redux       | RTK Query      | local state  | sessionStorage | localStorage   | Survives reload                 |
+| --------------------- | ------------------------ | ----------- | -------------- | ------------ | -------------- | -------------- | ------------------------------- |
+| Access/refresh token  | Duely-issued/client held | auth        | No             | No           | No             | `persist:auth` | Yes                             |
+| Current user snapshot | Duely `iam`              | auth        | getMe cache    | No           | No             | `persist:auth` | Yes                             |
+| Refresh lock          | one JS module/tab        | No          | No             | module mutex | No             | No             | No                              |
+| Login form/status     | component                | No          | mutation state | Yes          | No             | No             | No                              |
+| Old API data          | backend snapshots        | API reducer | Yes            | No           | No             | No             | Until page refresh/cache expiry |
 
 ## UI effects
 
@@ -103,7 +105,8 @@ logout notice or "session expired/offline" distinction exists.
 
 Login/register/getMe use RTK base query. Refresh uses raw fetch and one replay.
 Login/register broadly invalidate User tags. Logout sends nothing and resets no
-API cache. Socket closes through subscription cleanup after auth user clears.
+API cache. Socket closes through manager effect cleanup after its authenticated
+realtime identity clears or changes.
 
 ## Idempotency and duplicate handling
 
@@ -155,7 +158,8 @@ forms remain independent; shared code/tokens use last-writer-wins persistence.
 Current access token is read for every base-query header; refresh response is
 runtime-validated; one tab has at most one mutex-owner refresh at a time;
 original request is replayed at most once by this wrapper; logout clears auth
-and editor/session through current component wiring.
+and editor/session through current component wiring; realtime starts only when
+token and user are both ready.
 
 ## Open questions
 
@@ -168,4 +172,3 @@ Validate all auth responses, distinguish offline from invalid refresh, re-read
 state after mutex wait, coordinate token rotation/logout across tabs, atomically
 reset user-owned cache/storage/session, consider HttpOnly refresh storage, and
 E2E-test concurrent expiry and user switching.
-

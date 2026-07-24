@@ -64,8 +64,8 @@ forms until a request/event/refetch exposes it.
 
 Queries fetch group lists/details/users. Mutations create, invite, accept/deny,
 change role, remove member, and leave. Tag sharing around group ID drives
-refetch. Membership WebSocket events invalidate invitation/list data but do not
-carry a fully authoritative replacement group.
+refetch. Membership and group-duel WebSocket handlers invalidate invitation and
+group projections but do not carry a fully authoritative replacement group.
 
 ## Idempotency and duplicate handling
 
@@ -126,4 +126,3 @@ selection should persist are not specified.
 Return per-invite outcomes and expose retry; model permission failures globally;
 version role/status contracts; invalidate or push access changes consistently;
 and test backend authorization independently of visible UI controls.
-

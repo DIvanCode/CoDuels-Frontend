@@ -1,4 +1,5 @@
 export {
+    duelInvitationApiSlice,
     useAcceptDuelInvitationMutation,
     useAcceptGroupDuelInvitationMutation,
     useAcceptTournamentDuelInvitationMutation,
@@ -9,4 +10,4 @@ export {
     useGetDuelInvitationsQuery,
     useLazyGetDuelInvitationsQuery,
 } from "./api/duelInvitationApi";
-export type { DuelInvitation } from "./model/types";
+export type { DuelInvitation, PendingDuelType } from "./model/types";

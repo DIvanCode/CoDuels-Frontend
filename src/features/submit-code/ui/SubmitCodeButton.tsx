@@ -1,6 +1,6 @@
 ﻿import { Button } from "shared/ui";
 import SubmitCodeIcon from "shared/assets/icons/submit-code.svg?react";
-import { useSubmitCodeMutation } from "features/submit-code/api/submitCodeApi";
+import { useSubmitCodeMutation } from "entities/submission";
 import { selectCurrentUser } from "entities/user";
 import { trackSubmitSolutionAction } from "features/anti-cheat";
 import type { LanguageValue } from "shared/config";

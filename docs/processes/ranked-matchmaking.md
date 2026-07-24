@@ -102,9 +102,11 @@ event ID, search generation, or compare-and-set transition.
 ## Failure handling
 
 A lost successful start response leaves the backend searching while the client
-stays idle. A lost successful cancel response leaves the client searching. On
-socket close, local search is reset; backend disconnect handling is expected to
-cancel pending work. There is no status endpoint dedicated to reconciliation.
+stays idle. A lost successful cancel response leaves the client searching. A
+failed ticket/constructor/connect attempt before the first socket open preserves
+local searching state. After an established socket closes, local search is reset;
+backend disconnect handling is expected to cancel pending work. There is no
+status endpoint dedicated to reconciliation.
 
 ## Reload and multiple tabs
 
@@ -146,4 +148,3 @@ defined in the client contract.
 Expose a backend session/search identifier and status query; make transitions
 generation-aware and order-independent; disable/serialize duplicate actions;
 reconcile after reload/reconnect; and define one global navigation policy.
-

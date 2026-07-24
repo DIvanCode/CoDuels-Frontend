@@ -1,5 +1,6 @@
 import { apiSlice } from "shared/api";
-import { SubmissionDetail, SubmissionItem, SubmitCodeRequestData } from "../model/types";
+
+import type { SubmissionDetail, SubmissionItem, SubmitCodeRequestData } from "../model/types";
 
 interface SubmissionsQueryArg {
     duelId: string;
@@ -7,10 +8,7 @@ interface SubmissionsQueryArg {
 }
 
 const normalizeSubmissionsArg = (arg: string | SubmissionsQueryArg) => {
-    if (typeof arg === "string") {
-        return { duelId: arg, taskKey: null };
-    }
-
+    if (typeof arg === "string") return { duelId: arg, taskKey: null };
     return arg;
 };
 
@@ -29,32 +27,29 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
             async onQueryStarted({ duelId, data, taskKey }, { dispatch, queryFulfilled }) {
                 try {
                     const { data: result } = await queryFulfilled;
-
                     dispatch(
                         submitCodeApiSlice.util.updateQueryData(
                             "getSubmissions",
                             { duelId, taskKey: taskKey ?? null },
                             (draft) => {
                                 const exists = draft.some(
-                                    (s) => String(s.submission_id) === String(result.id),
+                                    (submission) =>
+                                        String(submission.submission_id) === String(result.id),
                                 );
-                                if (!exists) {
-                                    const newSubmission: SubmissionItem = {
-                                        submission_id: result.id,
-                                        status: result.status ?? "Queued",
-                                        language: result.language ?? data.language,
-                                        created_at: result.created_at ?? new Date().toISOString(),
-                                        message: result.message ?? null,
-                                        verdict: result.verdict ?? null,
-                                        is_upsolving: result.is_upsolving ?? false,
-                                    };
-                                    draft.unshift(newSubmission);
-                                }
+                                if (exists) return;
+                                draft.unshift({
+                                    submission_id: result.id,
+                                    status: result.status ?? "Queued",
+                                    language: result.language ?? data.language,
+                                    created_at: result.created_at ?? new Date().toISOString(),
+                                    message: result.message ?? null,
+                                    verdict: result.verdict ?? null,
+                                    is_upsolving: result.is_upsolving ?? false,
+                                });
                             },
                         ),
                     );
                 } catch (error) {
-                    // Silently ignore optimistic cache update failure
                     console.debug("submitCode onQueryStarted failed", error);
                 }
             },
@@ -82,23 +77,17 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
             },
             merge: (currentCache, newItems) => {
                 if (!currentCache) return newItems;
-
                 const resultMap = new Map<string, SubmissionItem>();
-
                 currentCache.forEach((item) => {
                     resultMap.set(String(item.submission_id), item);
                 });
-
-                newItems.forEach((newItem) => {
-                    resultMap.set(String(newItem.submission_id), newItem);
+                newItems.forEach((item) => {
+                    resultMap.set(String(item.submission_id), item);
                 });
-
                 return Array.from(resultMap.values());
             },
             forceRefetch: ({ currentArg, previousArg }) => {
-                if (!currentArg || !previousArg) {
-                    return true;
-                }
+                if (!currentArg || !previousArg) return true;
                 const current = normalizeSubmissionsArg(currentArg);
                 const previous = normalizeSubmissionsArg(previousArg);
                 return current.duelId !== previous.duelId || current.taskKey !== previous.taskKey;
@@ -123,17 +112,17 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                             "getSubmissions",
                             { duelId, taskKey: null },
                             (draft) => {
-                                const submissionIndex = draft.findIndex(
-                                    (s) => String(s.submission_id) === String(submissionId),
+                                const index = draft.findIndex(
+                                    (submission) =>
+                                        String(submission.submission_id) === String(submissionId),
                                 );
-                                if (submissionIndex !== -1) {
-                                    draft[submissionIndex] = {
-                                        ...draft[submissionIndex],
-                                        status: data.status,
-                                        message: data.message,
-                                        verdict: data.verdict,
-                                    };
-                                }
+                                if (index === -1) return;
+                                draft[index] = {
+                                    ...draft[index],
+                                    status: data.status,
+                                    message: data.message,
+                                    verdict: data.verdict,
+                                };
                             },
                         ),
                     );

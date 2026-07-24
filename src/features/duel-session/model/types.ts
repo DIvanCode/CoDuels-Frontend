@@ -1,4 +1,4 @@
-import type { PendingDuelType } from "entities/duel-invitation/model/types";
+import type { PendingDuelType } from "entities/duel-invitation";
 
 export interface DuelMessage {
     duel_id: number;
@@ -7,6 +7,7 @@ export interface DuelMessage {
 export interface DuelSessionState {
     activeDuelId: number | null;
     phase: DuelSessionPhase;
+    pendingStartedInCurrentRuntime: boolean;
     lastEventId: string | null;
     searchNickname: string | null;
     searchConfigurationId: number | null;

@@ -1,4 +1,4 @@
-import { SubmissionStatus } from "features/submit-code";
+import type { SubmissionStatus } from "features/submit-code";
 import { fromApiLanguage, LanguageValue } from "shared/config";
 
 const formatDate = (dateString: string): string => {

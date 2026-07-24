@@ -1,4 +1,4 @@
-import { SubmissionItem } from "features/submit-code";
+import type { SubmissionItem } from "features/submit-code";
 import { useNavigate } from "react-router-dom";
 import { fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { ResultTitle, Badge } from "shared/ui";

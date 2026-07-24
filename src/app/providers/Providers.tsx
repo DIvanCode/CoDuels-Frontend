@@ -5,9 +5,13 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { Fallback } from "shared/ui";
 
+const reportApplicationError = (error: Error, info: { componentStack?: string | null }) => {
+    console.error("Application error boundary caught", error, info.componentStack);
+};
+
 export const Providers = ({ children }: PropsWithChildren) => {
     return (
-        <ErrorBoundary FallbackComponent={Fallback}>
+        <ErrorBoundary FallbackComponent={Fallback} onError={reportApplicationError}>
             <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
                     {children}

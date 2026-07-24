@@ -29,12 +29,13 @@ strategies include `SingleEliminationBracket` and `GroupStage`.
 Creation uses four component-state steps and posts participant nicknames plus
 configuration. Success invalidates the group tournament tag. Detail is cached by
 tournament ID; start invalidates both entity and group list. Start UI is visible
-for `New` to current Creator/Manager. A `TournamentDuelInvitation` invalidates
-duel-invitation data, not tournament detail. Acceptance invalidates tournament
-entity and invitations, then persists opponent/config/type/tournament ID,
-sets Home waiting, and awaits `DuelStarted`. Finishing a duel invalidates duel and
-current user, but not tournament tags; bracket data can remain stale. There is
-no automatic return to the originating tournament.
+for `New` to current Creator/Manager. A validated
+`TournamentDuelInvitation` invalidates duel-invitation and tournament
+projections. Acceptance invalidates tournament entity and invitations, then
+persists opponent/config/type/tournament ID, sets Home waiting, and awaits
+`DuelStarted`. Finishing a duel invalidates duel, current user, and all active
+tournament projections so bracket data refetches. There is no automatic return
+to the originating tournament.
 
 ```mermaid
 sequenceDiagram
@@ -49,8 +50,8 @@ sequenceDiagram
     D-->>P: Success then DuelStarted
     P->>P: Navigate duel through local watcher
     D-->>P: DuelFinished
-    Note over T: Current handler does not invalidate tournament
-    P->>T: Later remount/refetch may refresh bracket
+    D-->>T: Invalidate active tournament projections
+    T->>D: Refetch active bracket/detail subscriptions
 ```
 
 ## Client state transitions
@@ -82,8 +83,8 @@ status after another duel finishes until a refetch/remount or matching mutation.
 ## Network effects
 
 Queries use entity ID and group-scoped tags. Create/start/accept mutate Duely.
-Reconnect invalidates generic `Tournament/LIST`, which does not match the
-provided entity or `GROUP-{id}` tags, so it does not guarantee bracket refresh.
+Reconnect and duel-finish handling invalidate the complete `Tournament` tag
+type, matching entity and `GROUP-{id}` projections.
 
 ## Idempotency and duplicate handling
 
@@ -94,8 +95,9 @@ accept/start relies on backend state conflict handling.
 ## Ordering assumptions
 
 The client assumes start response/refetch follows backend transition and accept
-response precedes `DuelStarted`. Tournament detail refresh is not ordered with
-`DuelFinished`; without invalidation, cached data can precede the result.
+response precedes `DuelStarted`. Tournament detail refetch is triggered by
+`DuelFinished`, but without an entity revision a late HTTP response can still
+precede or overwrite another concurrent transition.
 
 ## Failure handling
 
@@ -120,7 +122,8 @@ start/accept concurrently and hold independently stale bracket caches.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** realtime router/session tests cover validated event
+  isolation and reconnect reconciliation entry.
 - **Needed integration:** role/status matrix, both strategies, exact tags/events,
   duplicate start/accept, bracket refresh after finish, cancellation fields.
 - **Needed E2E:** full create/start/round flow, participant acceptance, reload
@@ -143,4 +146,3 @@ undefined.
 Push or invalidate a versioned tournament revision after every relevant duel;
 align reconnect tags; preserve explicit origin; include tournament/invitation ID
 in all events; and make create/start/accept idempotent and order-safe.
-

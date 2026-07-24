@@ -49,29 +49,32 @@ flowchart TD
     gate --> route["Router renders persisted route/session"]
     gate --> empty["RTK cache, socket, opponent, snapshots empty"]
     empty --> auth["getMe on protected route"]
-    empty --> socket["new ticket + WebSocket"]
+    empty --> socket["new user-keyed ticket + WebSocket"]
     route --> active{"activeDuelId/phase combination"}
     active -- idle + ID --> restore["manager dispatches restore"]
-    active -- active + ID --> retained["no guaranteed global active-duel reconciliation"]
-    active -- searching + no ID --> reset["reset local phase to idle"]
+    active -- active + ID --> provisional["provisional until socket initial sync"]
+    active -- same-runtime searching --> provisional
+    active -- rehydrated searching + no runtime marker --> staleSearch["clear on active-duel 404"]
     auth --> queries["mounted pages refetch selectively"]
-    socket --> invalidate["partial tag invalidation"]
+    socket --> invalidate["broad tag invalidation + GET active duel"]
 ```
 
 ## Client state transitions
 
-Rehydration restores only whitelisted fields. Manager can restore active phase
-when an ID exists with idle; a thunk invocation inside an extraReducer is
-ineffective unless later dispatched by the manager. Reload resets searching/no
-active to idle without backend verification. New HTTP/events then overwrite
-parts of restored state.
+Rehydration restores only whitelisted fields. The unpersisted
+`pendingStartedInCurrentRuntime` marker is therefore false after reload. Manager
+can restore active phase when an ID exists with idle. Active-duel polling and
+every socket-open reconciliation promote an active result; a 404 clears stale
+active state and rehydrated `searching`, while preserving a pending
+search/invitation started through `setPhase("searching")` in the current runtime.
+New HTTP/events then overwrite other provisional projections.
 
 ## Backend state assumptions
 
 Duely is authoritative for auth, pending/active duel, domain entities and socket
-ownership. Persisted client fields are not proof. Current reconciliation is
-selective: Home queries active duel, while direct routes or stale searching state
-do not always perform equivalent verification.
+ownership. Persisted client fields are not proof. The globally mounted realtime
+lifecycle now reconciles the active duel on every open; no equivalent endpoint
+yet verifies each pending invitation/search type.
 
 ## State ownership
 
@@ -82,14 +85,16 @@ navigation; backend owns domain truth. No explicit arbiter merges these scopes.
 ## UI effects
 
 PersistGate produces a blank gate until rehydrated. Stored phase/forms can show
-stale searching/waiting/modals. Empty RTK cache produces loaders/refetches.
+stale searching/waiting/modals until the first active-duel 404 clears a restored
+search. Empty RTK cache produces loaders/refetches.
 Another tab's logout, finish, role change, or code edit is not immediately
 reflected unless backend/socket/storage side effects happen to expose it.
 
 ## Network effects
 
 Each tab independently calls `getMe`, opens a ticket/socket, subscribes queries,
-refreshes tokens, and sends code/actions. Socket open invalidation is incomplete.
+refreshes tokens, and sends code/actions. Socket open invalidates complete tag
+types and forces active-duel sync.
 No cross-tab request leader exists, increasing duplicate starts/accepts/submits.
 
 ## Idempotency and duplicate handling
@@ -108,8 +113,9 @@ events have no shared order or generation.
 
 Corrupt custom-storage values fall back; schemas/migrations are absent. Offline
 refresh can log out. Crash/unload loses queues and final code/status knowledge.
-There is no unified stale-session screen; the socket interruption modal offers
-full reload as recovery.
+The socket interruption modal reports automatic retry and offers immediate
+reconnect; it no longer reloads the page. Pending-state reconciliation remains
+partial.
 
 ## Reload and multiple tabs
 
@@ -128,7 +134,9 @@ values can be shown under a subsequently logged-in different user.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** realtime integration covers initial open, disconnect,
+  reconnect, logout cleanup, same-runtime user-session replacement, and the
+  distinction between current-runtime and rehydrated pending searches.
 - **Needed integration:** every whitelist/key/reset, corrupted/old schemas,
   protected-route reconciliation, active/searching combinations, storage errors.
 - **Needed multi-context E2E:** two tabs login/logout/refresh/socket, edit/search/
@@ -151,4 +159,3 @@ unsettled.
 Treat restored state as explicitly unverified; reconcile auth/session globally;
 scope/version/purge all storage by user; coordinate tabs and socket leadership;
 fence stale writers; make mutations idempotent; test a formal reload/tab matrix.
-

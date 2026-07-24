@@ -1,7 +1,6 @@
 ﻿import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useGetActiveDuelQuery } from "entities/duel";
 import type { DuelConfiguration } from "entities/duel-configuration";
 import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
 import {
@@ -142,8 +141,6 @@ const HomePage = () => {
     const [denyGroupInvitation, { isLoading: isDenyingGroupInvitation }] =
         useDenyGroupInvitationMutation();
     const [startDuelSearch] = useStartDuelSearchMutation();
-    useGetActiveDuelQuery(undefined, { skip: !user });
-
     useEffect(() => {
         if (!user?.id) return;
         // Duel invitations are loaded via useGetDuelInvitationsQuery per type.

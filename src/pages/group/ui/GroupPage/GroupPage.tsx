@@ -26,8 +26,10 @@ import {
 import {
     setPhase,
     setSearchConfigurationId,
+    setSearchInvitationType,
     setSearchNickname,
-} from "features/duel-session/model/duelSessionSlice";
+    setSearchTournamentId,
+} from "features/duel-session";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import EditIcon from "shared/assets/icons/edit.svg?react";
@@ -67,7 +69,8 @@ const tournamentMatchmakingOptions: Array<{
     {
         value: "GroupStage",
         title: "Group Stage",
-        description: "Каждый участник играет дуэль с каждым. Победа дает 3 очка, ничья - 1, поражение - 0.",
+        description:
+            "Каждый участник играет дуэль с каждым. Победа дает 3 очка, ничья - 1, поражение - 0.",
     },
 ];
 
@@ -679,6 +682,8 @@ const GroupPage = () => {
 
             dispatch(setSearchNickname(opponentNickname));
             dispatch(setSearchConfigurationId(configurationId ?? null));
+            dispatch(setSearchInvitationType("Group"));
+            dispatch(setSearchTournamentId(null));
             dispatch(setPhase("searching"));
             sessionStorage.setItem("home.waitingForStart", JSON.stringify(true));
             navigate(AppRoutes.INDEX);
