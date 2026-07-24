@@ -31,6 +31,8 @@ pending invitations using argument `Ranked`, although the backend domain calls
 them friendly; its transform labels the returned item `Ranked`. Direct accept,
 group-duel accept, and tournament accept wait for HTTP success, persist selected
 matching fields, set Home's `waitingForStart`, and wait for `DuelStarted`.
+Group-duel acceptance from either Home or the group page records the `Group`
+pending type so a group cancellation cannot clear a simultaneous direct flow.
 Only direct invitations expose deny on Home. Group membership accept/deny updates
 membership caches but accept does not navigate to the group.
 
@@ -58,8 +60,10 @@ sequenceDiagram
 
 Create/accept moves `idle -> searching`; `DuelStarted` moves to `active`.
 Cancellation/denial returns to idle only when event nickname/configuration and,
-for tournaments, tournament ID match persisted fields. Group acceptance does
-not persist group ID/type, so otherwise-identical group invitations are
+for tournaments, tournament ID match persisted fields. Cancellation additionally
+requires the pending invitation family to match (`Friendly`/`Ranked`, `Group`,
+or `Tournament`). Group events still expose a group name rather than a stable
+group invitation ID, so otherwise-identical invitations from two groups remain
 ambiguous. The HTTP/event ordering race is the same as ranked matchmaking.
 
 ## Backend state assumptions

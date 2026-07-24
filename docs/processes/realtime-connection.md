@@ -54,9 +54,10 @@ Every transition to `open` resets the solution publisher and starts one
 authoritative initial sync. Initial sync broadly invalidates all active Duel,
 DuelConfiguration, DuelInvitation, Group, GroupInvitation, Submission,
 Tournament, and User projections, then force-reads `/duels/active`. An active
-duel promotes the session to `active`; a backend 404 resets stale active or
-searching state. The result is accepted only while the same user ID still owns
-the session. Independently, the globally mounted manager polls `/duels/active`
+duel promotes the session to `active`; a backend 404 resets stale active state
+but preserves a pending search or accepted invitation because no active duel is
+expected before `DuelStarted`. The result is accepted only while the same user
+ID still owns the session. Independently, the globally mounted manager polls `/duels/active`
 every two seconds while the local phase is `searching`. This bounded fallback
 repairs a missed `DuelStarted` event without creating a second socket.
 
@@ -137,7 +138,9 @@ also backend concerns.
 Safe reads reconcile after every open, and active-duel polling protects the
 searching workflow when an event is missed. Ticket, constructor, established
 socket, and health failures automatically retry; the modal exposes an immediate
-retry without `window.location.reload()`. A malformed or future event cannot
+retry without `window.location.reload()`. A retry before the first successful
+socket open does not clear a pending search/invitation; only a transition from
+`open` to `waiting` invokes established-disconnect cleanup. A malformed or future event cannot
 escape the router into unrelated handlers. Handler exceptions are caught per
 handler so one domain failure does not stop dispatch of later messages.
 Reconnect cannot provide exactly-once delivery because the backend emits no
@@ -165,7 +168,8 @@ Vitest covers authenticated realtime identity, HTTP/HTTPS URL selection,
 established disconnect/reconnect with backoff, ticket abort and listener/timer
 cleanup, browser timer receiver binding, flat/enveloped validation, malformed/unknown events,
 duplicate/out-of-order cursors, handler isolation, publisher
-throttle/dedup/retry, initial-open reconciliation, manual reconnect, logout
+throttle/dedup/retry, pending-state-safe initial reconciliation and pre-open retries,
+invitation-family cancellation matching, manual reconnect, logout
 cleanup, and same-runtime user-session replacement.
 
 Browser/E2E coverage is still needed for a real Nginx HTTPS socket, offline and

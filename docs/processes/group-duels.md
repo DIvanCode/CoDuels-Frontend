@@ -27,7 +27,8 @@ the invitation remains pending.
 The manager form posts the selected pair/configuration and invalidates the
 group-duel list plus invitation data. Pending rows can be accepted; active and
 finished rows link to the duel. Accepting on the group page stores opponent and
-configuration, but not the invitation type or group ID, sets
+configuration plus the `Group` invitation type (the event contract has no stable
+group ID), sets
 `home.waitingForStart=true` in sessionStorage, changes phase to searching, and
 navigates Home. Home has a parallel group-duel acceptance path. Frontend exposes
 no group-duel-specific cancellation mutation even though backend behavior has a
@@ -53,9 +54,11 @@ sequenceDiagram
 ## Client state transitions
 
 Creation updates only cached lists. Acceptance moves local session to searching;
-`DuelStarted` activates it. The group-page path lacks group/type identity, so a
-cancellation event cannot reliably select this accepted invitation. Finished
-duels remain list entries and open through the common duel route.
+`DuelStarted` activates it. A cancellation must match the stored `Group` family,
+opponent, and configuration before clearing the pending session, so it cannot
+reset an otherwise-identical direct invitation. The lack of a stable group ID in
+the event still prevents distinguishing identical invitations from two groups.
+Finished duels remain list entries and open through the common duel route.
 
 ## Backend state assumptions
 

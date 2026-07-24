@@ -63,7 +63,8 @@ flowchart TD
 Rehydration restores only whitelisted fields. Manager can restore active phase
 when an ID exists with idle. Regardless of persisted phase, every first socket
 open performs broad cache reconciliation and `/duels/active`; an active result
-promotes consistent state and 404 resets stale active/searching state. New
+promotes consistent state and 404 resets stale active state while preserving a
+pending search/invitation that has not produced a duel yet. New
 HTTP/events then overwrite other provisional projections.
 
 ## Backend state assumptions

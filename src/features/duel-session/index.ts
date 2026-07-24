@@ -9,6 +9,11 @@ export { DuelInfo } from "./ui/DuelInfo/DuelInfo";
 
 export {
     resetDuelSession,
+    setPhase,
     setDuelStatusChanged,
     setOpenedTaskKeys,
+    setSearchConfigurationId,
+    setSearchInvitationType,
+    setSearchNickname,
+    setSearchTournamentId,
 } from "./model/duelSessionSlice";

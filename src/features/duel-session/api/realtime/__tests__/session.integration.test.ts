@@ -48,6 +48,32 @@ const createPublisher = () => ({
 });
 
 describe("DuelRealtimeSession integration", () => {
+    it("preserves pending state when connection attempts fail before the first open", () => {
+        const transport = new FakeTransport();
+        const onDisconnected = vi.fn();
+        const interruptions: boolean[] = [];
+        const session = new DuelRealtimeSession({
+            transport,
+            publisher: createPublisher(),
+            router: new EventRouter({ handlers: {} }),
+            reconcile: vi.fn(),
+            onInterrupted: (value) => interruptions.push(value),
+            onDisconnected,
+        });
+
+        session.start();
+        transport.emitState("connecting");
+        transport.emitState("waiting");
+        expect(onDisconnected).not.toHaveBeenCalled();
+
+        transport.emitState("connecting");
+        transport.emitState("open");
+        transport.emitState("waiting");
+        expect(onDisconnected).toHaveBeenCalledOnce();
+        expect(interruptions).toEqual([true, false, true]);
+        session.stop();
+    });
+
     it("syncs initial state, reports disconnects, reconnects without reload, and ignores stale messages", async () => {
         const transport = new FakeTransport();
         const publisher = createPublisher();

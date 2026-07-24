@@ -68,7 +68,8 @@ export class DuelRealtimeSession {
     }
 
     private handleConnectionState(snapshot: RealtimeConnectionSnapshot) {
-        if (snapshot.status === this.lastConnectionStatus) return;
+        const previousStatus = this.lastConnectionStatus;
+        if (snapshot.status === previousStatus) return;
         this.lastConnectionStatus = snapshot.status;
 
         if (snapshot.status === "open") {
@@ -82,7 +83,9 @@ export class DuelRealtimeSession {
         }
 
         if (snapshot.status === "waiting") {
-            this.options.onDisconnected();
+            if (previousStatus === "open") {
+                this.options.onDisconnected();
+            }
             this.options.onInterrupted(true);
         }
     }

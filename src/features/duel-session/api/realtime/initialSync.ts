@@ -2,6 +2,7 @@ import { duelApiSlice } from "entities/duel";
 import { apiSlice } from "shared/api";
 
 import { resetDuelSession, setActiveDuelId } from "../../model/duelSessionSlice";
+import { hasStaleActiveSession } from "./initialSyncState";
 
 interface InitialSyncOptions {
     dispatch: AppDispatch;
@@ -48,7 +49,9 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
             }
         })
         .catch((error: unknown) => {
-            if (isCurrentUser() && isNotFound(error)) dispatch(resetDuelSession());
+            if (isCurrentUser() && isNotFound(error) && hasStaleActiveSession(getState())) {
+                dispatch(resetDuelSession());
+            }
         })
         .finally(() => request.unsubscribe());
 

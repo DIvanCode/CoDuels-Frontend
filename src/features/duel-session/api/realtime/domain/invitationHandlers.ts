@@ -8,6 +8,7 @@ import {
 import type { InvitationPayload, RealtimeEventHandlers } from "../types";
 import type { DomainEventContext } from "./context";
 import { isCurrentDomainSession } from "./context";
+import { matchesPendingInvitation, type PendingInvitationFamily } from "./invitationMatching";
 
 const invalidateInvitations = (context: DomainEventContext) => {
     if (!isCurrentDomainSession(context)) return;
@@ -16,51 +17,28 @@ const invalidateInvitations = (context: DomainEventContext) => {
     );
 };
 
-const matchesPendingInvitation = (payload: InvitationPayload, state: RootState) => {
-    const { searchNickname, searchConfigurationId, searchInvitationType, searchTournamentId } =
-        state.duelSession;
-    const payloadConfigId = payload.configuration_id ?? null;
-    const payloadTournamentId = payload.tournament_id ?? null;
-
-    if (searchInvitationType === "Tournament") {
-        if (!searchTournamentId || payloadTournamentId !== searchTournamentId) return false;
-        if (payload.opponent_nickname == null) return true;
-        return (
-            searchNickname === payload.opponent_nickname &&
-            (searchConfigurationId ?? null) === payloadConfigId
-        );
-    }
-
-    if (payloadTournamentId !== null) return false;
-    if (!payload.opponent_nickname) return false;
-
-    return (
-        searchNickname === payload.opponent_nickname &&
-        (searchConfigurationId ?? null) === payloadConfigId
-    );
-};
-
 const createCanceledHandler =
-    (context: DomainEventContext) => (event: { payload: InvitationPayload }) => {
+    (context: DomainEventContext, expectedFamily: PendingInvitationFamily) =>
+    (event: { payload: InvitationPayload }) => {
         if (!isCurrentDomainSession(context)) return;
         invalidateInvitations(context);
-        if (matchesPendingInvitation(event.payload, context.getState())) {
+        if (matchesPendingInvitation(event.payload, context.getState(), expectedFamily)) {
             context.dispatch(setPhase("idle"));
         }
     };
 
 export const createInvitationHandlers = (context: DomainEventContext): RealtimeEventHandlers => ({
     DuelInvitation: [() => invalidateInvitations(context)],
-    DuelInvitationCanceled: [createCanceledHandler(context)],
+    DuelInvitationCanceled: [createCanceledHandler(context, "direct")],
     GroupDuelInvitation: [() => invalidateInvitations(context)],
-    GroupDuelInvitationCanceled: [createCanceledHandler(context)],
+    GroupDuelInvitationCanceled: [createCanceledHandler(context, "group")],
     TournamentDuelInvitation: [() => invalidateInvitations(context)],
-    TournamentDuelInvitationCanceled: [createCanceledHandler(context)],
+    TournamentDuelInvitationCanceled: [createCanceledHandler(context, "tournament")],
     DuelInvitationDenied: [
         ({ payload }) => {
             if (!isCurrentDomainSession(context)) return;
             invalidateInvitations(context);
-            if (!matchesPendingInvitation(payload, context.getState())) return;
+            if (!matchesPendingInvitation(payload, context.getState(), "direct")) return;
 
             context.dispatch(setPhase("idle"));
             context.dispatch(setDuelCanceledOpponentNickname(payload.opponent_nickname ?? null));
