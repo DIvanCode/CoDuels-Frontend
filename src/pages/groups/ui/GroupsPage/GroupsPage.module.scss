@@ -1,4 +1,6 @@
 .groupsPage {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-md);
     display: flex;
     justify-content: center;
     padding: 2em 1.5em 3em;
@@ -40,7 +42,8 @@
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
     margin-bottom: 0;
 }
 
@@ -89,6 +92,11 @@
     background: var(--card-secondary);
 }
 
+.groupLink:focus-visible {
+    outline: 0.125em solid var(--accent-secondary);
+    outline-offset: 0.125em;
+}
+
 .groupLink {
     display: block;
     width: 100%;
@@ -114,8 +122,8 @@
 }
 
 .sectionTitle {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
 }
 
 .searchRow {

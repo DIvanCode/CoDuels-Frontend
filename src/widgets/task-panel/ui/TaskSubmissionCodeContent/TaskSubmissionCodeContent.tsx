@@ -117,6 +117,8 @@ export const TaskSubmissionCodeContent = () => {
                             triggerClassName={styles.messageDropdownTrigger}
                             menuClassName={styles.messageDropdownMenu}
                             itemClassName={styles.messageDropdownItem}
+                            triggerAriaLabel="Показать сообщение проверки"
+                            popoverRole="dialog"
                         />
                     ) : (
                         <ResultTitle variant={variant}>{displayText}</ResultTitle>

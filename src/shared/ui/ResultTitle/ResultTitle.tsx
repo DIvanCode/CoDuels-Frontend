@@ -25,9 +25,9 @@ export const ResultTitle = ({ variant, children }: PropsWithChildren<Props>) => 
     };
 
     return (
-        <div className={getClassName()}>
+        <span className={getClassName()}>
             {iconsMap[variant]}
             {children}
-        </div>
+        </span>
     );
 };

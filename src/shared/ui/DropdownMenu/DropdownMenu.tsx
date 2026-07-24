@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { assertIsNode } from "shared/lib/typeAssertions";
+import { ReactNode, useCallback, useRef, useState } from "react";
+import { useDismissibleLayer } from "shared/lib/useDismissibleLayer";
 import clsx from "clsx";
 
 import styles from "./DropdownMenu.module.scss";
@@ -20,6 +20,8 @@ interface Props {
     menuClassName?: string;
     itemClassName?: string;
     onOpenChange?: (open: boolean) => void;
+    triggerAriaLabel?: string;
+    popoverRole?: "menu" | "dialog";
 }
 
 export const DropdownMenu = ({
@@ -30,36 +32,39 @@ export const DropdownMenu = ({
     menuClassName,
     itemClassName,
     onOpenChange,
+    triggerAriaLabel,
+    popoverRole = "menu",
 }: Props) => {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const closeMenu = useCallback(() => {
+        setOpen(false);
+        onOpenChange?.(false);
+    }, [onOpenChange]);
+
+    useDismissibleLayer({
+        isOpen: open,
+        layerRef: menuRef,
+        onDismiss: closeMenu,
+        closeOnOutsidePress: true,
+    });
+
     const handleItemOnClick = (item: DropdownItem) => {
         item.onClick?.();
         if (item.closeOnClick !== false) {
-            setOpen(false);
+            closeMenu();
         }
     };
-
-    const handleClickOutside = ({ target }: MouseEvent) => {
-        assertIsNode(target);
-        if (menuRef.current && !menuRef.current.contains(target)) {
-            setOpen(false);
-            onOpenChange?.(false);
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
 
     return (
         <div ref={menuRef} className={clsx(styles.dropdown, dropdownClassName)}>
-            <div
+            <button
+                type="button"
                 className={clsx(styles.dropdownTrigger, triggerClassName)}
+                aria-label={triggerAriaLabel}
+                aria-haspopup={popoverRole}
+                aria-expanded={open}
                 onClick={() => {
                     const nextOpen = !open;
                     setOpen(nextOpen);
@@ -67,20 +72,37 @@ export const DropdownMenu = ({
                 }}
             >
                 {trigger}
-            </div>
+            </button>
             {open && (
-                <ul className={clsx(styles.dropdownMenu, menuClassName)}>
-                    {items.map((item, index) => (
-                        <li
-                            className={clsx(styles.dropdownItem, itemClassName)}
-                            key={item.id ?? index}
-                            onClick={() => handleItemOnClick(item)}
-                        >
-                            {item.icon && <span className={styles.listIcon}>{item.icon}</span>}
-                            {item.label}
-                        </li>
-                    ))}
-                </ul>
+                <div
+                    className={clsx(styles.dropdownMenu, menuClassName)}
+                    role={popoverRole}
+                    aria-label={triggerAriaLabel}
+                >
+                    {items.map((item, index) =>
+                        item.onClick ? (
+                            <button
+                                key={item.id ?? index}
+                                type="button"
+                                role={popoverRole === "menu" ? "menuitem" : undefined}
+                                className={clsx(styles.dropdownItem, itemClassName)}
+                                onClick={() => handleItemOnClick(item)}
+                            >
+                                {item.icon && <span className={styles.listIcon}>{item.icon}</span>}
+                                {item.label}
+                            </button>
+                        ) : (
+                            <div
+                                key={item.id ?? index}
+                                role={popoverRole === "menu" ? "none" : undefined}
+                                className={clsx(styles.dropdownItem, itemClassName)}
+                            >
+                                {item.icon && <span className={styles.listIcon}>{item.icon}</span>}
+                                {item.label}
+                            </div>
+                        ),
+                    )}
+                </div>
             )}
         </div>
     );

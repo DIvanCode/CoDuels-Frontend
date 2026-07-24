@@ -63,9 +63,13 @@ export const Header = () => {
             <div className={styles.right}>
                 {user && (
                     <DropdownMenu
-                        trigger={<UserCard user={user} hideInfo={Boolean(duelId)} />}
+                        trigger={
+                            <UserCard user={user} hideInfo={Boolean(duelId)} compactOnMobile />
+                        }
                         items={userMenuItems}
                         onOpenChange={setIsUserMenuOpen}
+                        triggerClassName={styles.userMenuTrigger}
+                        triggerAriaLabel={`Открыть меню пользователя ${user.nickname}`}
                     />
                 )}
             </div>

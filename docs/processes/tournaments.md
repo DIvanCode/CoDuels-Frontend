@@ -27,9 +27,12 @@ strategies include `SingleEliminationBracket` and `GroupStage`.
 ## Current behavior
 
 Creation uses four component-state steps and posts participant nicknames plus
-configuration. Success invalidates the group tournament tag. Detail is cached by
-tournament ID; start invalidates both entity and group list. Start UI is visible
-for `New` to current Creator/Manager. A validated
+configuration. The participant step separates accepted group members from
+pending membership invitations; only accepted members with a nickname are
+selectable, while pending invitees remain visible with an unavailable status.
+Success invalidates the group tournament tag. Detail is cached by tournament ID;
+start invalidates both entity and group list. Start UI is visible for `New` to
+current Creator/Manager. A validated
 `TournamentDuelInvitation` invalidates duel-invitation and tournament
 projections. Acceptance invalidates tournament entity and invitations, then
 persists opponent/config/type/tournament ID, sets Home waiting, and awaits
