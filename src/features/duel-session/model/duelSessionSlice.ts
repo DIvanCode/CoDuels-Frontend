@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { duelApiSlice, type DuelTaskRef } from "entities/duel";
 import type { PendingDuelType } from "entities/duel-invitation";
+import { shouldClearSessionAfterActiveDuelNotFound } from "./sessionFreshness";
 import { DuelSessionState, DuelSessionPhase } from "./types";
 
 const isNotFoundError = (error: unknown) =>
@@ -13,6 +14,7 @@ const isNotFoundError = (error: unknown) =>
 const initialState: DuelSessionState = {
     activeDuelId: null,
     phase: "idle",
+    pendingStartedInCurrentRuntime: false,
     lastEventId: null,
     searchNickname: null,
     searchConfigurationId: null,
@@ -24,6 +26,23 @@ const initialState: DuelSessionState = {
     sessionInterrupted: false,
     lastTasksByDuelId: {},
     openedTaskKeys: [],
+};
+
+const clearDuelSession = (state: DuelSessionState) => {
+    state.activeDuelId = null;
+    state.phase = "idle";
+    state.pendingStartedInCurrentRuntime = false;
+    state.lastEventId = null;
+    state.searchNickname = null;
+    state.searchConfigurationId = null;
+    state.searchInvitationType = null;
+    state.searchTournamentId = null;
+    state.duelCanceled = false;
+    state.duelCanceledOpponentNickname = null;
+    state.duelStatusChanged = false;
+    state.sessionInterrupted = false;
+    state.lastTasksByDuelId = {};
+    state.openedTaskKeys = [];
 };
 
 const buildTaskSnapshot = (tasks?: Record<string, DuelTaskRef> | null) => {
@@ -60,6 +79,7 @@ const duelSessionSlice = createSlice({
                 return;
             }
             state.phase = action.payload;
+            state.pendingStartedInCurrentRuntime = action.payload === "searching";
             if (action.payload === "idle") {
                 state.activeDuelId = null;
                 state.searchNickname = null;
@@ -94,6 +114,7 @@ const duelSessionSlice = createSlice({
             }
             state.activeDuelId = action.payload;
             if (action.payload) {
+                state.pendingStartedInCurrentRuntime = false;
                 if (state.phase === "searching" || state.phase === "idle") {
                     state.phase = "active";
                 }
@@ -125,19 +146,7 @@ const duelSessionSlice = createSlice({
             state.searchTournamentId = action.payload;
         },
         resetDuelSession: (state) => {
-            state.activeDuelId = null;
-            state.phase = "idle";
-            state.lastEventId = null;
-            state.searchNickname = null;
-            state.searchConfigurationId = null;
-            state.searchInvitationType = null;
-            state.searchTournamentId = null;
-            state.duelCanceled = false;
-            state.duelCanceledOpponentNickname = null;
-            state.duelStatusChanged = false;
-            state.sessionInterrupted = false;
-            state.lastTasksByDuelId = {};
-            state.openedTaskKeys = [];
+            clearDuelSession(state);
         },
     },
     extraReducers: (builder) => {
@@ -146,6 +155,7 @@ const duelSessionSlice = createSlice({
             (state, { payload }) => {
                 state.activeDuelId = payload.id;
                 state.phase = "active";
+                state.pendingStartedInCurrentRuntime = false;
                 state.searchNickname = null;
                 state.searchConfigurationId = null;
                 state.searchInvitationType = null;
@@ -157,14 +167,8 @@ const duelSessionSlice = createSlice({
             (state, { payload }) => {
                 if (!isNotFoundError(payload)) return;
 
-                if (state.phase === "active") {
-                    state.activeDuelId = null;
-                    state.phase = "idle";
-                    state.lastEventId = null;
-                    state.duelCanceled = false;
-                    state.duelCanceledOpponentNickname = null;
-                    state.duelStatusChanged = false;
-                    state.openedTaskKeys = [];
+                if (shouldClearSessionAfterActiveDuelNotFound(state)) {
+                    clearDuelSession(state);
                 }
             },
         );

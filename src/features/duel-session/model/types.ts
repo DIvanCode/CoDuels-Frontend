@@ -7,6 +7,7 @@ export interface DuelMessage {
 export interface DuelSessionState {
     activeDuelId: number | null;
     phase: DuelSessionPhase;
+    pendingStartedInCurrentRuntime: boolean;
     lastEventId: string | null;
     searchNickname: string | null;
     searchConfigurationId: number | null;

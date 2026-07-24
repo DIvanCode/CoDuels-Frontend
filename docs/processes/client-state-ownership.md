@@ -26,7 +26,7 @@ memory state and redux-persist may fall back/error according to library behavior
 | --- | --- | --- | --- | --- | --- |
 | auth user/access/refresh | Duely, cached client | persisted Redux | logout/new responses | reload yes; shared storage, independent tab state | invalid/old token/user, cross-user cache |
 | `activeDuelId`, `phase`, `lastEventId`, search matching, canceled dialog | backend-derived/client workflow | persisted duelSession | reset/idle/logout/events | reload/shared storage; no live sync | persisted search/active mismatch |
-| `sessionInterrupted`, task snapshots, opened keys/status flag | client manager | unpersisted Redux | socket open/session reset/modal | lost on reload, tab-local | missed notifications |
+| `sessionInterrupted`, `pendingStartedInCurrentRuntime`, task snapshots, opened keys/status flag | client manager | unpersisted Redux | socket open/session reset/modal | lost on reload, tab-local | missed notifications |
 | own code/language by `${duelId}:${taskId}` | local draft, overwritten by Duel response | persisted codeEditor | logout only | reload/shared storage, independent writers | backend fetch overwrite/cross-tab race |
 | opponent code/language | backend socket/Duel response | unpersisted codeEditor | session/code not fully pruned | lost reload then refetch | stale if event/cache missed |
 | RTK Query cache | latest received HTTP/manual patch | API Redux only | eviction/invalidation/app reload | lost reload, tab-local | old-user/missed-event/filter divergence |
@@ -59,8 +59,10 @@ backend refetch`. Component/sessionStorage state is not globally reconciled.
 
 Backend is authoritative for user, duel, invitation, group, tournament,
 submission, tasks, and permissions. Persisted Redux/browser UI is a cache. Some
-states are checked (`getMe`, `getActiveDuel`, `getDuel`); searching, forms,
-submission caches, and configuration local copies can remain unsynchronized.
+states are checked (`getMe`, `getActiveDuel`, `getDuel`); an active-duel 404
+clears rehydrated searching but preserves pending work started in the current
+runtime. Forms, submission caches, and configuration local copies can remain
+unsynchronized.
 
 ## State ownership
 

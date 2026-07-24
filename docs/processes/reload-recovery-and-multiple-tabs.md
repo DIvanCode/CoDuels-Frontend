@@ -53,19 +53,21 @@ flowchart TD
     route --> active{"activeDuelId/phase combination"}
     active -- idle + ID --> restore["manager dispatches restore"]
     active -- active + ID --> provisional["provisional until socket initial sync"]
-    active -- searching + no ID --> provisional
+    active -- same-runtime searching --> provisional
+    active -- rehydrated searching + no runtime marker --> staleSearch["clear on active-duel 404"]
     auth --> queries["mounted pages refetch selectively"]
     socket --> invalidate["broad tag invalidation + GET active duel"]
 ```
 
 ## Client state transitions
 
-Rehydration restores only whitelisted fields. Manager can restore active phase
-when an ID exists with idle. Regardless of persisted phase, every first socket
-open performs broad cache reconciliation and `/duels/active`; an active result
-promotes consistent state and 404 resets stale active state while preserving a
-pending search/invitation that has not produced a duel yet. New
-HTTP/events then overwrite other provisional projections.
+Rehydration restores only whitelisted fields. The unpersisted
+`pendingStartedInCurrentRuntime` marker is therefore false after reload. Manager
+can restore active phase when an ID exists with idle. Active-duel polling and
+every socket-open reconciliation promote an active result; a 404 clears stale
+active state and rehydrated `searching`, while preserving a pending
+search/invitation started through `setPhase("searching")` in the current runtime.
+New HTTP/events then overwrite other provisional projections.
 
 ## Backend state assumptions
 
@@ -83,7 +85,8 @@ navigation; backend owns domain truth. No explicit arbiter merges these scopes.
 ## UI effects
 
 PersistGate produces a blank gate until rehydrated. Stored phase/forms can show
-stale searching/waiting/modals. Empty RTK cache produces loaders/refetches.
+stale searching/waiting/modals until the first active-duel 404 clears a restored
+search. Empty RTK cache produces loaders/refetches.
 Another tab's logout, finish, role change, or code edit is not immediately
 reflected unless backend/socket/storage side effects happen to expose it.
 
@@ -132,7 +135,8 @@ values can be shown under a subsequently logged-in different user.
 ## Test coverage
 
 - **Existing tests:** realtime integration covers initial open, disconnect,
-  reconnect, logout cleanup, and same-runtime user-session replacement.
+  reconnect, logout cleanup, same-runtime user-session replacement, and the
+  distinction between current-runtime and rehydrated pending searches.
 - **Needed integration:** every whitelist/key/reset, corrupted/old schemas,
   protected-route reconciliation, active/searching combinations, storage errors.
 - **Needed multi-context E2E:** two tabs login/logout/refresh/socket, edit/search/

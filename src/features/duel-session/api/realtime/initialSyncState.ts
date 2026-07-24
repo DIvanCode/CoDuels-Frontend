@@ -1,4 +1,5 @@
+import { shouldClearSessionAfterActiveDuelNotFound } from "../../model/sessionFreshness";
+
 export const hasStaleActiveSession = (state: RootState) => {
-    const { phase, activeDuelId } = state.duelSession;
-    return phase === "active" || activeDuelId !== null;
+    return shouldClearSessionAfterActiveDuelNotFound(state.duelSession);
 };
