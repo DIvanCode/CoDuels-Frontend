@@ -33,13 +33,37 @@ vi.mock("../../../model/duelSessionSlice", () => {
     };
 });
 
-const createState = (activeDuelId: number | null) =>
+const createState = (
+    activeDuelId: number | null,
+    phase: "idle" | "searching" | "active" = "active",
+) =>
     ({
         auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
-        duelSession: { activeDuelId },
+        duelSession: { activeDuelId, phase },
     }) as RootState;
 
 describe("duel realtime handlers", () => {
+    it("ignores a late start event after a pending search was canceled", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => createState(null, "idle"),
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelStarted?.[0]({
+            type: "DuelStarted",
+            payload: { duel_id: 42 },
+            eventId: null,
+        });
+
+        expect(dispatch).not.toHaveBeenCalledWith({
+            type: "duelSession/setActiveDuel",
+            payload: { duelId: 42, userId: 7 },
+        });
+    });
+
     it("turns a terminal event for the active duel into a pending result", () => {
         const dispatch = vi.fn();
         const handlers = createDuelHandlers({

@@ -56,8 +56,10 @@ as `DuelFinished`, so a silently missed socket event does not require F5.
 `setPhase("searching")` is ignored once an active ID exists. This fences the
 race where an early `DuelStarted` arrives before the search/accept HTTP response
 and that later response tries to put the already-active session back into
-searching. Navigation from searching to active still belongs to mounted workflow
-components; the socket manager itself does not navigate.
+searching. `DuelStarted` itself is accepted only while the session is searching;
+an event delivered after a successful cancellation therefore cannot revive a
+cancelled duel. Navigation from searching to active still belongs to mounted
+workflow components; the socket manager itself does not navigate.
 
 ```mermaid
 sequenceDiagram
@@ -79,7 +81,7 @@ sequenceDiagram
 ## Client state transitions
 
 - Ranked/friendly/accept success: `idle -> searching`.
-- `DuelStarted`: `idle|searching -> active`, non-null active ID.
+- `DuelStarted`: `searching -> active`, non-null active ID.
 - cancel success/socket close while searching: `searching -> idle`.
 - finish: matching user-owned `active -> idle`, ID null, pending result recorded.
 - acknowledgement/logout/reset: pending result cleared; logout/reset also returns
