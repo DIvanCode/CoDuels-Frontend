@@ -59,3 +59,17 @@ no shared handler fixture. The standard source checks are `pnpm test`,
 production-bundle Chrome smoke test before Frontend publication. See the
 [Windows/WSL runbook](local-windows-wsl-toolchain.md) when Codex supplies the
 Windows toolchain. No Markdown-lint configuration is present.
+
+## Manual verification handoff
+
+After every Frontend task, the Pull Request description and final handoff must
+contain a short **What to test manually** section. Keep it actionable rather than
+restating the implementation:
+
+1. State the required account, permissions, or test data.
+2. Name the route or screen and the exact actions to take.
+3. State the expected visible result.
+4. Add one or two nearby regression checks when they are relevant.
+
+If the change has no meaningful browser interaction, say that explicitly and
+name the automated or non-UI check that replaces the click-through.

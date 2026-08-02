@@ -42,7 +42,10 @@ Linux Node 24 and pnpm 10 remain the simpler path when they are already present.
   Windows command, then verify the built application requests the expected
   `/api` prefix.
 - Serve the generated `dist` with `pnpm preview`; a Vite development server is
-  not a production-bundle smoke test.
+  not a production-bundle smoke test. Use a fixed port with `--strictPort` so an
+  old preview cannot make Vite silently select a different port, and confirm the
+  listener is gone afterward because a Windows Node child can outlive the WSL
+  terminal session.
 - Launch installed Chrome directly when needed, normally from
   `C:\Program Files\Google\Chrome\Application\chrome.exe`.
 - If bundled `playwright` cannot find `playwright-core`, locate the bundled
@@ -62,5 +65,6 @@ Linux Node 24 and pnpm 10 remain the simpler path when they are already present.
 | `CMD.EXE ... UNC paths`                                  | Recreate the worktree under `/mnt/c` or `/mnt/d`, not `/tmp`.                                   |
 | Vitest/Vite cannot resolve an installed package          | Reinstall with `--node-linker=hoisted --force`; verify the package is not a Linux symlink.      |
 | Built requests omit the intended `/api` prefix           | Pass `VITE_BASE_URL` through `cmd.exe`/PowerShell and rebuild.                                  |
+| Preview silently moves to the next port                  | Use a known free port with `--strictPort`; stop only the confirmed preview listener afterward.  |
 | `Cannot find module 'playwright-core'`                   | Require the bundled direct `playwright-core` path.                                              |
 | Windows executable or Chrome is blocked by the sandbox   | Request the narrow execution approval; do not replace the browser gate with a dev-server check. |
