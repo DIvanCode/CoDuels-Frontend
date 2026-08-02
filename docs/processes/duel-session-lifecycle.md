@@ -38,13 +38,20 @@ the current active ID, so a duplicate or delayed finish cannot clear another
 active duel.
 
 The globally mounted realtime session runs `/duels/active` after every initial
-connect and reconnect. An in-progress result promotes the session to active;
-404 resets provisional persisted active/searching state. The manager also owns
+connect and reconnect. An in-progress result promotes the session to active. If
+that endpoint returns 404 for a user-owned active or pending-result candidate,
+the client verifies the exact duel detail before keeping a finished result;
+otherwise it resets provisional persisted active/searching state. The manager also owns
 the active-duel query and polls it every two seconds while locally searching,
 so a missed start event still promotes the session without waiting for a socket
-reconnect. Its fulfilled reducer performs the active transition directly. The
-manager's detail restore remains a pre-connect recovery path for
-`idle + activeDuelId`.
+reconnect. Its ordinary 404 also verifies a persisted active ID through duel
+detail even when the socket never opens. Ownerless IDs from the previous
+persisted schema are provisional candidates and survive only after participant
+validation. Every asynchronous reset is fenced by the candidate that started
+it, so an older verification cannot clear a newer duel. While the user is
+viewing their active duel, DuelInfo also polls that exact detail every two
+seconds. A finished HTTP snapshot consumes the same user-owned active transition
+as `DuelFinished`, so a silently missed socket event does not require F5.
 
 `setPhase("searching")` is ignored once an active ID exists. This fences the
 race where an early `DuelStarted` arrives before the search/accept HTTP response
@@ -74,7 +81,9 @@ sequenceDiagram
 - Ranked/friendly/accept success: `idle -> searching`.
 - `DuelStarted`: `idle|searching -> active`, non-null active ID.
 - cancel success/socket close while searching: `searching -> idle`.
-- finish/logout/reset: `active|searching|idle -> idle`, ID null.
+- finish: matching user-owned `active -> idle`, ID null, pending result recorded.
+- acknowledgement/logout/reset: pending result cleared; logout/reset also returns
+  `active|searching|idle -> idle`.
 - `getActiveDuel` creates the consistent `active + activeDuelId` transition.
 
 ## Backend state assumptions
@@ -92,6 +101,7 @@ not compared with backend pending rows.
 | Active duel                    | Duely                     | ID/phase    | active/detail    | No             | No             | persisted ID/phase    | Yes                      |
 | Matching fields                | client correlation        | duelSession | invitation DTOs  | No             | No             | persisted             | Yes                      |
 | Interrupted/task notifications | client                    | duelSession | Duel data        | manager/modals | No             | Not whitelisted       | No                       |
+| Pending result                 | terminal event + Duely    | duelSession | duel detail      | DuelInfo       | No             | persisted, user-owned | Yes, then revalidated    |
 
 ## UI effects
 
@@ -111,10 +121,12 @@ pending-status endpoint or event replay.
 ## Idempotency and duplicate handling
 
 Supplied event IDs are deduplicated and numeric cursors are monotonic. Current
-Duely sends no cursor, so relevance checks protect active transitions and reset
-is locally idempotent. Multiple HTTP requests can still create/cancel competing
-backend state. Persisted state has no user ID, but the runtime socket lifecycle
-is keyed and fenced by the current authenticated user ID.
+Duely sends no cursor, so relevance checks protect active transitions and result
+creation is locally idempotent. A duplicate finish cannot recreate an
+acknowledged result after the active transition is consumed. Multiple HTTP
+requests can still create/cancel competing backend state. Persisted active and
+pending-result state carries a user ID, and the runtime socket lifecycle is keyed
+and fenced by the current authenticated user ID.
 
 ## Ordering assumptions
 
@@ -132,8 +144,10 @@ backend status query.
 
 ## Reload and multiple tabs
 
-ID/phase/matching persist in shared localStorage; each tab has independent Redux
-and socket. Reload searching resets local idle, while backend old-socket cleanup
+ID/phase/matching and pending result persist in shared localStorage; each tab has
+independent Redux and socket. Result acknowledgement uses a user/duel-scoped key
+and storage events to clear matching pending state across tabs. Reload searching
+resets local idle, while backend old-socket cleanup
 also cancels pending. Browser reopen may retain stale search. One tab's start/
 finish/logout does not update another except through backend events/storage races.
 
@@ -148,7 +162,8 @@ finish/logout does not update another except through backend events/storage race
 ## Test coverage
 
 - **Existing tests:** realtime integration covers connect/reconcile, disconnect,
-  retry, duplicate/unknown events, logout cleanup, and user-session replacement.
+  retry, duplicate/unknown events, logout cleanup, user-session replacement,
+  terminal result transitions, and reconnect candidate validation.
 - **Needed unit/integration:** remaining reducer invariants and full active-query/
   restore error matrices.
 - **Needed browser/E2E:** all three phases, reload/reopen/direct URL, response

@@ -1,12 +1,14 @@
 import { duelApiSlice, type Duel } from "entities/duel";
+import { submitCodeApiSlice } from "entities/submission";
 import { userApiSlice } from "entities/user";
 import { fromApiLanguage } from "shared/config";
 
 import {
-    resetDuelSession,
-    setActiveDuelId,
+    finishActiveDuel,
+    setActiveDuel,
     setDuelCanceled,
     setDuelCanceledOpponentNickname,
+    resetDuelSession,
 } from "../../../model/duelSessionSlice";
 import { buildDuelTaskKey, setOpponentCode } from "../codeEditorPort";
 import type { RealtimeEventHandlers } from "../types";
@@ -34,7 +36,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
                 return;
             }
 
-            context.dispatch(setActiveDuelId(payload.duel_id));
+            context.dispatch(setActiveDuel({ duelId: payload.duel_id, userId: context.userId }));
         },
     ],
     DuelFinished: [
@@ -45,9 +47,14 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
             );
+            context.dispatch(submitCodeApiSlice.util.invalidateTags(["Submission"]));
             context.dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
 
-            if (activeDuelId === payload.duel_id) context.dispatch(resetDuelSession());
+            if (activeDuelId === payload.duel_id) {
+                context.dispatch(
+                    finishActiveDuel({ duelId: payload.duel_id, userId: context.userId }),
+                );
+            }
         },
     ],
     DuelCanceled: [
@@ -66,6 +73,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
             );
+            context.dispatch(submitCodeApiSlice.util.invalidateTags(["Submission"]));
         },
     ],
     OpponentSolutionUpdated: [

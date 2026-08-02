@@ -26,8 +26,10 @@ until backend queries/events confirm it.
 
 Redux localStorage keys are `persist:auth`, `persist:duelSession`,
 `persist:codeEditor`, and `persist:theme`, each version 1 with whitelists and no
-migration. Other localStorage keys include `duel-configurations` and
-`duel:{duelId}:resultDismissed`. Home sessionStorage keys are
+migration. Other localStorage keys include `duel-configurations` and versioned
+`duel-result-ack:v1:{userId}:{duelId}` acknowledgements. Legacy
+`duel:{duelId}:resultDismissed` keys are removed during session-manager startup.
+Home sessionStorage keys are
 `home.showStartPanel`, `home.showConfigPicker`, `home.showConfigCreateModal`,
 `home.showFriendlyForm`, `home.friendlyNickname`, `home.selectedConfigId`,
 `home.selectedDefaultConfig`, `home.pendingInvitationNickname`,
@@ -67,7 +69,13 @@ can restore active phase when an ID exists with idle. Active-duel polling and
 every socket-open reconciliation promote an active result; a 404 clears stale
 active state and rehydrated `searching`, while preserving a pending
 search/invitation started through `setPhase("searching")` in the current runtime.
-New HTTP/events then overwrite other provisional projections.
+Persisted active and pending-result candidates normally carry their owning user
+ID. A legacy active ID without one is treated as provisional. When the ordinary
+active query or reconnect finds no active duel, it fetches that exact candidate
+and keeps the notification only when the server returns a finished duel
+containing the current user. Candidate checks fence late responses from
+overwriting a newer duel. New HTTP/events then overwrite other provisional
+projections.
 
 ## Backend state assumptions
 
@@ -87,8 +95,10 @@ navigation; backend owns domain truth. No explicit arbiter merges these scopes.
 PersistGate produces a blank gate until rehydrated. Stored phase/forms can show
 stale searching/waiting/modals until the first active-duel 404 clears a restored
 search. Empty RTK cache produces loaders/refetches.
-Another tab's logout, finish, role change, or code edit is not immediately
-reflected unless backend/socket/storage side effects happen to expose it.
+Another tab's logout, role change, or code edit is not immediately reflected
+unless backend/socket/storage side effects happen to expose it. Result
+acknowledgement is the exception: a scoped storage event clears the matching
+pending result in other tabs.
 
 ## Network effects
 
@@ -100,8 +110,10 @@ No cross-tab request leader exists, increasing duplicate starts/accepts/submits.
 ## Idempotency and duplicate handling
 
 Reload can replay user actions manually but there is no durable mutation outbox
-or idempotency key. Persist writes are last-writer wins. Server queries are safe
-to repeat; domain mutations rely on backend duplicate handling.
+or idempotency key. Persist writes are last-writer wins. Result acknowledgements
+use distinct user/duel keys, so duplicate events and reconnects remain dismissed
+without one user suppressing another's result. Server queries are safe to repeat;
+domain mutations rely on backend duplicate handling.
 
 ## Ordering assumptions
 
@@ -135,8 +147,9 @@ values can be shown under a subsequently logged-in different user.
 ## Test coverage
 
 - **Existing tests:** realtime integration covers initial open, disconnect,
-  reconnect, logout cleanup, same-runtime user-session replacement, and the
-  distinction between current-runtime and rehydrated pending searches.
+  reconnect, logout cleanup, same-runtime user-session replacement, result
+  candidate ownership/server validation, acknowledgement scoping/cleanup, and
+  the distinction between current-runtime and rehydrated pending searches.
 - **Needed integration:** every whitelist/key/reset, corrupted/old schemas,
   protected-route reconciliation, active/searching combinations, storage errors.
 - **Needed multi-context E2E:** two tabs login/logout/refresh/socket, edit/search/

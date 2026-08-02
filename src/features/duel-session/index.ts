@@ -10,6 +10,8 @@ export { DuelInfo } from "./ui/DuelInfo/DuelInfo";
 export {
     resetDuelSession,
     setPhase,
+    acknowledgeDuelResult,
+    finishActiveDuel,
     setDuelStatusChanged,
     setOpenedTaskKeys,
     setSearchConfigurationId,

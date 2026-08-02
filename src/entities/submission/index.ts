@@ -11,3 +11,4 @@ export type {
     SubmissionStatus,
     SubmitCodeRequestData,
 } from "./model/types";
+export { isSubmissionStatusForward } from "./model/submissionStatus";

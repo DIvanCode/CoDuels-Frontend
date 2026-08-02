@@ -5,6 +5,10 @@ import { useGetSubmissionsQuery } from "features/submit-code";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
 import { useAppSelector } from "shared/lib/storeHooks";
+import {
+    shouldPollSubmissionStatus,
+    useSubmissionStatusPolling,
+} from "widgets/task-panel/lib/useSubmissionStatusPolling";
 import { TaskSubmissionRow } from "../TaskSubmissionRow/TaskSubmissionRow";
 import styles from "./TaskSubmissionsContent.module.scss";
 
@@ -39,7 +43,11 @@ export const TaskSubmissionsContent = () => {
         data: submissions,
         isLoading: isSubmissionsLoading,
         isError,
+        refetch,
     } = useGetSubmissionsQuery(submissionsArg);
+    const hasPendingSubmission =
+        submissions?.some((submission) => shouldPollSubmissionStatus(submission.status)) ?? false;
+    useSubmissionStatusPolling(hasPendingSubmission, refetch);
 
     if (isSubmissionsLoading || isDuelLoading) {
         return <Loader className={styles.centeredState} />;

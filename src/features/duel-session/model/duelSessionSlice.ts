@@ -13,6 +13,7 @@ const isNotFoundError = (error: unknown) =>
 
 const initialState: DuelSessionState = {
     activeDuelId: null,
+    activeDuelUserId: null,
     phase: "idle",
     pendingStartedInCurrentRuntime: false,
     lastEventId: null,
@@ -26,10 +27,31 @@ const initialState: DuelSessionState = {
     sessionInterrupted: false,
     lastTasksByDuelId: {},
     openedTaskKeys: [],
+    pendingResult: null,
 };
 
 const clearDuelSession = (state: DuelSessionState) => {
     state.activeDuelId = null;
+    state.activeDuelUserId = null;
+    state.phase = "idle";
+    state.pendingStartedInCurrentRuntime = false;
+    state.lastEventId = null;
+    state.searchNickname = null;
+    state.searchConfigurationId = null;
+    state.searchInvitationType = null;
+    state.searchTournamentId = null;
+    state.duelCanceled = false;
+    state.duelCanceledOpponentNickname = null;
+    state.duelStatusChanged = false;
+    state.sessionInterrupted = false;
+    state.lastTasksByDuelId = {};
+    state.openedTaskKeys = [];
+    state.pendingResult = null;
+};
+
+const clearActiveDuel = (state: DuelSessionState) => {
+    state.activeDuelId = null;
+    state.activeDuelUserId = null;
     state.phase = "idle";
     state.pendingStartedInCurrentRuntime = false;
     state.lastEventId = null;
@@ -82,6 +104,7 @@ const duelSessionSlice = createSlice({
             state.pendingStartedInCurrentRuntime = action.payload === "searching";
             if (action.payload === "idle") {
                 state.activeDuelId = null;
+                state.activeDuelUserId = null;
                 state.searchNickname = null;
                 state.searchConfigurationId = null;
                 state.searchInvitationType = null;
@@ -107,13 +130,25 @@ const duelSessionSlice = createSlice({
         setSessionInterrupted: (state, action: PayloadAction<boolean>) => {
             state.sessionInterrupted = action.payload;
         },
-        setActiveDuelId: (state, action: PayloadAction<number | null>) => {
-            if (state.activeDuelId !== action.payload) {
+        setActiveDuel: (
+            state,
+            action: PayloadAction<{ duelId: number; userId: number } | null>,
+        ) => {
+            const duelId = action.payload?.duelId ?? null;
+            if (
+                action.payload &&
+                state.pendingResult?.duelId === action.payload.duelId &&
+                state.pendingResult.userId === action.payload.userId
+            ) {
+                return;
+            }
+            if (state.activeDuelId !== duelId) {
                 state.lastTasksByDuelId = {};
                 state.openedTaskKeys = [];
             }
-            state.activeDuelId = action.payload;
-            if (action.payload) {
+            state.activeDuelId = duelId;
+            state.activeDuelUserId = action.payload?.userId ?? null;
+            if (duelId !== null) {
                 state.pendingStartedInCurrentRuntime = false;
                 if (state.phase === "searching" || state.phase === "idle") {
                     state.phase = "active";
@@ -124,10 +159,36 @@ const duelSessionSlice = createSlice({
                 state.searchTournamentId = null;
                 state.duelStatusChanged = false;
                 state.openedTaskKeys = [];
+                state.pendingResult = null;
             } else {
                 state.lastEventId = null;
                 state.duelStatusChanged = false;
                 state.openedTaskKeys = [];
+            }
+        },
+        finishActiveDuel: (state, action: PayloadAction<{ duelId: number; userId: number }>) => {
+            const isActiveDuel =
+                state.activeDuelId === action.payload.duelId &&
+                (state.activeDuelUserId === action.payload.userId ||
+                    state.activeDuelUserId === null);
+            const isRestoredPendingResult =
+                state.pendingResult?.duelId === action.payload.duelId &&
+                state.pendingResult.userId === action.payload.userId;
+
+            if (!isActiveDuel && !isRestoredPendingResult) return;
+
+            clearActiveDuel(state);
+            state.pendingResult = action.payload;
+        },
+        acknowledgeDuelResult: (
+            state,
+            action: PayloadAction<{ duelId: number; userId: number }>,
+        ) => {
+            if (
+                state.pendingResult?.duelId === action.payload.duelId &&
+                state.pendingResult.userId === action.payload.userId
+            ) {
+                state.pendingResult = null;
             }
         },
         setLastEventId: (state, action: PayloadAction<string | null>) => {
@@ -151,29 +212,26 @@ const duelSessionSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addMatcher(
-            duelApiSlice.endpoints.getActiveDuel.matchFulfilled,
-            (state, { payload }) => {
-                state.activeDuelId = payload.id;
-                state.phase = "active";
-                state.pendingStartedInCurrentRuntime = false;
-                state.searchNickname = null;
-                state.searchConfigurationId = null;
-                state.searchInvitationType = null;
-                state.searchTournamentId = null;
-            },
-        );
-        builder.addMatcher(
             duelApiSlice.endpoints.getActiveDuel.matchRejected,
             (state, { payload }) => {
                 if (!isNotFoundError(payload)) return;
 
-                if (shouldClearSessionAfterActiveDuelNotFound(state)) {
+                if (
+                    state.activeDuelId === null &&
+                    shouldClearSessionAfterActiveDuelNotFound(state)
+                ) {
                     clearDuelSession(state);
                 }
             },
         );
         builder.addMatcher(duelApiSlice.endpoints.getDuel.matchFulfilled, (state, { payload }) => {
             const duelId = payload.id;
+            const resultUserId = state.activeDuelUserId;
+            const isCurrentActiveDuelFinished =
+                payload.status === "Finished" &&
+                state.activeDuelId === duelId &&
+                resultUserId !== null &&
+                (payload.participants ?? []).some((participant) => participant.id === resultUserId);
             const hasPreviousSnapshot = Object.prototype.hasOwnProperty.call(
                 state.lastTasksByDuelId,
                 duelId,
@@ -190,6 +248,11 @@ const duelSessionSlice = createSlice({
             }
 
             state.lastTasksByDuelId[duelId] = buildTaskSnapshot(nextTasks);
+
+            if (isCurrentActiveDuelFinished) {
+                clearActiveDuel(state);
+                state.pendingResult = { duelId, userId: resultUserId };
+            }
         });
     },
 });
@@ -200,7 +263,9 @@ export const {
     setDuelCanceledOpponentNickname,
     setDuelStatusChanged,
     setOpenedTaskKeys,
-    setActiveDuelId,
+    setActiveDuel,
+    finishActiveDuel,
+    acknowledgeDuelResult,
     setLastEventId,
     setSearchNickname,
     setSearchConfigurationId,

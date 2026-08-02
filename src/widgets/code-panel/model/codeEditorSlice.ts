@@ -81,8 +81,14 @@ const codeEditorSlice = createSlice({
 
             applySolutions(payload.solutions, (taskId, code, language) => {
                 const key = buildDuelTaskKey(payload.id, taskId);
-                state.codeByTaskKey[key] = code;
-                state.languageByTaskKey[key] = normalizeLanguage(language);
+
+                if (!(key in state.codeByTaskKey)) {
+                    state.codeByTaskKey[key] = code;
+                }
+
+                if (!(key in state.languageByTaskKey)) {
+                    state.languageByTaskKey[key] = normalizeLanguage(language);
+                }
             });
 
             if (payload.should_show_opponent_solution) {

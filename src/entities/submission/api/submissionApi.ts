@@ -1,5 +1,6 @@
 import { apiSlice } from "shared/api";
 
+import { isSubmissionStatusForward } from "../model/submissionStatus";
 import type { SubmissionDetail, SubmissionItem, SubmitCodeRequestData } from "../model/types";
 
 interface SubmissionsQueryArg {
@@ -82,7 +83,11 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                     resultMap.set(String(item.submission_id), item);
                 });
                 newItems.forEach((item) => {
-                    resultMap.set(String(item.submission_id), item);
+                    const submissionId = String(item.submission_id);
+                    const current = resultMap.get(submissionId);
+                    if (!current || isSubmissionStatusForward(current.status, item.status)) {
+                        resultMap.set(submissionId, item);
+                    }
                 });
                 return Array.from(resultMap.values());
             },
@@ -104,6 +109,10 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
             providesTags: (_result, _error, { duelId, submissionId }) => [
                 { type: "Submission", id: `${duelId}-${submissionId}` },
             ],
+            merge: (currentCache, incoming) => {
+                if (!isSubmissionStatusForward(currentCache.status, incoming.status)) return;
+                Object.assign(currentCache, incoming);
+            },
             async onQueryStarted({ duelId, submissionId }, { dispatch, queryFulfilled }) {
                 try {
                     const { data } = await queryFulfilled;
@@ -117,6 +126,9 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                                         String(submission.submission_id) === String(submissionId),
                                 );
                                 if (index === -1) return;
+                                if (!isSubmissionStatusForward(draft[index].status, data.status)) {
+                                    return;
+                                }
                                 draft[index] = {
                                     ...draft[index],
                                     status: data.status,

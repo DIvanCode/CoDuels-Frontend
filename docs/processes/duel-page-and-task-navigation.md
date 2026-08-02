@@ -39,8 +39,10 @@ anti-cheat enabling; spectator UI is read-only, while backend remains authority.
 The URL owns task/child-page choice. On each duel response, duelSession compares
 current tasks with unpersisted `lastTasksByDuelId`. The first snapshot creates no
 alert; a later `null -> id` marks newly opened task keys and raises
-`duelStatusChanged`. Removing/changing tasks has no equivalent alert. Result and
-opened-task modals have separate dismissal state.
+`duelStatusChanged`. Removing/changing tasks has no equivalent alert. A terminal
+event or a polled finished snapshot for the user-owned active duel creates a
+persisted `pendingResult`; an ordinary historical finished-duel query does not.
+Result and opened-task modals have separate dismissal state.
 
 ## Backend state assumptions
 
@@ -52,16 +54,19 @@ types; unsupported DTOs need an explicit compatibility rule.
 ## State ownership
 
 Backend duel/task DTOs are RTK cache truth for the rendered page. URL owns
-navigation. Unpersisted duelSession owns task-opening comparison. localStorage
-`duel:{id}:resultDismissed` owns result-modal preference; editor/run/panel state
-has separate documented owners.
+navigation. Unpersisted duelSession owns task-opening comparison. Persisted,
+user-owned duelSession `pendingResult` owns result-modal eligibility. A versioned
+user/duel acknowledgement key coordinates dismissal across tabs; legacy
+`duel:{id}:resultDismissed` keys are removed. Editor/run/panel state has separate
+documented owners.
 
 ## UI effects
 
 The split view renders code and task panes. Spectators cannot edit/run/submit
 and cannot open submission detail, though they can view submission lists/authors.
-Newly opened tasks can raise DuelInfo modal. Result dismissal is shared across
-users/tabs due to an unscoped localStorage key.
+Newly opened tasks can raise DuelInfo modal. A result modal appears only when the
+rendered finished duel matches the current user's pending result. Dismissal is
+shared across tabs but isolated by user and duel.
 
 ## Network effects
 
@@ -75,6 +80,8 @@ malformed requests before an error boundary/response resolves.
 Repeated navigation/query is RTK-deduplicated per cache key. Task snapshot
 reducers use key sets to avoid repeating opened alerts in one runtime. Reload
 loses those sets, and first fetched snapshot intentionally suppresses alerts.
+Duplicate terminal events cannot recreate an acknowledged pending result because
+the active transition has already been consumed and acknowledgement is shared.
 
 ## Ordering assumptions
 
@@ -92,10 +99,10 @@ duels, unsupported task types, or stale persisted active session.
 
 ## Reload and multiple tabs
 
-Reload restores route/task and code, loses RTK cache/task snapshots, and treats
-the first current task set as baseline. Result dismissal is shared localStorage;
-selected code tab/run state is sessionStorage. Tabs may observe different duel
-versions and task-opening alerts.
+Reload restores route/task, code, and an unacknowledged user-owned pending result,
+then verifies that result against the duel endpoint when the active endpoint is
+empty. An acknowledged result remains hidden. Selected code tab/run state is
+sessionStorage. Tabs may observe different duel versions and task-opening alerts.
 
 ## Implementation references
 
@@ -107,11 +114,13 @@ versions and task-opening alerts.
 
 ## Test coverage
 
-- **Existing tests:** none.
+- **Existing tests:** terminal/duplicate result transitions, historical-event
+  filtering, reconnect candidate validation, user-scoped acknowledgement,
+  legacy-key cleanup, and account/session reset.
 - **Needed integration:** invalid/forbidden/deleted IDs, task query normalization,
   task open transitions, task DTO variants, participant/spectator capabilities.
 - **Needed E2E:** all nested/deep routes, reload/back, sequential task opening,
-  result modal scoping, task errors, spectator attempts, and two tabs.
+  result modal rendering, task errors, spectator attempts, and full two-tab UI.
 
 ## Current guarantees
 
@@ -131,4 +140,3 @@ are not explicit contracts.
 Validate route IDs once before rendering children; version/validate duel/task
 DTOs; make task opening an explicit backend event/revision; scope preferences by
 user; and test route, permission, reload, and task-type matrices.
-

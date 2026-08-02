@@ -1,20 +1,13 @@
-import { submitCodeApiSlice, type SubmissionStatus } from "entities/submission";
+import {
+    isSubmissionStatusForward,
+    submitCodeApiSlice,
+    type SubmissionStatus,
+} from "entities/submission";
 import { apiSlice } from "shared/api";
 
 import type { RealtimeEventHandlers, SubmissionStatusPayload } from "../types";
 import type { DomainEventContext } from "./context";
 import { isCurrentDomainSession } from "./context";
-
-const statusRank: Record<SubmissionStatusPayload["status"], number> = {
-    Queued: 0,
-    Running: 1,
-    Done: 2,
-};
-
-const isForwardStatus = (
-    current: SubmissionStatusPayload["status"],
-    incoming: SubmissionStatusPayload["status"],
-) => statusRank[incoming] >= statusRank[current];
 
 const getDuelIdFromArgs = (args: unknown) => {
     if (typeof args === "string") return args;
@@ -39,13 +32,13 @@ const updateSubmissionCaches = (context: DomainEventContext, payload: Submission
     const detail = submitCodeApiSlice.endpoints.getSubmissionDetail.select(detailArgs)(state)?.data;
     if (detail) {
         foundProjection = true;
-        if (isForwardStatus(detail.status, payload.status)) {
+        if (isSubmissionStatusForward(detail.status, payload.status)) {
             context.dispatch(
                 submitCodeApiSlice.util.updateQueryData(
                     "getSubmissionDetail",
                     detailArgs,
                     (draft) => {
-                        if (!isForwardStatus(draft.status, payload.status)) return;
+                        if (!isSubmissionStatusForward(draft.status, payload.status)) return;
                         draft.status = payload.status as SubmissionStatus;
                         if (payload.verdict !== undefined) draft.verdict = payload.verdict;
                         if (payload.message !== undefined) draft.message = payload.message;
@@ -69,14 +62,19 @@ const updateSubmissionCaches = (context: DomainEventContext, payload: Submission
             if (!current) return;
 
             foundProjection = true;
-            if (!isForwardStatus(current.status, payload.status)) return;
+            if (!isSubmissionStatusForward(current.status, payload.status)) return;
 
             context.dispatch(
                 submitCodeApiSlice.util.updateQueryData("getSubmissions", args, (draft) => {
                     const submission = draft.find(
                         (item) => String(item.submission_id) === submissionId,
                     );
-                    if (!submission || !isForwardStatus(submission.status, payload.status)) return;
+                    if (
+                        !submission ||
+                        !isSubmissionStatusForward(submission.status, payload.status)
+                    ) {
+                        return;
+                    }
                     submission.status = payload.status as SubmissionStatus;
                     if (payload.verdict !== undefined) submission.verdict = payload.verdict;
                     if (payload.message !== undefined) submission.message = payload.message;

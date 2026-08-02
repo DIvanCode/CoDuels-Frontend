@@ -4,8 +4,14 @@ export interface DuelMessage {
     duel_id: number;
 }
 
+export interface PendingDuelResult {
+    duelId: number;
+    userId: number;
+}
+
 export interface DuelSessionState {
     activeDuelId: number | null;
+    activeDuelUserId: number | null;
     phase: DuelSessionPhase;
     pendingStartedInCurrentRuntime: boolean;
     lastEventId: string | null;
@@ -19,6 +25,7 @@ export interface DuelSessionState {
     sessionInterrupted: boolean;
     lastTasksByDuelId: Record<number, Record<string, string | null> | null>;
     openedTaskKeys: string[];
+    pendingResult: PendingDuelResult | null;
 }
 
 export type DuelSessionPhase = "idle" | "searching" | "active";
