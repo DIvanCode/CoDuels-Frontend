@@ -1,6 +1,7 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useId, useRef } from "react";
 
 import CrossIcon from "shared/assets/icons/cross.svg?react";
+import { useDismissibleLayer } from "shared/lib/useDismissibleLayer";
 import { IconButton } from "../IconButton/IconButton";
 
 import styles from "./Modal.module.scss";
@@ -19,13 +20,34 @@ export const Modal = ({
     closeOnOverlay = true,
     children,
 }: PropsWithChildren<Props>) => {
+    const modalRef = useRef<HTMLDivElement>(null);
+    const titleId = useId();
+
+    useDismissibleLayer({
+        isOpen: true,
+        layerRef: modalRef,
+        onDismiss: onClose,
+        focusOnOpen: true,
+        trapFocus: true,
+    });
+
     return (
         <div
             className={styles.overlay}
-            role="dialog"
-            onClick={closeOnOverlay ? onClose : undefined}
+            onClick={(event) => {
+                if (closeOnOverlay && event.currentTarget === event.target) {
+                    onClose();
+                }
+            }}
         >
-            <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
+            <div
+                ref={modalRef}
+                className={styles.modal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                tabIndex={-1}
+            >
                 {showCloseButton && (
                     <IconButton
                         className={styles.closeButton}
@@ -36,7 +58,9 @@ export const Modal = ({
                         <CrossIcon />
                     </IconButton>
                 )}
-                <h3 className={styles.title}>{title}</h3>
+                <h3 id={titleId} className={styles.title}>
+                    {title}
+                </h3>
                 {children}
             </div>
         </div>

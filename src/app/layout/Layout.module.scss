@@ -2,7 +2,7 @@
     height: 100%;
     display: grid;
     grid-template-areas: "header" "content";
-    grid-template-rows: 70px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
 
     overflow: hidden;
 }
@@ -14,4 +14,5 @@
 
     overflow: auto;
     scrollbar-color: var(--card-secondary) transparent;
+    scroll-padding-top: 1em;
 }

@@ -42,6 +42,7 @@ import {
 } from "entities/duel-invitation";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
 import configStyles from "features/duel-configuration/ui/DuelConfigurationManager.module.scss";
+import { getTournamentParticipantGroups } from "../../lib/tournamentParticipants";
 
 import styles from "./GroupPage.module.scss";
 
@@ -397,7 +398,11 @@ const GroupPage = () => {
             }
             handleExcludeClose();
         } catch {
-            setExcludeError("Не удалось исключить пользователя.");
+            setExcludeError(
+                excludeTarget.status === "Pending"
+                    ? "Не удалось отменить приглашение."
+                    : "Не удалось исключить пользователя.",
+            );
         }
     };
 
@@ -457,9 +462,12 @@ const GroupPage = () => {
         });
     }, [members]);
 
-    const selectableTournamentMembers = useMemo(() => {
-        return sortedMembers.filter((member) => Boolean(member.user.nickname));
-    }, [sortedMembers]);
+    const tournamentMemberGroups = useMemo(
+        () => getTournamentParticipantGroups(sortedMembers),
+        [sortedMembers],
+    );
+    const selectableTournamentMembers = tournamentMemberGroups.selectable;
+    const pendingTournamentMembers = tournamentMemberGroups.pending;
 
     const sortedGroupDuels = useMemo(() => {
         return [...(groupDuels ?? [])].sort((left, right) => {
@@ -640,10 +648,13 @@ const GroupPage = () => {
             return;
         }
         const participantNicknames = tournamentParticipants
-            .map((id) => members?.find((member) => member.user.id === id)?.user.nickname ?? "")
+            .map((id) => activeMembers.find((member) => member.user.id === id)?.user.nickname ?? "")
             .filter((nickname) => nickname.trim().length > 0);
-        if (participantNicknames.length === 0) {
-            setTournamentFormError("Не удалось определить участников турнира.");
+        if (participantNicknames.length !== tournamentParticipants.length) {
+            setTournamentFormError(
+                "Состав группы изменился. Выберите подтвержденных участников заново.",
+            );
+            setTournamentParticipants([]);
             setTournamentStep(2);
             return;
         }
@@ -906,7 +917,9 @@ const GroupPage = () => {
                                                                     isCancelingInvitation
                                                                 }
                                                             >
-                                                                Исключить
+                                                                {member.status === "Pending"
+                                                                    ? "Отменить приглашение"
+                                                                    : "Исключить"}
                                                             </Button>
                                                         )}
                                                     </div>
@@ -1370,9 +1383,18 @@ const GroupPage = () => {
             )}
 
             {excludeTarget && (
-                <Modal title="Исключить участника" onClose={handleExcludeClose}>
+                <Modal
+                    title={
+                        excludeTarget.status === "Pending"
+                            ? "Отменить приглашение"
+                            : "Исключить участника"
+                    }
+                    onClose={handleExcludeClose}
+                >
                     <p className={styles.excludeText}>
-                        Исключить {excludeTarget.user.nickname} из группы?
+                        {excludeTarget.status === "Pending"
+                            ? `Отменить приглашение для ${excludeTarget.user.nickname}?`
+                            : `Исключить ${excludeTarget.user.nickname} из группы?`}
                     </p>
                     {excludeError && <div className={styles.errorText}>{excludeError}</div>}
                     <div className={styles.formActions}>
@@ -1390,7 +1412,9 @@ const GroupPage = () => {
                             onClick={handleExcludeConfirm}
                             disabled={isExcluding || isCancelingInvitation}
                         >
-                            Исключить
+                            {excludeTarget.status === "Pending"
+                                ? "Отменить приглашение"
+                                : "Исключить"}
                         </Button>
                     </div>
                 </Modal>
@@ -1630,56 +1654,110 @@ const GroupPage = () => {
 
                         {tournamentStep === 2 && (
                             <div className={styles.tournamentStage}>
-                                <label
-                                    className={`${styles.checkboxRow} ${styles.checkboxRowHeader}`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={isAllTournamentParticipantsSelected}
-                                        onChange={handleToggleSelectAllParticipants}
-                                        disabled={selectableTournamentMembers.length === 0}
-                                    />
-                                    Выбрать всех
-                                </label>
-                                <div className={styles.participantsList}>
-                                    {sortedMembers.length === 0 ? (
-                                        <div className={styles.searchEmpty}>
-                                            В группе пока нет участников.
+                                <div className={styles.participantGroup}>
+                                    <div className={styles.participantGroupHeader}>
+                                        <div>
+                                            <h4 className={styles.participantGroupTitle}>
+                                                Подтвержденные участники
+                                            </h4>
+                                            <p className={styles.participantGroupHint}>
+                                                Только они могут участвовать в турнире.
+                                            </p>
                                         </div>
-                                    ) : (
-                                        sortedMembers.map((member) => {
-                                            const nickname = member.user.nickname ?? "Без никнейма";
-                                            const isDisabled = !member.user.nickname;
-                                            return (
-                                                <label
-                                                    key={member.user.id}
-                                                    className={`${styles.checkboxRow} ${
-                                                        isDisabled ? styles.checkboxDisabled : ""
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={tournamentParticipantSet.has(
-                                                            member.user.id,
-                                                        )}
-                                                        onChange={() =>
-                                                            toggleTournamentParticipant(
+                                        <span className={styles.participantCount}>
+                                            {tournamentMemberGroups.accepted.length}
+                                        </span>
+                                    </div>
+                                    <label
+                                        className={`${styles.checkboxRow} ${styles.checkboxRowHeader}`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isAllTournamentParticipantsSelected}
+                                            onChange={handleToggleSelectAllParticipants}
+                                            disabled={selectableTournamentMembers.length === 0}
+                                        />
+                                        Выбрать всех доступных
+                                    </label>
+                                    <div className={styles.participantsList}>
+                                        {tournamentMemberGroups.accepted.length === 0 ? (
+                                            <div className={styles.searchEmpty}>
+                                                Нет подтвержденных участников.
+                                            </div>
+                                        ) : (
+                                            tournamentMemberGroups.accepted.map((member) => {
+                                                const nickname =
+                                                    member.user.nickname ?? "Без никнейма";
+                                                const isDisabled = !member.user.nickname;
+                                                return (
+                                                    <label
+                                                        key={member.user.id}
+                                                        className={`${styles.checkboxRow} ${
+                                                            isDisabled
+                                                                ? styles.checkboxDisabled
+                                                                : ""
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={tournamentParticipantSet.has(
                                                                 member.user.id,
-                                                            )
-                                                        }
-                                                        disabled={isDisabled}
-                                                    />
-                                                    <span>{nickname}</span>
-                                                    {member.status === "Pending" && (
-                                                        <span className={styles.pendingLabelSmall}>
-                                                            (не подтвержден)
-                                                        </span>
-                                                    )}
-                                                </label>
-                                            );
-                                        })
-                                    )}
+                                                            )}
+                                                            onChange={() =>
+                                                                toggleTournamentParticipant(
+                                                                    member.user.id,
+                                                                )
+                                                            }
+                                                            disabled={isDisabled}
+                                                        />
+                                                        <span>{nickname}</span>
+                                                        {isDisabled && (
+                                                            <span
+                                                                className={styles.pendingLabelSmall}
+                                                            >
+                                                                Недоступен без никнейма
+                                                            </span>
+                                                        )}
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
+
+                                {pendingTournamentMembers.length > 0 && (
+                                    <div className={styles.participantGroup}>
+                                        <div className={styles.participantGroupHeader}>
+                                            <div>
+                                                <h4 className={styles.participantGroupTitle}>
+                                                    Ожидают подтверждения
+                                                </h4>
+                                                <p className={styles.participantGroupHint}>
+                                                    Станут доступны после принятия приглашения в
+                                                    группу.
+                                                </p>
+                                            </div>
+                                            <span className={styles.participantCount}>
+                                                {pendingTournamentMembers.length}
+                                            </span>
+                                        </div>
+                                        <div className={styles.pendingParticipantsList}>
+                                            {pendingTournamentMembers.map((member) => (
+                                                <div
+                                                    key={member.user.id}
+                                                    className={styles.pendingParticipantRow}
+                                                >
+                                                    <span>
+                                                        {member.user.nickname ?? "Без никнейма"}
+                                                    </span>
+                                                    <span className={styles.pendingStatusBadge}>
+                                                        Недоступен
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 

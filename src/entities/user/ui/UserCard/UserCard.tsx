@@ -12,15 +12,25 @@ interface Props {
     reversed?: boolean;
     ratingDelta?: number;
     onClick?: () => void;
+    compactOnMobile?: boolean;
+    ariaLabel?: string;
 }
 
-export const UserCard = ({ user, hideInfo, reversed, ratingDelta, onClick }: Props) => {
-    return (
-        <div className={clsx(styles.user, reversed && styles.reversed)} onClick={onClick}>
+export const UserCard = ({
+    user,
+    hideInfo,
+    reversed,
+    ratingDelta,
+    onClick,
+    compactOnMobile,
+    ariaLabel,
+}: Props) => {
+    const content = (
+        <>
             {!hideInfo && (
-                <div className={styles.userInfo}>
-                    <p className={styles.nickname}>{user.nickname}</p>
-                    <div className={styles.rating}>
+                <span className={styles.userInfo}>
+                    <span className={styles.nickname}>{user.nickname}</span>
+                    <span className={styles.rating}>
                         <CupIcon />
 
                         <AnimatedNumber
@@ -35,11 +45,28 @@ export const UserCard = ({ user, hideInfo, reversed, ratingDelta, onClick }: Pro
                                 ({ratingDelta > 0 ? `+${ratingDelta}` : ratingDelta})
                             </span>
                         )}
-                    </div>
-                </div>
+                    </span>
+                </span>
             )}
 
             <UserIcon className={styles.userIcon} />
-        </div>
+        </>
     );
+
+    const className = clsx(
+        styles.user,
+        reversed && styles.reversed,
+        compactOnMobile && styles.compactOnMobile,
+        onClick && styles.interactive,
+    );
+
+    if (onClick) {
+        return (
+            <button type="button" className={className} onClick={onClick} aria-label={ariaLabel}>
+                {content}
+            </button>
+        );
+    }
+
+    return <span className={className}>{content}</span>;
 };

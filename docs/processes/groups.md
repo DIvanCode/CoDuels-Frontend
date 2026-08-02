@@ -32,6 +32,9 @@ Existing-group invitation behaves similarly. `/groups/:id` redirects to
 and shows modal/status handling for selected `403/404` errors. Roles are exactly
 `Creator`, `Manager`, `Member`; membership statuses include `Active`, `Pending`.
 Creators can edit non-creators; managers can edit members; self-edit is hidden.
+Pending memberships are labeled separately from active members, and an inviter
+with permission gets an explicit cancel-invitation action instead of an
+exclude-member action.
 
 ## Client state transitions
 

@@ -1,4 +1,6 @@
 .groupPage {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-md);
     display: flex;
     justify-content: center;
     padding: 2em 1.5em 3em;
@@ -48,6 +50,7 @@
     flex-direction: column;
     gap: 0.85em;
     margin-top: -0.35em;
+    overflow-x: auto;
 }
 
 .duelsSection {
@@ -116,8 +119,8 @@
     border-radius: 999px;
     background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
     color: var(--text-secondary);
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
 }
 
 .duelPlayerCell {
@@ -206,13 +209,21 @@
     padding: 0.35em 0;
     color: var(--text-secondary);
     font: inherit;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: color 0.15s ease;
 }
 
 .tabButton:hover {
     color: var(--text-primary);
+}
+
+.tabButton:focus-visible,
+.userLink:focus-visible,
+.inviterLink:focus-visible,
+.schemeCard:focus-visible {
+    outline: 0.125em solid var(--accent-secondary);
+    outline-offset: 0.125em;
 }
 
 .tabButtonActive {
@@ -246,7 +257,8 @@
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
     margin-bottom: 0.15em;
 }
 
@@ -322,11 +334,11 @@
 }
 
 .roleLabel {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
 }
 
 .pendingLabel {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
 }
 
@@ -402,13 +414,19 @@
     display: flex;
     align-items: center;
     gap: 0.6em;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     padding: 0.45em 0.6em;
     border-radius: 0.55em;
     border: 1px solid transparent;
     transition:
         border 0.15s ease,
         background 0.15s ease;
+}
+
+.checkboxRow:has(input:focus-visible) {
+    border-color: var(--accent-primary);
+    outline: 0.125em solid var(--accent-secondary);
+    outline-offset: 0.125em;
 }
 
 .checkboxRow input {
@@ -430,8 +448,68 @@
 }
 
 .pendingLabelSmall {
-    font-size: 0.85rem;
+    margin-left: auto;
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
+}
+
+.participantGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65em;
+}
+
+.participantGroupHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1em;
+    text-align: left;
+}
+
+.participantGroupTitle {
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+}
+
+.participantGroupHint {
+    margin: 0.2em 0 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+}
+
+.participantCount,
+.pendingStatusBadge {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0.2em 0.6em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card-secondary) 80%, transparent);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.pendingParticipantsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 0.6em 0.8em;
+    border-radius: 0.6em;
+    background: color-mix(in srgb, var(--card-secondary) 55%, transparent);
+}
+
+.pendingParticipantRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+    padding: 0.45em 0.6em;
+    color: var(--text-secondary);
+    text-align: left;
 }
 
 .schemeList {

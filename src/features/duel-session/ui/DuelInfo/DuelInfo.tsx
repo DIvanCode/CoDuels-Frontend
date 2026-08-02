@@ -65,9 +65,10 @@ export const DuelInfo = ({ duelId }: Props) => {
     const delta = delta1 ?? 0;
     const changeText = delta > 0 ? `+${delta}` : delta;
 
-    const handleOnUserClick = (userId: number, nickname: string) =>
-        userId !== currentUser?.id &&
-        navigate(AppRoutes.PROFILE.replace(":userNickname", nickname));
+    const getProfileClickHandler = (userId: number, nickname: string) =>
+        userId === currentUser?.id
+            ? undefined
+            : () => navigate(AppRoutes.PROFILE.replace(":userNickname", nickname));
 
     return (
         <>
@@ -75,7 +76,8 @@ export const DuelInfo = ({ duelId }: Props) => {
                 <UserCard
                     user={user1}
                     ratingDelta={delta1}
-                    onClick={() => handleOnUserClick(user1.id, user1.nickname)}
+                    onClick={getProfileClickHandler(user1.id, user1.nickname)}
+                    ariaLabel={`Открыть профиль ${user1.nickname}`}
                 />
                 <div className={styles.duelContent}>
                     {duel.status === "InProgress" ? (
@@ -92,7 +94,8 @@ export const DuelInfo = ({ duelId }: Props) => {
                     user={user2}
                     reversed
                     ratingDelta={delta2}
-                    onClick={() => handleOnUserClick(user2.id, user2.nickname)}
+                    onClick={getProfileClickHandler(user2.id, user2.nickname)}
+                    ariaLabel={`Открыть профиль ${user2.nickname}`}
                 />
             </div>
             {showResultModal && duelResult !== null && (

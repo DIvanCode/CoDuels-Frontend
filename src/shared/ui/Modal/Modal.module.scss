@@ -14,7 +14,10 @@
 
 .modal {
     position: relative;
-    min-width: 25em;
+    min-width: min(25em, 100%);
+    max-width: 100%;
+    max-height: calc(100dvh - 4em);
+    overflow: auto;
 
     padding: 2em;
 
@@ -23,6 +26,11 @@
     box-shadow: 0 2.5em 4em rgba(0, 0, 0, 0.3);
 
     text-align: center;
+
+    &:focus-visible {
+        outline: 0.125em solid var(--accent-secondary);
+        outline-offset: 0.125em;
+    }
 }
 
 .title {
@@ -30,6 +38,21 @@
     font-size: 1.5em;
     font-weight: 700;
     color: var(--text-primary);
+}
+
+@media (max-width: 600px) {
+    .overlay {
+        align-items: flex-start;
+        padding: 1em;
+        overflow: auto;
+    }
+
+    .modal {
+        width: 100%;
+        min-width: 0;
+        max-height: none;
+        padding: 1.5em 1em;
+    }
 }
 
 .closeButton {
