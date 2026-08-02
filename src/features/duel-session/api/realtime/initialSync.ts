@@ -3,6 +3,7 @@ import { apiSlice } from "shared/api";
 
 import { finishActiveDuel, resetDuelSession, setActiveDuel } from "../../model/duelSessionSlice";
 import {
+    doesDuelResultCandidateOwnSession,
     getDuelResultCandidateId,
     hasStaleActiveSession,
     isFinishedDuelResultForUser,
@@ -41,7 +42,9 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
         ]),
     );
 
-    const resultCandidateId = getDuelResultCandidateId(getState(), userId);
+    const initialState = getState();
+    const resultCandidateId = getDuelResultCandidateId(initialState, userId);
+    const initialSession = initialState.duelSession;
     let stopped = false;
     let abortResultVerification: (() => void) | null = null;
     const request = dispatch(
@@ -52,6 +55,20 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
     );
 
     const isCurrentUser = () => getState().auth.user?.id === userId;
+    const isInitialSessionStillCurrent = () => {
+        const current = getState().duelSession;
+        return (
+            current.activeDuelId === initialSession.activeDuelId &&
+            current.activeDuelUserId === initialSession.activeDuelUserId &&
+            current.phase === initialSession.phase &&
+            current.pendingStartedInCurrentRuntime ===
+                initialSession.pendingStartedInCurrentRuntime &&
+            current.pendingResult?.duelId === initialSession.pendingResult?.duelId &&
+            current.pendingResult?.userId === initialSession.pendingResult?.userId
+        );
+    };
+    const resultCandidateStillOwnsSession = (duelId: number) =>
+        doesDuelResultCandidateOwnSession(getState(), duelId, userId);
     const reconcileFinishedResult = async (duelId: number) => {
         const detailRequest = dispatch(
             duelApiSlice.endpoints.getDuel.initiate(duelId, {
@@ -67,7 +84,7 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
 
         try {
             const duel = await detailRequest.unwrap();
-            if (!stopped && isCurrentUser()) {
+            if (!stopped && isCurrentUser() && resultCandidateStillOwnsSession(duelId)) {
                 if (isFinishedDuelResultForUser(duel, duelId, userId)) {
                     dispatch(finishActiveDuel({ duelId, userId }));
                 } else {
@@ -75,7 +92,12 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
                 }
             }
         } catch (error: unknown) {
-            if (!stopped && isCurrentUser() && isUnavailableResult(error)) {
+            if (
+                !stopped &&
+                isCurrentUser() &&
+                isUnavailableResult(error) &&
+                resultCandidateStillOwnsSession(duelId)
+            ) {
                 dispatch(resetDuelSession());
             }
         } finally {
@@ -90,8 +112,10 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
         .then((duel) => {
             if (!isCurrentUser()) return;
             if (duel.status === "InProgress") {
+                const currentActiveDuelId = getState().duelSession.activeDuelId;
+                if (currentActiveDuelId !== null && currentActiveDuelId !== duel.id) return;
                 dispatch(setActiveDuel({ duelId: duel.id, userId }));
-            } else {
+            } else if (isInitialSessionStillCurrent()) {
                 dispatch(resetDuelSession());
             }
         })
@@ -99,7 +123,7 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
             if (!stopped && isCurrentUser() && isNotFound(error)) {
                 if (resultCandidateId !== null) {
                     await reconcileFinishedResult(resultCandidateId);
-                } else if (hasStaleActiveSession(getState())) {
+                } else if (isInitialSessionStillCurrent() && hasStaleActiveSession(getState())) {
                     dispatch(resetDuelSession());
                 }
             }

@@ -19,6 +19,12 @@ import { Button, Modal } from "shared/ui";
 
 import styles from "./DuelSessionManager.module.scss";
 
+const isNotFoundError = (error: unknown) =>
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status?: number }).status === 404;
+
 export const DuelSessionManager = () => {
     const dispatch = useAppDispatch();
     const store = useAppStore();
@@ -29,7 +35,7 @@ export const DuelSessionManager = () => {
     const [isReconnecting, setIsReconnecting] = useState(false);
     const previousUserIdRef = useRef<number | null>(userId);
 
-    const { data: activeDuel } = useGetActiveDuelQuery(undefined, {
+    const { data: activeDuel, error: activeDuelError } = useGetActiveDuelQuery(undefined, {
         skip: realtimeUserId === null,
         pollingInterval: phase === "searching" ? 2_000 : 0,
         skipPollingIfUnfocused: true,
@@ -52,10 +58,17 @@ export const DuelSessionManager = () => {
     }, [activeDuel, userId, dispatch]);
 
     useEffect(() => {
-        if (userId !== null && activeDuelId && activeDuelUserId === userId && phase === "idle") {
+        const shouldVerifyPersistedDuel = phase === "idle" || isNotFoundError(activeDuelError);
+
+        if (
+            userId !== null &&
+            activeDuelId !== null &&
+            (activeDuelUserId === userId || activeDuelUserId === null) &&
+            shouldVerifyPersistedDuel
+        ) {
             dispatch(restoreDuelSession(activeDuelId));
         }
-    }, [userId, activeDuelId, activeDuelUserId, phase, dispatch]);
+    }, [userId, activeDuelId, activeDuelUserId, phase, activeDuelError, dispatch]);
 
     useEffect(() => {
         if (userId === null || previousUserIdRef.current !== userId) {

@@ -69,10 +69,13 @@ can restore active phase when an ID exists with idle. Active-duel polling and
 every socket-open reconciliation promote an active result; a 404 clears stale
 active state and rehydrated `searching`, while preserving a pending
 search/invitation started through `setPhase("searching")` in the current runtime.
-Persisted active and pending-result candidates carry their owning user ID. When
-reconnect finds no active duel, it fetches that exact candidate and keeps the
-notification only when the server returns a finished duel containing that user.
-New HTTP/events then overwrite other provisional projections.
+Persisted active and pending-result candidates normally carry their owning user
+ID. A legacy active ID without one is treated as provisional. When the ordinary
+active query or reconnect finds no active duel, it fetches that exact candidate
+and keeps the notification only when the server returns a finished duel
+containing the current user. Candidate checks fence late responses from
+overwriting a newer duel. New HTTP/events then overwrite other provisional
+projections.
 
 ## Backend state assumptions
 

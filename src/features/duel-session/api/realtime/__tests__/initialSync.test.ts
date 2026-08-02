@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+    doesDuelResultCandidateOwnSession,
     getDuelResultCandidateId,
     hasStaleActiveSession,
     isFinishedDuelResultForUser,
@@ -29,7 +30,7 @@ describe("initial sync state", () => {
         expect(hasStaleActiveSession(createState("active", 42))).toBe(true);
     });
 
-    it("reconciles only a candidate owned by the current user", () => {
+    it("reconciles owned and ownerless legacy candidates for the current user", () => {
         const state = {
             auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
             duelSession: {
@@ -53,7 +54,35 @@ describe("initial sync state", () => {
                 } as RootState,
                 7,
             ),
-        ).toBeNull();
+        ).toBe(42);
+    });
+
+    it("fences an old result candidate after a newer duel takes ownership", () => {
+        const state = {
+            auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
+            duelSession: {
+                phase: "active",
+                activeDuelId: 42,
+                activeDuelUserId: null,
+                pendingResult: null,
+            },
+        } as RootState;
+
+        expect(doesDuelResultCandidateOwnSession(state, 42, 7)).toBe(true);
+        expect(
+            doesDuelResultCandidateOwnSession(
+                {
+                    ...state,
+                    duelSession: {
+                        ...state.duelSession,
+                        activeDuelId: 43,
+                        activeDuelUserId: 7,
+                    },
+                } as RootState,
+                42,
+                7,
+            ),
+        ).toBe(false);
     });
 
     it("restores an unacknowledged result candidate after refresh", () => {

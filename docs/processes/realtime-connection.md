@@ -57,9 +57,11 @@ Tournament, and User projections, then force-reads `/duels/active`. An active
 duel promotes the session to `active`; a backend 404 resets stale active state
 but preserves a pending search or accepted invitation because no active duel is
 expected before `DuelStarted`. The result is accepted only while the same user
-ID still owns the session. Independently, the globally mounted manager polls `/duels/active`
-every two seconds while the local phase is `searching`. This bounded fallback
-repairs a missed `DuelStarted` event without creating a second socket.
+ID and captured candidate still own the session. Independently, the globally
+mounted manager polls `/duels/active` every two seconds while the local phase is
+`searching`. A normal manager-query 404 verifies persisted and legacy ownerless
+active IDs through duel detail without waiting for the socket to open. These
+bounded fallbacks repair missed transitions without creating a second socket.
 
 Incoming text first passes the runtime parser. It accepts current flat messages
 and compatibility envelopes using `event|type|name`, `data|payload`, optional

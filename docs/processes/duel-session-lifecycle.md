@@ -44,12 +44,14 @@ the client verifies the exact duel detail before keeping a finished result;
 otherwise it resets provisional persisted active/searching state. The manager also owns
 the active-duel query and polls it every two seconds while locally searching,
 so a missed start event still promotes the session without waiting for a socket
-reconnect. While the user is viewing their active duel, DuelInfo also polls that
-exact detail every two seconds. A finished HTTP snapshot consumes the same
-user-owned active transition as `DuelFinished`, so a silently missed socket event
-does not require F5. The manager performs the user-owned active transition. The
-manager's detail restore remains a pre-connect recovery path for `idle +
-activeDuelId`.
+reconnect. Its ordinary 404 also verifies a persisted active ID through duel
+detail even when the socket never opens. Ownerless IDs from the previous
+persisted schema are provisional candidates and survive only after participant
+validation. Every asynchronous reset is fenced by the candidate that started
+it, so an older verification cannot clear a newer duel. While the user is
+viewing their active duel, DuelInfo also polls that exact detail every two
+seconds. A finished HTTP snapshot consumes the same user-owned active transition
+as `DuelFinished`, so a silently missed socket event does not require F5.
 
 `setPhase("searching")` is ignored once an active ID exists. This fences the
 race where an early `DuelStarted` arrives before the search/accept HTTP response

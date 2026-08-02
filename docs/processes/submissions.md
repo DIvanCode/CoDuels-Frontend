@@ -37,10 +37,13 @@ active list caches for the duel and patches a known ID plus detail. Event
 updates enforce `Queued -> Running -> Done`, so a delayed queued/running event
 cannot regress newer state. If no current cache contains the submission, its
 duel-list and detail tags are invalidated instead of dropping the update. Normal
-HTTP merge/refetch still has no server revision guard. Detail fetch updates only
-the unfiltered list. While a visible list or detail remains `Queued`/`Running`,
-it refetches every two seconds and stops at `Done`; WebSocket remains the fast
-path. Duel change/finish events also invalidate active submission projections.
+HTTP list/detail merges apply the same nondecreasing status order, so a response
+started before a terminal event cannot restore `Queued`/`Running`. There is no
+server revision guard between responses with the same status. Detail fetch
+updates only the unfiltered list. While a visible list or detail remains
+`Queued`/`Running`, it refetches every two seconds and stops at `Done`; WebSocket
+remains the fast path. Duel change/finish events also invalidate active
+submission projections.
 
 ```mermaid
 sequenceDiagram
@@ -108,9 +111,8 @@ are all enumerated or invalidated.
 ## Ordering assumptions
 
 The implementation assumes create response populates cache before status event.
-It also assumes HTTP snapshots will not regress later event state, although only
-the event path enforces terminal protection. Detail/list response order and
-filtered caches are not versioned.
+HTTP and event paths share terminal protection, but detail/list response order
+within the same status and filtered caches are not versioned.
 
 ## Failure handling
 
