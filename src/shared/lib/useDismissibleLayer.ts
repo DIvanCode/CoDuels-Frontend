@@ -1,5 +1,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 
+import { registerDismissibleLayer } from "./dismissibleLayerStack";
+
 const focusableSelector = [
     "button:not([disabled])",
     "[href]",
@@ -41,6 +43,7 @@ export const useDismissibleLayer = ({
     useEffect(() => {
         if (!isOpen) return;
 
+        const layerRegistration = registerDismissibleLayer();
         const previouslyFocused =
             document.activeElement instanceof HTMLElement ? document.activeElement : null;
         const layer = layerRef.current;
@@ -56,6 +59,7 @@ export const useDismissibleLayer = ({
         };
 
         const handleKeyDown = (event: KeyboardEvent) => {
+            if (!layerRegistration.isTopmost()) return;
             if (!isFocusInsideLayer()) return;
 
             if (event.key === "Escape") {
@@ -88,6 +92,7 @@ export const useDismissibleLayer = ({
         };
 
         const handleMouseDown = (event: MouseEvent) => {
+            if (!layerRegistration.isTopmost()) return;
             if (!closeOnOutsidePress || !layerRef.current) return;
             if (event.target instanceof Node && !layerRef.current.contains(event.target)) {
                 onDismissRef.current();
@@ -102,6 +107,7 @@ export const useDismissibleLayer = ({
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
             document.removeEventListener("mousedown", handleMouseDown);
+            layerRegistration.unregister();
 
             if (previouslyFocused?.isConnected) {
                 previouslyFocused.focus();
