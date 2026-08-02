@@ -1,4 +1,5 @@
 import { duelApiSlice, type Duel } from "entities/duel";
+import { submitCodeApiSlice } from "entities/submission";
 import { userApiSlice } from "entities/user";
 import { fromApiLanguage } from "shared/config";
 
@@ -46,6 +47,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
             );
+            context.dispatch(submitCodeApiSlice.util.invalidateTags(["Submission"]));
             context.dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
 
             if (activeDuelId === payload.duel_id) {
@@ -71,6 +73,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
             );
+            context.dispatch(submitCodeApiSlice.util.invalidateTags(["Submission"]));
         },
     ],
     OpponentSolutionUpdated: [

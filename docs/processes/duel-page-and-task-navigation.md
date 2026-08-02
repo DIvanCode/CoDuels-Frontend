@@ -40,9 +40,9 @@ The URL owns task/child-page choice. On each duel response, duelSession compares
 current tasks with unpersisted `lastTasksByDuelId`. The first snapshot creates no
 alert; a later `null -> id` marks newly opened task keys and raises
 `duelStatusChanged`. Removing/changing tasks has no equivalent alert. A terminal
-event for the user-owned active duel creates a persisted `pendingResult`; an
-ordinary finished-duel query does not. Result and opened-task modals have
-separate dismissal state.
+event or a polled finished snapshot for the user-owned active duel creates a
+persisted `pendingResult`; an ordinary historical finished-duel query does not.
+Result and opened-task modals have separate dismissal state.
 
 ## Backend state assumptions
 

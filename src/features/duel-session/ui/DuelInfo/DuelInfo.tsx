@@ -23,9 +23,15 @@ export const DuelInfo = ({ duelId }: Props) => {
     const dispatch = useAppDispatch();
 
     const currentUser = useAppSelector(selectCurrentUser);
-    const { duelStatusChanged, openedTaskKeys, pendingResult } = useAppSelector(selectDuelSession);
+    const { activeDuelId, activeDuelUserId, duelStatusChanged, openedTaskKeys, pendingResult } =
+        useAppSelector(selectDuelSession);
 
-    const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
+    const isCurrentActiveDuel = activeDuelId === duelId && activeDuelUserId === currentUser?.id;
+    const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId, {
+        pollingInterval: isCurrentActiveDuel ? 2_000 : 0,
+        skipPollingIfUnfocused: true,
+        refetchOnReconnect: true,
+    });
 
     const showResultModal =
         duel?.status === "Finished" &&

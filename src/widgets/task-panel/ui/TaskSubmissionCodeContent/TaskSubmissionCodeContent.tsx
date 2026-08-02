@@ -9,6 +9,10 @@ import {
     getVerdictVariant,
     mapLanguageToLanguageValue,
 } from "widgets/task-panel/lib/submissionUtils";
+import {
+    shouldPollSubmissionStatus,
+    useSubmissionStatusPolling,
+} from "widgets/task-panel/lib/useSubmissionStatusPolling";
 
 import { baseEditorConfig, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
@@ -27,12 +31,14 @@ export const TaskSubmissionCodeContent = () => {
         data: submissionDetail,
         isLoading,
         isError,
+        refetch,
     } = useGetSubmissionDetailQuery(
         { duelId: duelId ?? "", submissionId: submissionId ?? "" },
         {
             skip: !duelId || !submissionId,
         },
     );
+    useSubmissionStatusPolling(shouldPollSubmissionStatus(submissionDetail?.status), refetch);
     const { data: duel } = useGetDuelQuery(Number(duelId), { skip: !duelId });
     const { selectedTaskId } = useDuelTaskSelection(duel);
     const theme = useAppSelector(selectThemeMode);

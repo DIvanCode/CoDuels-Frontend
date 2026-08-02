@@ -226,6 +226,12 @@ const duelSessionSlice = createSlice({
         );
         builder.addMatcher(duelApiSlice.endpoints.getDuel.matchFulfilled, (state, { payload }) => {
             const duelId = payload.id;
+            const resultUserId = state.activeDuelUserId;
+            const isCurrentActiveDuelFinished =
+                payload.status === "Finished" &&
+                state.activeDuelId === duelId &&
+                resultUserId !== null &&
+                (payload.participants ?? []).some((participant) => participant.id === resultUserId);
             const hasPreviousSnapshot = Object.prototype.hasOwnProperty.call(
                 state.lastTasksByDuelId,
                 duelId,
@@ -242,6 +248,11 @@ const duelSessionSlice = createSlice({
             }
 
             state.lastTasksByDuelId[duelId] = buildTaskSnapshot(nextTasks);
+
+            if (isCurrentActiveDuelFinished) {
+                clearActiveDuel(state);
+                state.pendingResult = { duelId, userId: resultUserId };
+            }
         });
     },
 });

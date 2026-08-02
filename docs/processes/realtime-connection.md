@@ -72,15 +72,15 @@ without changing transport code.
 | Event                                            | Domain behavior                                                                                              |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | `DuelStarted`                                    | Invalidate that duel; activate it only when it does not conflict with another active ID, otherwise reconcile |
-| `DuelFinished`                                   | Invalidate duel/user/tournament projections; reset only when the finished ID is the current active duel      |
+| `DuelFinished`                                   | Invalidate duel/user/submission/tournament projections; finish only the matching current active duel         |
 | `DuelCanceled` compatibility event               | Reset a currently searching flow and show cancellation UI                                                    |
-| `DuelChanged` or nameless `duel_id`              | Invalidate that duel; HTTP fulfillment hydrates duel/editor state                                            |
+| `DuelChanged` or nameless `duel_id`              | Invalidate duel/submission projections; HTTP fulfillment hydrates duel/editor state                          |
 | Direct invitation create/cancel/deny             | Refresh invitation projections; change local pending state only when the payload matches                     |
 | Group membership invitation create/cancel        | Refresh membership invitations and group projections                                                         |
 | Group-duel invitation create/cancel              | Refresh duel invitations and group projections                                                               |
 | Tournament-duel invitation create/cancel aliases | Refresh duel invitations and tournament projections                                                          |
 | `OpponentSolutionUpdated`                        | Apply only to a validated cached privacy-enabled duel/task                                                   |
-| `SubmissionStatusUpdated`                        | Patch every matching cached list/detail monotonically; invalidate missing projections                        |
+| `SubmissionStatusUpdated`                        | Patch lists/detail monotonically; pending visible queries also use bounded HTTP polling                      |
 | `CodeRunStatusUpdated`                           | Runtime-validated but intentionally unhandled because code runs use HTTP polling                             |
 
 When an envelope supplies an event ID, `EventCursor` suppresses repeated IDs and

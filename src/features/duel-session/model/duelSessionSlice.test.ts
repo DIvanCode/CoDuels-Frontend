@@ -11,7 +11,10 @@ vi.mock("entities/duel", () => ({
     duelApiSlice: {
         endpoints: {
             getActiveDuel: { matchRejected: () => false },
-            getDuel: { matchFulfilled: () => false },
+            getDuel: {
+                matchFulfilled: (action: { type?: string }) =>
+                    action.type === "duel/getDuel/fulfilled",
+            },
         },
     },
 }));
@@ -48,6 +51,41 @@ describe("duel result notification state", () => {
             phase: "idle",
             pendingResult: { duelId: 42, userId: 7 },
         });
+    });
+
+    it("queues the current result when HTTP polling observes the active duel finished", () => {
+        let state = reducer(undefined, { type: "test/init" });
+        state = reducer(state, setActiveDuel({ duelId: 42, userId: 7 }));
+        state = reducer(state, {
+            type: "duel/getDuel/fulfilled",
+            payload: {
+                id: 42,
+                status: "Finished",
+                participants: [{ id: 7 }, { id: 8 }],
+                tasks: null,
+            },
+        });
+
+        expect(state).toMatchObject({
+            activeDuelId: null,
+            activeDuelUserId: null,
+            phase: "idle",
+            pendingResult: { duelId: 42, userId: 7 },
+        });
+    });
+
+    it("does not queue a result for an ordinary historical finished-duel query", () => {
+        const state = reducer(undefined, {
+            type: "duel/getDuel/fulfilled",
+            payload: {
+                id: 41,
+                status: "Finished",
+                participants: [{ id: 7 }, { id: 8 }],
+                tasks: null,
+            },
+        });
+
+        expect(state.pendingResult).toBeNull();
     });
 
     it("accepts a current terminal event while migrating legacy active state without an owner", () => {

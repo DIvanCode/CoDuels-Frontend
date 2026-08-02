@@ -14,6 +14,13 @@ vi.mock("entities/user", () => ({
         util: { invalidateTags: (payload: unknown) => ({ type: "user/invalidate", payload }) },
     },
 }));
+vi.mock("entities/submission", () => ({
+    submitCodeApiSlice: {
+        util: {
+            invalidateTags: (payload: unknown) => ({ type: "submission/invalidate", payload }),
+        },
+    },
+}));
 vi.mock("shared/config", () => ({ fromApiLanguage: (language: string) => language }));
 vi.mock("../../../model/duelSessionSlice", () => {
     const action = (type: string) => (payload?: unknown) => ({ type, payload });
@@ -49,6 +56,31 @@ describe("duel realtime handlers", () => {
         });
 
         expect(dispatch).toHaveBeenCalledWith(finishActiveDuel({ duelId: 42, userId: 7 }));
+        expect(dispatch).toHaveBeenCalledWith({
+            type: "submission/invalidate",
+            payload: ["Submission"],
+        });
+    });
+
+    it("refreshes submission projections when an accepted solution changes the duel", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => createState(42),
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelChanged?.[0]({
+            type: "DuelChanged",
+            payload: { duel_id: 42 },
+            eventId: null,
+        });
+
+        expect(dispatch).toHaveBeenCalledWith({
+            type: "submission/invalidate",
+            payload: ["Submission"],
+        });
     });
 
     it("does not queue a result when a historical duel finishes", () => {
