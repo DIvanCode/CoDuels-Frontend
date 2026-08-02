@@ -3,6 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { FriendlyDuelCancellationReason, FriendlyDuelError, FriendlyDuelState } from "./types";
 
 const initialState: FriendlyDuelState = {
+    ownerUserId: null,
     status: "idle",
     step: "configuration",
     nickname: "",
@@ -28,6 +29,12 @@ const friendlyDuelSlice = createSlice({
     name: "friendlyDuel",
     initialState,
     reducers: {
+        setFriendlyDuelUserId: (state, action: PayloadAction<number | null>) => {
+            if (state.ownerUserId === action.payload) return;
+
+            resetToIdle(state);
+            state.ownerUserId = action.payload;
+        },
         openFriendlyDuel: (state) => {
             resetToIdle(state);
             state.status = "configuring";
@@ -120,9 +127,16 @@ const friendlyDuelSlice = createSlice({
             state.error = null;
         },
     },
+    extraReducers: (builder) => {
+        builder.addCase("auth/logout", (state) => {
+            resetToIdle(state);
+            state.ownerUserId = null;
+        });
+    },
 });
 
 export const {
+    setFriendlyDuelUserId,
     openFriendlyDuel,
     closeFriendlyDuel,
     selectFriendlyDuelConfiguration,

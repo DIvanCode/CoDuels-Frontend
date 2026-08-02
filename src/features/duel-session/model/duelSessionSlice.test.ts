@@ -5,6 +5,7 @@ import reducer, {
     finishActiveDuel,
     resetDuelSession,
     setActiveDuel,
+    setPhase,
 } from "./duelSessionSlice";
 
 vi.mock("entities/duel", () => ({
@@ -122,5 +123,15 @@ describe("duel result notification state", () => {
 
         state = reducer(state, setActiveDuel({ duelId: 43, userId: 7 }));
         expect(state.pendingResult).toBeNull();
+    });
+
+    it("fences a late start after cancellation without fencing a new search", () => {
+        let state = reducer(undefined, setPhase("searching"));
+        state = reducer(state, setPhase("idle"));
+
+        expect(state.isDuelStartFenced).toBe(true);
+
+        state = reducer(state, setPhase("searching"));
+        expect(state.isDuelStartFenced).toBe(false);
     });
 });

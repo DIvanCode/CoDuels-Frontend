@@ -25,7 +25,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
     DuelStarted: [
         ({ payload }) => {
             if (!isCurrentDomainSession(context)) return;
-            const { activeDuelId, phase } = context.getState().duelSession;
+            const { activeDuelId, phase, isDuelStartFenced } = context.getState().duelSession;
 
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
@@ -36,7 +36,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
                 return;
             }
 
-            if (phase !== "searching") return;
+            if (phase !== "searching" && (phase !== "idle" || isDuelStartFenced)) return;
 
             context.dispatch(setActiveDuel({ duelId: payload.duel_id, userId: context.userId }));
         },

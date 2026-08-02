@@ -16,6 +16,7 @@ const initialState: DuelSessionState = {
     activeDuelUserId: null,
     phase: "idle",
     pendingStartedInCurrentRuntime: false,
+    isDuelStartFenced: false,
     lastEventId: null,
     searchNickname: null,
     searchConfigurationId: null,
@@ -35,6 +36,7 @@ const clearDuelSession = (state: DuelSessionState) => {
     state.activeDuelUserId = null;
     state.phase = "idle";
     state.pendingStartedInCurrentRuntime = false;
+    state.isDuelStartFenced = false;
     state.lastEventId = null;
     state.searchNickname = null;
     state.searchConfigurationId = null;
@@ -54,6 +56,7 @@ const clearActiveDuel = (state: DuelSessionState) => {
     state.activeDuelUserId = null;
     state.phase = "idle";
     state.pendingStartedInCurrentRuntime = false;
+    state.isDuelStartFenced = false;
     state.lastEventId = null;
     state.searchNickname = null;
     state.searchConfigurationId = null;
@@ -100,9 +103,16 @@ const duelSessionSlice = createSlice({
             if (action.payload === "searching" && state.activeDuelId !== null) {
                 return;
             }
+            const wasSearching = state.phase === "searching";
             state.phase = action.payload;
             state.pendingStartedInCurrentRuntime = action.payload === "searching";
+            if (action.payload === "searching") {
+                state.isDuelStartFenced = false;
+            }
             if (action.payload === "idle") {
+                if (wasSearching) {
+                    state.isDuelStartFenced = true;
+                }
                 state.activeDuelId = null;
                 state.activeDuelUserId = null;
                 state.searchNickname = null;
@@ -150,6 +160,7 @@ const duelSessionSlice = createSlice({
             state.activeDuelUserId = action.payload?.userId ?? null;
             if (duelId !== null) {
                 state.pendingStartedInCurrentRuntime = false;
+                state.isDuelStartFenced = false;
                 if (state.phase === "searching" || state.phase === "idle") {
                     state.phase = "active";
                 }

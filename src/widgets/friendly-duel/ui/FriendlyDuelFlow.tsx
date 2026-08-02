@@ -28,33 +28,16 @@ import {
     returnToFriendlyDuelConfiguration,
     selectFriendlyDuelConfiguration,
     selectFriendlyDuelDefaultConfiguration,
+    setFriendlyDuelUserId,
     setFriendlyDuelNickname,
     showFriendlyDuelConfigurationStep,
     showFriendlyDuelOpponentStep,
 } from "../model/friendlyDuelSlice";
 import { isFriendlyDuelConfigurationScenarioActive } from "../model/configurationScenario";
+import { getFriendlyDuelCreationError } from "../model/creationError";
 import { selectFriendlyDuel } from "../model/selectors";
 
 import styles from "./FriendlyDuelFlow.module.scss";
-
-const getCreationError = (error: unknown) => {
-    if (
-        error &&
-        typeof error === "object" &&
-        "status" in error &&
-        (error as { status?: number }).status === 409
-    ) {
-        return {
-            title: "Не получилось отправить вызов на дуэль",
-            description: "Возможно, у вас уже есть вызов на дуэль от этого пользователя.",
-        };
-    }
-
-    return {
-        title: "Не получилось отправить вызов на дуэль",
-        description: "Проверьте соединение и попробуйте ещё раз.",
-    };
-};
 
 const SelectedConfiguration = ({
     configurationId,
@@ -142,6 +125,10 @@ export const FriendlyDuelFlow = () => {
     sessionRef.current = { phase, activeDuelId };
 
     useEffect(() => {
+        dispatch(setFriendlyDuelUserId(user?.id ?? null));
+    }, [dispatch, user?.id]);
+
+    useEffect(() => {
         if (
             friendlyDuel.status === "idle" &&
             phase === "searching" &&
@@ -227,7 +214,7 @@ export const FriendlyDuelFlow = () => {
                 return;
             }
 
-            dispatch(failFriendlyDuelCreation(getCreationError(error)));
+            dispatch(failFriendlyDuelCreation(getFriendlyDuelCreationError(error)));
             dispatch(setPhase("idle"));
         }
     };
@@ -235,10 +222,10 @@ export const FriendlyDuelFlow = () => {
     const isConfigurationScenarioActive = isFriendlyDuelConfigurationScenarioActive(friendlyDuel);
     const cancellationDescription =
         friendlyDuel.cancellationReason === "user"
-            ? "Поиск отменён. Выбранные правила и никнейм сохранены для повторного вызова."
-            : friendlyDuel.cancellationReason === "disconnect"
-              ? "Соединение было прервано, поэтому поиск остановлен."
-              : "Вызов больше не ожидает ответа соперника.";
+              ? "Поиск отменён. Выбранные правила и никнейм сохранены для повторного вызова."
+              : friendlyDuel.cancellationReason === "disconnect"
+                ? "Соединение было прервано, поэтому поиск остановлен."
+                : "Соперник отклонил дружескую дуэль";
 
     return (
         <>
@@ -363,7 +350,7 @@ export const FriendlyDuelFlow = () => {
 
             {friendlyDuel.status === "canceled" && (
                 <Modal
-                    title="Дружеский вызов отменён"
+                    title="Дружеская дуэль отменена"
                     onClose={() => dispatch(closeFriendlyDuel())}
                 >
                     <p className={styles.resultDescription}>{cancellationDescription}</p>

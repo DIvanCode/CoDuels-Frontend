@@ -16,6 +16,7 @@ export interface FriendlyDuelError {
 }
 
 export interface FriendlyDuelState {
+    ownerUserId: number | null;
     status: FriendlyDuelStatus;
     step: FriendlyDuelConfigurationStep;
     nickname: string;

@@ -70,7 +70,9 @@ sequenceDiagram
 Friendly creation moves its widget through `configuring -> pending`; the
 corresponding session moves `idle -> searching`. `DuelStarted` moves a pending
 session to `active`, and the widget to `matched`. A `DuelStarted` received after
-an already-cancelled session is ignored instead of reviving that duel.
+an already-cancelled session is ignored instead of reviving that duel; an idle
+sibling tab without such a cancellation fence still accepts its authoritative
+start event.
 
 Successful user cancellation moves the widget to `canceled` with reason `user`.
 Cancellation from the server and an established socket disconnect also reach

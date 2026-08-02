@@ -9,6 +9,7 @@ import reducer, {
     requestFriendlyDuelCancellation,
     returnToFriendlyDuelConfiguration,
     selectFriendlyDuelConfiguration,
+    setFriendlyDuelUserId,
     setFriendlyDuelNickname,
     showFriendlyDuelOpponentStep,
 } from "./friendlyDuelSlice";
@@ -84,5 +85,26 @@ describe("friendly duel state machine", () => {
         expect(isFriendlyDuelConfigurationScenarioActive(idleState)).toBe(false);
         expect(isFriendlyDuelConfigurationScenarioActive(configuringState)).toBe(true);
         expect(isFriendlyDuelConfigurationScenarioActive(pendingState)).toBe(false);
+    });
+
+    it("clears a configured flow when the authenticated user changes or logs out", () => {
+        let state = reducer(undefined, setFriendlyDuelUserId(1));
+        state = reducer(state, openFriendlyDuel());
+        state = reducer(state, selectFriendlyDuelConfiguration(11));
+        state = reducer(state, showFriendlyDuelOpponentStep());
+        state = reducer(state, setFriendlyDuelNickname("opponent"));
+
+        state = reducer(state, setFriendlyDuelUserId(2));
+
+        expect(state).toMatchObject({
+            ownerUserId: 2,
+            status: "idle",
+            nickname: "",
+            configurationId: null,
+        });
+
+        state = reducer(state, openFriendlyDuel());
+        state = reducer(state, { type: "auth/logout" });
+        expect(state).toMatchObject({ ownerUserId: null, status: "idle", nickname: "" });
     });
 });

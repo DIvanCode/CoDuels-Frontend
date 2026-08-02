@@ -51,15 +51,24 @@
 }
 
 .configurationActions,
-.formActions,
-.resultActions {
+.formActions {
     display: flex;
     width: 100%;
     gap: 1em;
 }
 
 .configurationActions > *,
-.formActions > *,
+.formActions > * {
+    flex: 1;
+}
+
+.resultActions {
+    display: flex;
+    width: 100%;
+    gap: 1em;
+    margin-top: 1.5em;
+}
+
 .resultActions > * {
     flex: 1;
 }

@@ -36,18 +36,40 @@ vi.mock("../../../model/duelSessionSlice", () => {
 const createState = (
     activeDuelId: number | null,
     phase: "idle" | "searching" | "active" = "active",
+    isDuelStartFenced = false,
 ) =>
     ({
         auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
-        duelSession: { activeDuelId, phase },
+        duelSession: { activeDuelId, phase, isDuelStartFenced },
     }) as RootState;
 
 describe("duel realtime handlers", () => {
-    it("ignores a late start event after a pending search was canceled", () => {
+    it("accepts a start event received by an idle sibling tab", () => {
         const dispatch = vi.fn();
         const handlers = createDuelHandlers({
             dispatch: dispatch as unknown as AppDispatch,
             getState: () => createState(null, "idle"),
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelStarted?.[0]({
+            type: "DuelStarted",
+            payload: { duel_id: 42 },
+            eventId: null,
+        });
+
+        expect(dispatch).toHaveBeenCalledWith({
+            type: "duelSession/setActiveDuel",
+            payload: { duelId: 42, userId: 7 },
+        });
+    });
+
+    it("ignores a late start event after a pending search was canceled", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => createState(null, "idle", true),
             userId: 7,
             reconcile: vi.fn(),
         });
