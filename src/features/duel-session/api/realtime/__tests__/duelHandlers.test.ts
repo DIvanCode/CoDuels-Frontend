@@ -26,6 +26,7 @@ vi.mock("../../../model/duelSessionSlice", () => {
     const action = (type: string) => (payload?: unknown) => ({ type, payload });
     return {
         finishActiveDuel: action("duelSession/finishActiveDuel"),
+        clearDuelStartFence: action("duelSession/clearDuelStartFence"),
         resetDuelSession: action("duelSession/resetDuelSession"),
         setActiveDuel: action("duelSession/setActiveDuel"),
         setDuelCanceled: action("duelSession/setDuelCanceled"),
@@ -36,11 +37,11 @@ vi.mock("../../../model/duelSessionSlice", () => {
 const createState = (
     activeDuelId: number | null,
     phase: "idle" | "searching" | "active" = "active",
-    isDuelStartFenced = false,
+    duelStartFenceExpiresAt: number | null = null,
 ) =>
     ({
         auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
-        duelSession: { activeDuelId, phase, isDuelStartFenced },
+        duelSession: { activeDuelId, phase, duelStartFenceExpiresAt },
     }) as RootState;
 
 describe("duel realtime handlers", () => {
@@ -69,7 +70,7 @@ describe("duel realtime handlers", () => {
         const dispatch = vi.fn();
         const handlers = createDuelHandlers({
             dispatch: dispatch as unknown as AppDispatch,
-            getState: () => createState(null, "idle", true),
+            getState: () => createState(null, "idle", Date.now() + 5_000),
             userId: 7,
             reconcile: vi.fn(),
         });
@@ -83,6 +84,56 @@ describe("duel realtime handlers", () => {
         expect(dispatch).not.toHaveBeenCalledWith({
             type: "duelSession/setActiveDuel",
             payload: { duelId: 42, userId: 7 },
+        });
+    });
+
+    it("accepts an idle start after the cancellation fence expires", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => createState(null, "idle", Date.now() - 1),
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelStarted?.[0]({
+            type: "DuelStarted",
+            payload: { duel_id: 42 },
+            eventId: null,
+        });
+
+        expect(dispatch).toHaveBeenCalledWith({ type: "duelSession/clearDuelStartFence" });
+        expect(dispatch).toHaveBeenCalledWith({
+            type: "duelSession/setActiveDuel",
+            payload: { duelId: 42, userId: 7 },
+        });
+    });
+
+    it("fences a late start after a server cancellation", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () =>
+                ({
+                    ...createState(null, "searching"),
+                    duelSession: {
+                        ...createState(null, "searching").duelSession,
+                        searchInvitationType: "Friendly",
+                    },
+                }) as RootState,
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelCanceled?.[0]({
+            type: "DuelCanceled",
+            payload: { opponent_nickname: "opponent" },
+            eventId: null,
+        });
+
+        expect(dispatch).toHaveBeenCalledWith({
+            type: "duelSession/resetDuelSession",
+            payload: { fenceDuelStart: true },
         });
     });
 

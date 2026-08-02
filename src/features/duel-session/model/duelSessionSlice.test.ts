@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import reducer, {
+    DUEL_START_FENCE_DURATION_MS,
     acknowledgeDuelResult,
     finishActiveDuel,
     resetDuelSession,
@@ -125,13 +126,25 @@ describe("duel result notification state", () => {
         expect(state.pendingResult).toBeNull();
     });
 
-    it("fences a late start after cancellation without fencing a new search", () => {
+    it("fences a late start after cancellation for a bounded interval", () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-08-02T13:00:00Z"));
         let state = reducer(undefined, setPhase("searching"));
         state = reducer(state, setPhase("idle"));
 
-        expect(state.isDuelStartFenced).toBe(true);
+        expect(state.duelStartFenceExpiresAt).toBe(Date.now() + DUEL_START_FENCE_DURATION_MS);
 
         state = reducer(state, setPhase("searching"));
-        expect(state.isDuelStartFenced).toBe(false);
+        expect(state.duelStartFenceExpiresAt).toBeNull();
+        vi.useRealTimers();
+    });
+
+    it("adds the same bounded fence when a server cancellation resets the session", () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-08-02T13:00:00Z"));
+        const state = reducer(undefined, resetDuelSession({ fenceDuelStart: true }));
+
+        expect(state.duelStartFenceExpiresAt).toBe(Date.now() + DUEL_START_FENCE_DURATION_MS);
+        vi.useRealTimers();
     });
 });

@@ -5,6 +5,7 @@ import { fromApiLanguage } from "shared/config";
 
 import {
     finishActiveDuel,
+    clearDuelStartFence,
     setActiveDuel,
     setDuelCanceled,
     setDuelCanceledOpponentNickname,
@@ -25,7 +26,13 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
     DuelStarted: [
         ({ payload }) => {
             if (!isCurrentDomainSession(context)) return;
-            const { activeDuelId, phase, isDuelStartFenced } = context.getState().duelSession;
+            const { activeDuelId, phase, duelStartFenceExpiresAt } = context.getState().duelSession;
+            const isDuelStartFenced =
+                duelStartFenceExpiresAt !== null && duelStartFenceExpiresAt > Date.now();
+
+            if (duelStartFenceExpiresAt !== null && !isDuelStartFenced) {
+                context.dispatch(clearDuelStartFence());
+            }
 
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
@@ -65,7 +72,7 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
             const { phase, searchInvitationType } = context.getState().duelSession;
             if (phase !== "searching") return;
 
-            context.dispatch(resetDuelSession());
+            context.dispatch(resetDuelSession({ fenceDuelStart: true }));
             if (searchInvitationType === "Friendly") return;
             context.dispatch(setDuelCanceledOpponentNickname(payload.opponent_nickname ?? null));
             context.dispatch(setDuelCanceled(true));

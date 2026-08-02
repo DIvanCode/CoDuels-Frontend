@@ -58,10 +58,10 @@ race where an early `DuelStarted` arrives before the search/accept HTTP response
 and that later response tries to put the already-active session back into
 searching. `DuelStarted` is accepted while searching and also by an unfenced
 idle sibling tab, so a duel created in another tab remains reachable. Leaving a
-search fences late start events until the next search begins, so an event
-delivered after cancellation cannot revive the cancelled duel. Navigation from
-searching to active still belongs to mounted workflow components; the socket
-manager itself does not navigate.
+search sets a short-lived cancellation fence for late start events; after that
+window, the idle tab again accepts an authoritative start from a sibling tab.
+Navigation from searching to active still belongs to mounted workflow
+components; the socket manager itself does not navigate.
 
 ```mermaid
 sequenceDiagram

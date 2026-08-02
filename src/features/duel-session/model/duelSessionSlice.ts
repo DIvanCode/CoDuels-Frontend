@@ -5,6 +5,8 @@ import type { PendingDuelType } from "entities/duel-invitation";
 import { shouldClearSessionAfterActiveDuelNotFound } from "./sessionFreshness";
 import { DuelSessionState, DuelSessionPhase } from "./types";
 
+export const DUEL_START_FENCE_DURATION_MS = 5_000;
+
 const isNotFoundError = (error: unknown) =>
     typeof error === "object" &&
     error !== null &&
@@ -16,7 +18,7 @@ const initialState: DuelSessionState = {
     activeDuelUserId: null,
     phase: "idle",
     pendingStartedInCurrentRuntime: false,
-    isDuelStartFenced: false,
+    duelStartFenceExpiresAt: null,
     lastEventId: null,
     searchNickname: null,
     searchConfigurationId: null,
@@ -36,7 +38,7 @@ const clearDuelSession = (state: DuelSessionState) => {
     state.activeDuelUserId = null;
     state.phase = "idle";
     state.pendingStartedInCurrentRuntime = false;
-    state.isDuelStartFenced = false;
+    state.duelStartFenceExpiresAt = null;
     state.lastEventId = null;
     state.searchNickname = null;
     state.searchConfigurationId = null;
@@ -56,7 +58,7 @@ const clearActiveDuel = (state: DuelSessionState) => {
     state.activeDuelUserId = null;
     state.phase = "idle";
     state.pendingStartedInCurrentRuntime = false;
-    state.isDuelStartFenced = false;
+    state.duelStartFenceExpiresAt = null;
     state.lastEventId = null;
     state.searchNickname = null;
     state.searchConfigurationId = null;
@@ -95,6 +97,10 @@ const getOpenedTaskKeys = (
         .filter((key) => (previousTasks[key] ?? null) === null && nextTasks[key]?.id !== null)
         .sort((a, b) => a.localeCompare(b));
 
+const fenceDuelStart = (state: DuelSessionState) => {
+    state.duelStartFenceExpiresAt = Date.now() + DUEL_START_FENCE_DURATION_MS;
+};
+
 const duelSessionSlice = createSlice({
     name: "duelSession",
     initialState,
@@ -107,11 +113,11 @@ const duelSessionSlice = createSlice({
             state.phase = action.payload;
             state.pendingStartedInCurrentRuntime = action.payload === "searching";
             if (action.payload === "searching") {
-                state.isDuelStartFenced = false;
+                state.duelStartFenceExpiresAt = null;
             }
             if (action.payload === "idle") {
                 if (wasSearching) {
-                    state.isDuelStartFenced = true;
+                    fenceDuelStart(state);
                 }
                 state.activeDuelId = null;
                 state.activeDuelUserId = null;
@@ -160,7 +166,7 @@ const duelSessionSlice = createSlice({
             state.activeDuelUserId = action.payload?.userId ?? null;
             if (duelId !== null) {
                 state.pendingStartedInCurrentRuntime = false;
-                state.isDuelStartFenced = false;
+                state.duelStartFenceExpiresAt = null;
                 if (state.phase === "searching" || state.phase === "idle") {
                     state.phase = "active";
                 }
@@ -217,8 +223,14 @@ const duelSessionSlice = createSlice({
         setSearchTournamentId: (state, action: PayloadAction<number | null>) => {
             state.searchTournamentId = action.payload;
         },
-        resetDuelSession: (state) => {
+        clearDuelStartFence: (state) => {
+            state.duelStartFenceExpiresAt = null;
+        },
+        resetDuelSession: (state, action: PayloadAction<{ fenceDuelStart?: boolean } | undefined>) => {
             clearDuelSession(state);
+            if (action.payload?.fenceDuelStart) {
+                fenceDuelStart(state);
+            }
         },
     },
     extraReducers: (builder) => {
@@ -283,6 +295,7 @@ export const {
     setSearchInvitationType,
     setSearchTournamentId,
     setSessionInterrupted,
+    clearDuelStartFence,
     resetDuelSession,
 } = duelSessionSlice.actions;
 export default duelSessionSlice.reducer;
