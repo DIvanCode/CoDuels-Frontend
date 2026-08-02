@@ -14,6 +14,7 @@ export interface DuelSessionState {
     activeDuelUserId: number | null;
     phase: DuelSessionPhase;
     pendingStartedInCurrentRuntime: boolean;
+    duelStartFenceExpiresAt: number | null;
     lastEventId: string | null;
     searchNickname: string | null;
     searchConfigurationId: number | null;

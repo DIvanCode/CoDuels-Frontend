@@ -40,7 +40,10 @@ export const createInvitationHandlers = (context: DomainEventContext): RealtimeE
             invalidateInvitations(context);
             if (!matchesPendingInvitation(payload, context.getState(), "direct")) return;
 
+            const isFriendlyDuel =
+                context.getState().duelSession.searchInvitationType === "Friendly";
             context.dispatch(setPhase("idle"));
+            if (isFriendlyDuel) return;
             context.dispatch(setDuelCanceledOpponentNickname(payload.opponent_nickname ?? null));
             context.dispatch(setDuelCanceled(true));
         },

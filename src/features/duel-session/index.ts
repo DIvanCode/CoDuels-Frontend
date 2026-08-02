@@ -9,6 +9,7 @@ export { DuelInfo } from "./ui/DuelInfo/DuelInfo";
 
 export {
     resetDuelSession,
+    setDuelCanceled,
     setPhase,
     acknowledgeDuelResult,
     finishActiveDuel,
