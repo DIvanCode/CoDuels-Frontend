@@ -27,7 +27,7 @@ memory state and redux-persist may fall back/error according to library behavior
 | auth user/access/refresh                                                                        | Duely, cached client                      | persisted Redux                          | logout/new responses                                 | reload yes; shared storage, independent tab state | invalid/old token/user, cross-user cache |
 | `activeDuelId`, `activeDuelUserId`, `phase`, `lastEventId`, search matching, canceled dialog    | backend-derived/client workflow           | persisted duelSession                    | reset/idle/logout/events                             | reload/shared storage; no live sync               | persisted search/active mismatch         |
 | `sessionInterrupted`, `pendingStartedInCurrentRuntime`, task snapshots, opened keys/status flag | client manager                            | unpersisted Redux                        | socket open/session reset/modal                      | lost on reload, tab-local                         | missed notifications                     |
-| own code/language by `${duelId}:${taskId}`                                                      | local draft, overwritten by Duel response | persisted codeEditor                     | logout only                                          | reload/shared storage, independent writers        | backend fetch overwrite/cross-tab race   |
+| own code/language by `${duelId}:${taskId}`                                                      | local draft; Duel seeds only a missing key | persisted codeEditor                     | logout only                                          | reload/shared storage, independent writers        | cross-tab last-writer race               |
 | opponent code/language                                                                          | backend socket/Duel response              | unpersisted codeEditor                   | session/code not fully pruned                        | lost reload then refetch                          | stale if event/cache missed              |
 | RTK Query cache                                                                                 | latest received HTTP/manual patch         | API Redux only                           | eviction/invalidation/app reload                     | lost reload, tab-local                            | old-user/missed-event/filter divergence  |
 | route and task selection                                                                        | URL/browser history                       | pathname + `?task=`                      | navigation                                           | survives copied URL; browser history              | locked/changed task fallback             |
@@ -71,7 +71,7 @@ unsynchronized.
 | ------------------------------ | ----------------------- | ----------- | ---------------------- | ------------- | --------------------- | --------------------- | --------------- |
 | Auth                           | Duely                   | Yes         | getMe                  | No            | No                    | `persist:auth`        | Yes             |
 | Duel session workflow          | Duely + client          | Yes         | duel queries           | No            | waiting flag separate | `persist:duelSession` | Partial         |
-| Editor                         | client/backend snapshot | Yes         | Duel supplies solution | Monaco mirror | code tab/run separate | `persist:codeEditor`  | Own code yes    |
+| Editor                         | client after initial seed | Yes       | Duel seeds missing draft | Monaco mirror | code tab/run separate | `persist:codeEditor`  | Own code yes    |
 | Groups/tournaments/submissions | Duely                   | API reducer | Yes                    | forms         | Home only             | No                    | No cache        |
 | Theme                          | client                  | Yes         | No                     | No            | No                    | `persist:theme`       | Yes             |
 
@@ -128,7 +128,7 @@ can overwrite logout, tokens, code, theme, and phase.
 ## Test coverage
 
 - **Existing tests/MSW:** result state/reset ownership, acknowledgement scoping,
-  and legacy dismissal cleanup.
+  legacy dismissal cleanup, and editor draft preservation during Duel polling.
 - **Needed unit/integration:** every whitelist/reset, corrupt/versioned storage,
   code/server conflict, session-key hydration, cache isolation, queue lifetime.
 - **Needed browser/E2E:** reload at every phase, logout/login another user,

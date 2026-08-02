@@ -27,8 +27,9 @@ Client language values `cpp`, `go`, `python` map to API values `Cpp`, `Golang`,
 
 Own code/language is stored under `${duelId}:${taskId}` and persisted. Monaco
 keeps local state and debounces Redux updates for 500 ms. `getDuel.fulfilled`
-hydrates solutions and can overwrite an existing persisted draft; a pending
-debounce may then overwrite that response. Opponent values are unpersisted.
+hydrates each solution only when that task has no local draft; later duel
+polls/refetches never replace local code or language. Opponent values are
+unpersisted and continue to refresh from the backend.
 The selected `my/opponent` tab is sessionStorage key `duel.{duelId}.codeTab` and
 privacy forces `my` when opponent view is unavailable. Read-only mode also
 blocks copy/cut/context menu.
@@ -48,8 +49,7 @@ sequenceDiagram
     participant W as WebSocket interval
     participant D as Duely
     E->>R: Debounced own code/language (500 ms)
-    Q->>R: getDuel solution hydration/refetch
-    Note over R: Last reducer/write wins
+    Q->>R: Hydrate own solution only when draft is absent
     loop Every 1 second
         W->>R: Read selected task draft
         W->>D: SolutionUpdated(full code) if changed/open/privacy
@@ -63,7 +63,7 @@ sequenceDiagram
 Typing changes Monaco immediately and Redux later. Task switch changes the key
 and causes the interval to resend that task because `lastSent` is a single
 payload. Logout empties own/opponent maps. Duel finish does not prune code. A
-Duel refetch can replace own code/language with backend solution state.
+Duel refetch updates opponent data but preserves existing own code/language.
 
 ## Backend state assumptions
 
@@ -74,10 +74,10 @@ authoritative save acknowledgement.
 
 ## State ownership
 
-The active local draft is client-owned until a backend response/refetch is
-applied; current code has no explicit conflict policy. Persisted Redux stores own
-drafts, unpersisted Redux stores opponent drafts, RTK stores received duel
-solutions, Monaco mirrors the selected draft, and Duely owns accepted shared data.
+The active local draft is client-owned. The first duel response seeds a missing
+task draft; after that, persisted Redux keeps own code/language until logout.
+Unpersisted Redux stores opponent drafts, RTK stores received duel solutions,
+Monaco mirrors the selected draft, and Duely owns accepted shared data.
 
 ## UI effects
 
@@ -104,10 +104,11 @@ the same solution.
 
 ## Ordering assumptions
 
-Local debounce, HTTP duel hydration, one-second socket send, opponent events,
-and other tabs are unordered. The code implicitly uses arrival/last-write wins,
-without revision comparison. An incoming update can target any cached private
-duel/task and is not checked against the current route/active ID.
+Local debounce, one-time HTTP duel hydration, one-second socket send, opponent
+events, and other tabs are unordered. Existing own drafts win over later HTTP
+solutions, but there is no revision comparison between tabs or socket updates.
+An incoming update can target any cached private duel/task and is not checked
+against the current route/active ID.
 
 ## Failure handling
 
@@ -135,9 +136,10 @@ backend solution. Logout in one tab is not an atomic purge in the others.
 ## Test coverage
 
 - **Existing tests:** publisher tests cover throttle, complete-snapshot dedup,
-  ordering, failed-send retry, reconnect reset, and interval cleanup.
-- **Needed unit/integration:** language mapping, debounce/refetch order, privacy,
-  task switch, duplicate suppression, invalid event/task, logout cleanup.
+  ordering, failed-send retry, reconnect reset, interval cleanup, one-time own
+  solution hydration, stale-poll preservation, and opponent refresh.
+- **Needed unit/integration:** debounce timing, privacy, task switch, duplicate
+  suppression, invalid event/task, logout cleanup.
 - **Needed E2E:** edit/reload/offline/close, two tabs/users, spectator attempts,
   opponent updates, backend rejection, duel finish, and reconnect conflicts.
 
