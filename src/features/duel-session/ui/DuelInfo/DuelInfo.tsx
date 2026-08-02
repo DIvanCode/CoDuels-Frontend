@@ -4,8 +4,13 @@ import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
-import { useLocalStorage } from "shared/lib/useLocalStorage";
-import { selectDuelSession, setDuelStatusChanged, setOpenedTaskKeys } from "features/duel-session";
+import {
+    acknowledgeDuelResult,
+    selectDuelSession,
+    setDuelStatusChanged,
+    setOpenedTaskKeys,
+} from "features/duel-session";
+import { notifyDuelResultAcknowledged } from "features/duel-session/model/duelResultAcknowledgement";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -18,17 +23,19 @@ export const DuelInfo = ({ duelId }: Props) => {
     const dispatch = useAppDispatch();
 
     const currentUser = useAppSelector(selectCurrentUser);
-    const { duelStatusChanged, openedTaskKeys } = useAppSelector(selectDuelSession);
+    const { duelStatusChanged, openedTaskKeys, pendingResult } = useAppSelector(selectDuelSession);
 
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId);
 
-    const [isDismissed, setIsDismissed] = useLocalStorage(`duel:${duelId}:resultDismissed`, false);
-    const showResultModal = duel?.status === "Finished" && (!isDismissed || duelStatusChanged);
+    const showResultModal =
+        duel?.status === "Finished" &&
+        pendingResult?.duelId === duelId &&
+        pendingResult.userId === currentUser?.id;
     const showUpdateModal = duelStatusChanged && duel?.status !== "Finished";
     const handleResultModalClose = () => {
-        setIsDismissed(true);
-        if (duelStatusChanged) {
-            dispatch(setDuelStatusChanged(false));
+        if (currentUser) {
+            notifyDuelResultAcknowledged(currentUser.id, duelId);
+            dispatch(acknowledgeDuelResult({ userId: currentUser.id, duelId }));
         }
     };
     const handleUpdateModalClose = () => {

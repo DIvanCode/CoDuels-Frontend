@@ -6,8 +6,14 @@ import { startDuelRealtimeSession } from "features/duel-session/api/duelSessionA
 import { requestDuelSessionReconnect } from "features/duel-session/api/realtime/connectionRegistry";
 import { selectRealtimeUserId } from "features/duel-session/api/realtime/sessionIdentity";
 import { selectDuelSession } from "features/duel-session/model/selectors";
-import { resetDuelSession } from "features/duel-session/model/duelSessionSlice";
+import {
+    acknowledgeDuelResult,
+    resetDuelSession,
+    setActiveDuel,
+} from "features/duel-session/model/duelSessionSlice";
+import { removeLegacyDuelResultDismissals } from "features/duel-session/model/duelResultAcknowledgement";
 import { restoreDuelSession } from "features/duel-session/model/thunks";
+import { useDuelResultAcknowledgement } from "features/duel-session/model/useDuelResultAcknowledgement";
 import { useAppDispatch, useAppSelector, useAppStore } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 
@@ -18,22 +24,38 @@ export const DuelSessionManager = () => {
     const store = useAppStore();
     const userId = useAppSelector(selectCurrentUser)?.id ?? null;
     const realtimeUserId = useAppSelector(selectRealtimeUserId);
-    const { phase, activeDuelId, sessionInterrupted } = useAppSelector(selectDuelSession);
+    const { phase, activeDuelId, activeDuelUserId, sessionInterrupted, pendingResult } =
+        useAppSelector(selectDuelSession);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const previousUserIdRef = useRef<number | null>(userId);
 
-    useGetActiveDuelQuery(undefined, {
+    const { data: activeDuel } = useGetActiveDuelQuery(undefined, {
         skip: realtimeUserId === null,
         pollingInterval: phase === "searching" ? 2_000 : 0,
         skipPollingIfUnfocused: true,
         refetchOnReconnect: true,
     });
+    const pendingResultIsAcknowledged = useDuelResultAcknowledgement(
+        pendingResult?.userId ?? null,
+        pendingResult?.duelId ?? null,
+    );
+
+    useEffect(() => removeLegacyDuelResultDismissals(), []);
 
     useEffect(() => {
-        if (userId !== null && activeDuelId && phase === "idle") {
+        const isCurrentUserParticipant = (activeDuel?.participants ?? []).some(
+            (participant) => participant.id === userId,
+        );
+        if (activeDuel?.status === "InProgress" && userId !== null && isCurrentUserParticipant) {
+            dispatch(setActiveDuel({ duelId: activeDuel.id, userId }));
+        }
+    }, [activeDuel, userId, dispatch]);
+
+    useEffect(() => {
+        if (userId !== null && activeDuelId && activeDuelUserId === userId && phase === "idle") {
             dispatch(restoreDuelSession(activeDuelId));
         }
-    }, [userId, activeDuelId, phase, dispatch]);
+    }, [userId, activeDuelId, activeDuelUserId, phase, dispatch]);
 
     useEffect(() => {
         if (userId === null || previousUserIdRef.current !== userId) {
@@ -41,6 +63,12 @@ export const DuelSessionManager = () => {
         }
         previousUserIdRef.current = userId;
     }, [userId, dispatch]);
+
+    useEffect(() => {
+        if (pendingResult && pendingResultIsAcknowledged) {
+            dispatch(acknowledgeDuelResult(pendingResult));
+        }
+    }, [pendingResult, pendingResultIsAcknowledged, dispatch]);
 
     useEffect(() => {
         if (realtimeUserId === null) return;

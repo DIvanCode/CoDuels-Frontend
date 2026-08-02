@@ -20,6 +20,7 @@ const duelSessionPersistConfig = {
     version: 1,
     whitelist: [
         "activeDuelId",
+        "activeDuelUserId",
         "lastEventId",
         "phase",
         "searchNickname",
@@ -28,6 +29,7 @@ const duelSessionPersistConfig = {
         "searchTournamentId",
         "duelCanceled",
         "duelCanceledOpponentNickname",
+        "pendingResult",
     ],
 };
 

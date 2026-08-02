@@ -22,28 +22,29 @@ memory state and redux-persist may fall back/error according to library behavior
 
 ## Current behavior
 
-| State | Owner/source of truth | Storage/lifetime | Reset trigger | Reload / tab behavior | Main stale risk |
-| --- | --- | --- | --- | --- | --- |
-| auth user/access/refresh | Duely, cached client | persisted Redux | logout/new responses | reload yes; shared storage, independent tab state | invalid/old token/user, cross-user cache |
-| `activeDuelId`, `phase`, `lastEventId`, search matching, canceled dialog | backend-derived/client workflow | persisted duelSession | reset/idle/logout/events | reload/shared storage; no live sync | persisted search/active mismatch |
-| `sessionInterrupted`, `pendingStartedInCurrentRuntime`, task snapshots, opened keys/status flag | client manager | unpersisted Redux | socket open/session reset/modal | lost on reload, tab-local | missed notifications |
-| own code/language by `${duelId}:${taskId}` | local draft, overwritten by Duel response | persisted codeEditor | logout only | reload/shared storage, independent writers | backend fetch overwrite/cross-tab race |
-| opponent code/language | backend socket/Duel response | unpersisted codeEditor | session/code not fully pruned | lost reload then refetch | stale if event/cache missed |
-| RTK Query cache | latest received HTTP/manual patch | API Redux only | eviction/invalidation/app reload | lost reload, tab-local | old-user/missed-event/filter divergence |
-| route and task selection | URL/browser history | pathname + `?task=` | navigation | survives copied URL; browser history | locked/changed task fallback |
-| Home forms/modals/config/waiting/pending IDs | UI | sessionStorage | selected handlers/phase changes | reload same tab; not user-scoped | stale modal/disabled action |
-| code panel `my/opponent` tab | UI | sessionStorage per duel ID | manual/privacy effect | same tab reload | cross-user stale selection |
-| run input/draft/run status | UI | sessionStorage per duel/task | new run/manual edit | same tab reload | stale `running`, no run ID |
-| result dismissed | UI preference | localStorage per duel ID | user closes; never globally | shared tabs/users | one user hides another's dialog |
-| local configuration copy | feature UI | `duel-configurations` localStorage | local create/update/delete | shared/unversioned | diverges from backend |
-| auth/group/tournament forms/modals | component except Home | React state | unmount/close | lost reload/tab-local | partial request ambiguity |
-| theme | client preference | persisted Redux | toggle | shared storage, independent tab state | last-writer wins |
-| anti-cheat queue/sequence/flush flag | browser process | module memory | successful/failed/disabled flush, token loss, reload | lost reload, per tab | silent loss/duplicate stream IDs |
+| State                                                                                           | Owner/source of truth                     | Storage/lifetime                         | Reset trigger                                        | Reload / tab behavior                             | Main stale risk                          |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- | ---------------------------------------- |
+| auth user/access/refresh                                                                        | Duely, cached client                      | persisted Redux                          | logout/new responses                                 | reload yes; shared storage, independent tab state | invalid/old token/user, cross-user cache |
+| `activeDuelId`, `activeDuelUserId`, `phase`, `lastEventId`, search matching, canceled dialog    | backend-derived/client workflow           | persisted duelSession                    | reset/idle/logout/events                             | reload/shared storage; no live sync               | persisted search/active mismatch         |
+| `sessionInterrupted`, `pendingStartedInCurrentRuntime`, task snapshots, opened keys/status flag | client manager                            | unpersisted Redux                        | socket open/session reset/modal                      | lost on reload, tab-local                         | missed notifications                     |
+| own code/language by `${duelId}:${taskId}`                                                      | local draft, overwritten by Duel response | persisted codeEditor                     | logout only                                          | reload/shared storage, independent writers        | backend fetch overwrite/cross-tab race   |
+| opponent code/language                                                                          | backend socket/Duel response              | unpersisted codeEditor                   | session/code not fully pruned                        | lost reload then refetch                          | stale if event/cache missed              |
+| RTK Query cache                                                                                 | latest received HTTP/manual patch         | API Redux only                           | eviction/invalidation/app reload                     | lost reload, tab-local                            | old-user/missed-event/filter divergence  |
+| route and task selection                                                                        | URL/browser history                       | pathname + `?task=`                      | navigation                                           | survives copied URL; browser history              | locked/changed task fallback             |
+| Home forms/modals/config/waiting/pending IDs                                                    | UI                                        | sessionStorage                           | selected handlers/phase changes                      | reload same tab; not user-scoped                  | stale modal/disabled action              |
+| code panel `my/opponent` tab                                                                    | UI                                        | sessionStorage per duel ID               | manual/privacy effect                                | same tab reload                                   | cross-user stale selection               |
+| run input/draft/run status                                                                      | UI                                        | sessionStorage per duel/task             | new run/manual edit                                  | same tab reload                                   | stale `running`, no run ID               |
+| pending duel result                                                                             | terminal event/reconnect validation       | persisted duelSession with user ID       | acknowledge/reset/new active duel                    | reload/shared storage; server-revalidated         | stale candidate until reconciliation     |
+| result acknowledged                                                                             | UI acknowledgement                        | versioned localStorage per user and duel | user closes; legacy keys removed                     | shared tabs, user-isolated, live storage event    | per-duel key accumulation                |
+| local configuration copy                                                                        | feature UI                                | `duel-configurations` localStorage       | local create/update/delete                           | shared/unversioned                                | diverges from backend                    |
+| auth/group/tournament forms/modals                                                              | component except Home                     | React state                              | unmount/close                                        | lost reload/tab-local                             | partial request ambiguity                |
+| theme                                                                                           | client preference                         | persisted Redux                          | toggle                                               | shared storage, independent tab state             | last-writer wins                         |
+| anti-cheat queue/sequence/flush flag                                                            | browser process                           | module memory                            | successful/failed/disabled flush, token loss, reload | lost reload, per tab                              | silent loss/duplicate stream IDs         |
 
 Persist whitelists are exact: auth (`user`, `token`, `refreshToken`), duelSession
-(`activeDuelId`, `lastEventId`, `phase`, `searchNickname`,
+(`activeDuelId`, `activeDuelUserId`, `lastEventId`, `phase`, `searchNickname`,
 `searchConfigurationId`, `searchInvitationType`, `searchTournamentId`,
-`duelCanceled`, `duelCanceledOpponentNickname`), codeEditor
+`duelCanceled`, `duelCanceledOpponentNickname`, `pendingResult`), codeEditor
 (`codeByTaskKey`, `languageByTaskKey`), theme (`mode`). All are version 1 with no
 configured migration. RTK Query and opponent/snapshot/interrupted state are not
 persisted.
@@ -66,13 +67,13 @@ unsynchronized.
 
 ## State ownership
 
-| State | Owner/source of truth | Redux | RTK Query | local state | sessionStorage | localStorage | Survives reload |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Auth | Duely | Yes | getMe | No | No | `persist:auth` | Yes |
-| Duel session workflow | Duely + client | Yes | duel queries | No | waiting flag separate | `persist:duelSession` | Partial |
-| Editor | client/backend snapshot | Yes | Duel supplies solution | Monaco mirror | code tab/run separate | `persist:codeEditor` | Own code yes |
-| Groups/tournaments/submissions | Duely | API reducer | Yes | forms | Home only | No | No cache |
-| Theme | client | Yes | No | No | No | `persist:theme` | Yes |
+| State                          | Owner/source of truth   | Redux       | RTK Query              | local state   | sessionStorage        | localStorage          | Survives reload |
+| ------------------------------ | ----------------------- | ----------- | ---------------------- | ------------- | --------------------- | --------------------- | --------------- |
+| Auth                           | Duely                   | Yes         | getMe                  | No            | No                    | `persist:auth`        | Yes             |
+| Duel session workflow          | Duely + client          | Yes         | duel queries           | No            | waiting flag separate | `persist:duelSession` | Partial         |
+| Editor                         | client/backend snapshot | Yes         | Duel supplies solution | Monaco mirror | code tab/run separate | `persist:codeEditor`  | Own code yes    |
+| Groups/tournaments/submissions | Duely                   | API reducer | Yes                    | forms         | Home only             | No                    | No cache        |
+| Theme                          | client                  | Yes         | No                     | No            | No                    | `persist:theme`       | Yes             |
 
 ## UI effects
 
@@ -85,7 +86,9 @@ some disagreements have no visible recovery control.
 
 Redux workflow fields do not automatically call backend. RTK subscriptions
 fetch on mount/invalidation. Manual WebSocket patches touch existing cache only.
-Storage writes cause no network reconciliation and no cross-tab Redux action.
+Most storage writes cause no network reconciliation and no cross-tab Redux
+action. Result acknowledgement listens for its scoped storage key and clears the
+matching pending result in each live tab.
 
 ## Idempotency and duplicate handling
 
@@ -124,7 +127,8 @@ can overwrite logout, tokens, code, theme, and phase.
 
 ## Test coverage
 
-- **Existing tests/MSW:** none.
+- **Existing tests/MSW:** result state/reset ownership, acknowledgement scoping,
+  and legacy dismissal cleanup.
 - **Needed unit/integration:** every whitelist/reset, corrupt/versioned storage,
   code/server conflict, session-key hydration, cache isolation, queue lifetime.
 - **Needed browser/E2E:** reload at every phase, logout/login another user,
