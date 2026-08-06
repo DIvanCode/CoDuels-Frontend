@@ -546,7 +546,7 @@ export const DuelConfigurationManager = ({
                                             <div key={task.id} className={styles.taskRow}>
                                                 <div className={styles.selectField}>
                                                     <span className={styles.selectLabel}>
-                                                        Рейтинг пользователя
+                                                        Рейтинг задачи
                                                     </span>
                                                     {isTaskLevelRatingRangesLoading ? (
                                                         <span className={styles.helperText}>
