@@ -5,6 +5,8 @@ export interface DuelTaskConfiguration {
     topics: string[] | null;
 }
 
+export type TaskLevelRatingRanges = Record<string, string>;
+
 export interface DuelConfiguration {
     id: number;
     should_show_opponent_solution: boolean;

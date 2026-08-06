@@ -3,6 +3,7 @@ export {
     useDeleteDuelConfigurationMutation,
     useGetDuelConfigurationsQuery,
     useGetDuelConfigurationQuery,
+    useGetTaskLevelRatingRangesQuery,
     useUpdateDuelConfigurationMutation,
 } from "./api/duelConfigurationApi";
 
@@ -11,5 +12,6 @@ export type {
     DuelConfiguration,
     DuelTaskConfiguration,
     DuelTasksOrder,
+    TaskLevelRatingRanges,
     UpdateDuelConfigurationRequest,
 } from "./model/types";
