@@ -41,7 +41,6 @@
             restart_policy: unless-stopped
             networks:
                 - name: "{{ docker_network }}"
-            purge_networks: yes
       - name: Pull Caddy image
         docker_image:
             name: "{{ caddy_image }}"
@@ -72,4 +71,3 @@
                 - "{{ caddy_root }}/config:/config"
             networks:
                 - name: "{{ docker_network }}"
-            purge_networks: yes
