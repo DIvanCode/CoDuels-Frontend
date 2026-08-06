@@ -145,7 +145,7 @@ export const DuelConfigurationManager = ({
             const ratingRange = taskLevelRatingRanges?.[task.level];
             return ratingRange
                 ? `${taskKey}: рейтинг ${ratingRange}${topicText}`
-                : `${taskKey}: уровень ${task.level}${topicText}`;
+                : `${taskKey}: рейтинг не определен${topicText}`;
         });
     }, [taskLevelRatingRanges, tasks]);
 
@@ -246,7 +246,7 @@ export const DuelConfigurationManager = ({
         }
 
         if (tasks.some((task) => !taskLevelRatingRanges?.[task.level])) {
-            setFormError("Выбранный уровень задачи отсутствует в настройке диапазонов рейтинга.");
+            setFormError("Для выбранной задачи не задан диапазон рейтинга.");
             return;
         }
 
@@ -375,7 +375,7 @@ export const DuelConfigurationManager = ({
                                     const ratingRange = taskLevelRatingRanges?.[String(task.level)];
                                     return ratingRange
                                         ? `${taskKey}: рейтинг ${ratingRange}${topics}`
-                                        : `${taskKey}: уровень ${task.level}${topics}`;
+                                        : `${taskKey}: рейтинг не определен${topics}`;
                                 });
 
                                 return (

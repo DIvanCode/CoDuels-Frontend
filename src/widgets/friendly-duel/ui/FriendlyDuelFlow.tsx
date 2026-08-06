@@ -2,7 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { DuelConfiguration } from "entities/duel-configuration";
-import { useGetDuelConfigurationsQuery } from "entities/duel-configuration";
+import {
+    useGetDuelConfigurationsQuery,
+    useGetTaskLevelRatingRangesQuery,
+} from "entities/duel-configuration";
 import { useCreateDuelInvitationMutation } from "entities/duel-invitation";
 import { DuelConfigurationManager, DuelConfigurationPicker } from "features/duel-configuration";
 import {
@@ -47,6 +50,7 @@ const SelectedConfiguration = ({
     usesDefaultConfiguration: boolean;
 }) => {
     const { data: configurations } = useGetDuelConfigurationsQuery();
+    const { data: taskLevelRatingRanges } = useGetTaskLevelRatingRangesQuery();
     const selectedConfiguration = configurations?.find((config) => config.id === configurationId);
 
     if (usesDefaultConfiguration || !selectedConfiguration) {
@@ -60,7 +64,7 @@ const SelectedConfiguration = ({
                     </div>
                     <div className={configStyles.configMeta}>Одна задача.</div>
                     <div className={configStyles.taskSummary}>
-                        <div>Уровень определяется автоматически.</div>
+                        <div>Рейтинг задачи определяется автоматически.</div>
                     </div>
                 </div>
             </div>
@@ -72,7 +76,8 @@ const SelectedConfiguration = ({
         .map(([, task], index) => {
             const taskKey = String.fromCharCode(65 + index);
             const topics = task.topics?.length ? ` | ${task.topics.join(", ")}` : "";
-            return `${taskKey}: уровень ${task.level}${topics}`;
+            const ratingRange = taskLevelRatingRanges?.[String(task.level)];
+            return `${taskKey}: рейтинг ${ratingRange ?? "не определен"}${topics}`;
         });
     const orderLabel =
         selectedConfiguration.task_order === "Sequential"

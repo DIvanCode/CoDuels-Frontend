@@ -7,6 +7,7 @@ import {
     DuelTasksOrder,
     useDeleteDuelConfigurationMutation,
     useGetDuelConfigurationsQuery,
+    useGetTaskLevelRatingRangesQuery,
 } from "entities/duel-configuration";
 import { Button, Modal } from "shared/ui";
 
@@ -48,6 +49,11 @@ export const DuelConfigurationPicker = ({
     className,
 }: Props) => {
     const { data: configs, isLoading, isError } = useGetDuelConfigurationsQuery();
+    const {
+        data: taskLevelRatingRanges,
+        isLoading: isTaskLevelRatingRangesLoading,
+        isError: isTaskLevelRatingRangesError,
+    } = useGetTaskLevelRatingRangesQuery();
     const [deleteConfiguration, { isLoading: isDeleting }] = useDeleteDuelConfigurationMutation();
     const [pendingDelete, setPendingDelete] = useState<StoredDuelConfiguration | null>(null);
     const normalizedConfigs: StoredDuelConfiguration[] =
@@ -80,7 +86,7 @@ export const DuelConfigurationPicker = ({
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isTaskLevelRatingRangesLoading ? (
                 <p className={styles.emptyState}>Загрузка правил...</p>
             ) : (
                 <>
@@ -103,7 +109,7 @@ export const DuelConfigurationPicker = ({
                                 </div>
                                 <div className={styles.configMeta}>Одна задача.</div>
                                 <div className={styles.taskSummary}>
-                                    <div>Уровень определяется автоматически.</div>
+                                    <div>Рейтинг задачи определяется автоматически.</div>
                                 </div>
                             </div>
                         </button>
@@ -121,7 +127,7 @@ export const DuelConfigurationPicker = ({
                             </Button>
                         </div>
                     )}
-                    {isError ? (
+                    {isError || isTaskLevelRatingRangesError ? (
                         <p className={styles.emptyState}>Не удалось загрузить правила.</p>
                     ) : normalizedConfigs.length === 0 ? (
                         <p className={styles.emptyState}>Пока нет созданных правил.</p>
@@ -142,7 +148,8 @@ export const DuelConfigurationPicker = ({
                                         task.topics && task.topics.length > 0
                                             ? ` | ${task.topics.join(", ")}`
                                             : "";
-                                    return `${taskKey}: уровень ${task.level}${topics}`;
+                                    const ratingRange = taskLevelRatingRanges?.[String(task.level)];
+                                    return `${taskKey}: рейтинг ${ratingRange ?? "не определен"}${topics}`;
                                 });
 
                                 return (
