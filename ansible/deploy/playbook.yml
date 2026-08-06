@@ -65,7 +65,6 @@
             ports:
                 - "80:80"
                 - "443:443"
-                - "443:443/udp"
             volumes:
                 - "{{ caddy_root }}/conf:/etc/caddy:ro"
                 - "{{ caddy_root }}/data:/data"
