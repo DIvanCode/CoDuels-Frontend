@@ -3,6 +3,7 @@ import { apiSlice } from "shared/api";
 import {
     CreateDuelConfigurationRequest,
     DuelConfiguration,
+    TaskLevelRatingRanges,
     UpdateDuelConfigurationRequest,
 } from "../model/types";
 
@@ -13,6 +14,9 @@ interface UpdateDuelConfigurationArgs {
 
 export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getTaskLevelRatingRanges: builder.query<TaskLevelRatingRanges, void>({
+            query: () => "/duels/task-level-rating-ranges",
+        }),
         getDuelConfigurations: builder.query<DuelConfiguration[], void>({
             query: () => "/duels/configurations",
             providesTags: (result) =>
@@ -63,6 +67,7 @@ export const duelConfigurationApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+    useGetTaskLevelRatingRangesQuery,
     useGetDuelConfigurationsQuery,
     useCreateDuelConfigurationMutation,
     useUpdateDuelConfigurationMutation,

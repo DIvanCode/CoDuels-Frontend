@@ -7,6 +7,7 @@ import {
     DuelTasksOrder,
     useCreateDuelConfigurationMutation,
     useDeleteDuelConfigurationMutation,
+    useGetTaskLevelRatingRangesQuery,
     useUpdateDuelConfigurationMutation,
 } from "entities/duel-configuration";
 import { useGetTaskTopicsQuery } from "entities/task";
@@ -32,11 +33,6 @@ interface StoredDuelConfiguration {
 }
 
 const DEFAULT_DURATION_MINUTES = "30";
-
-const LEVEL_OPTIONS = Array.from({ length: 10 }, (_, index) => {
-    const value = String(index + 1);
-    return { value, label: value };
-});
 
 const TASK_ORDER_OPTIONS: Array<{
     value: DuelTasksOrder;
@@ -107,6 +103,11 @@ export const DuelConfigurationManager = ({
     onCreated,
 }: Props) => {
     const { data: topicsData } = useGetTaskTopicsQuery();
+    const {
+        data: taskLevelRatingRanges,
+        isError: isTaskLevelRatingRangesError,
+        isLoading: isTaskLevelRatingRangesLoading,
+    } = useGetTaskLevelRatingRangesQuery();
     const [configs, setConfigs] = useLocalStorage<StoredDuelConfiguration[]>(
         "duel-configurations",
         [],
@@ -125,6 +126,14 @@ export const DuelConfigurationManager = ({
 
     const isSubmitting = isCreating || isUpdating;
 
+    const taskLevelOptions = useMemo(
+        () =>
+            Object.entries(taskLevelRatingRanges ?? {})
+                .sort(([leftLevel], [rightLevel]) => Number(leftLevel) - Number(rightLevel))
+                .map(([level, ratingRange]) => ({ value: level, label: ratingRange })),
+        [taskLevelRatingRanges],
+    );
+
     const taskCount = tasks.length;
 
     const headerLabel = editingId ? "Редактирование правил" : "Создать новые правила";
@@ -133,9 +142,12 @@ export const DuelConfigurationManager = ({
         return tasks.map((task, index) => {
             const taskKey = String.fromCharCode(65 + index);
             const topicText = task.topics.length > 0 ? ` | ${task.topics.join(", ")}` : "";
-            return `${taskKey}: уровень ${task.level}${topicText}`;
+            const ratingRange = taskLevelRatingRanges?.[task.level];
+            return ratingRange
+                ? `${taskKey}: рейтинг ${ratingRange}${topicText}`
+                : `${taskKey}: уровень ${task.level}${topicText}`;
         });
-    }, [tasks]);
+    }, [taskLevelRatingRanges, tasks]);
 
     const resetForm = () => {
         setEditingId(null);
@@ -223,8 +235,18 @@ export const DuelConfigurationManager = ({
             return;
         }
 
+        if (isTaskLevelRatingRangesLoading || isTaskLevelRatingRangesError) {
+            setFormError("Не удалось загрузить диапазоны рейтинга для уровней задач.");
+            return;
+        }
+
         if (tasks.some((task) => Number(task.level) <= 0 || Number.isNaN(Number(task.level)))) {
-            setFormError("Для каждой задачи выберите уровень от 1 до 10.");
+            setFormError("Для каждой задачи выберите диапазон рейтинга.");
+            return;
+        }
+
+        if (tasks.some((task) => !taskLevelRatingRanges?.[task.level])) {
+            setFormError("Выбранный уровень задачи отсутствует в настройке диапазонов рейтинга.");
             return;
         }
 
@@ -350,7 +372,10 @@ export const DuelConfigurationManager = ({
                                         task.topics && task.topics.length > 0
                                             ? ` | ${task.topics.join(", ")}`
                                             : "";
-                                    return `${taskKey}: уровень ${task.level}${topics}`;
+                                    const ratingRange = taskLevelRatingRanges?.[String(task.level)];
+                                    return ratingRange
+                                        ? `${taskKey}: рейтинг ${ratingRange}${topics}`
+                                        : `${taskKey}: уровень ${task.level}${topics}`;
                                 });
 
                                 return (
@@ -521,22 +546,35 @@ export const DuelConfigurationManager = ({
                                             <div key={task.id} className={styles.taskRow}>
                                                 <div className={styles.selectField}>
                                                     <span className={styles.selectLabel}>
-                                                        Уровень задачи
+                                                        Рейтинг пользователя
                                                     </span>
-                                                    <Select
-                                                        value={task.level}
-                                                        onChange={(value) => {
-                                                            setTasks((prev) =>
-                                                                prev.map((item) =>
-                                                                    item.id === task.id
-                                                                        ? { ...item, level: value }
-                                                                        : item,
-                                                                ),
-                                                            );
-                                                        }}
-                                                        options={LEVEL_OPTIONS}
-                                                        className={styles.select}
-                                                    />
+                                                    {isTaskLevelRatingRangesLoading ? (
+                                                        <span className={styles.helperText}>
+                                                            Загрузка диапазонов рейтинга…
+                                                        </span>
+                                                    ) : isTaskLevelRatingRangesError ? (
+                                                        <span className={styles.errorText}>
+                                                            Не удалось загрузить диапазоны рейтинга.
+                                                        </span>
+                                                    ) : (
+                                                        <Select
+                                                            value={task.level}
+                                                            onChange={(value) => {
+                                                                setTasks((prev) =>
+                                                                    prev.map((item) =>
+                                                                        item.id === task.id
+                                                                            ? {
+                                                                                  ...item,
+                                                                                  level: value,
+                                                                              }
+                                                                            : item,
+                                                                    ),
+                                                                );
+                                                            }}
+                                                            options={taskLevelOptions}
+                                                            className={styles.select}
+                                                        />
+                                                    )}
                                                 </div>
 
                                                 <div className={styles.topics}>
@@ -644,7 +682,14 @@ export const DuelConfigurationManager = ({
 
                                 {formError && <p className={styles.errorText}>{formError}</p>}
 
-                                <Button type="submit" disabled={isSubmitting}>
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        isSubmitting ||
+                                        isTaskLevelRatingRangesLoading ||
+                                        isTaskLevelRatingRangesError
+                                    }
+                                >
                                     {editingId ? "Сохранить изменения" : "Создать правила"}
                                 </Button>
                             </form>
