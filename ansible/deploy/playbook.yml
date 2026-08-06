@@ -1,6 +1,7 @@
 - name: Deploy
   hosts: Production
-  remote_user: root
+  become: true
+  become_user: root
   vars:
       caddy_image: "caddy:2.11.4-alpine"
       caddy_root: "/opt/coduels/caddy"
