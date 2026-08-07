@@ -1,0 +1,7 @@
+coduels.pro {
+    reverse_proxy frontend:80
+}
+
+www.coduels.pro {
+    redir https://coduels.pro{uri} permanent
+}

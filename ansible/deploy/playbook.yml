@@ -1,7 +1,31 @@
 - name: Deploy
   hosts: Production
-  remote_user: root
+  become: true
+  become_user: root
+  vars:
+      caddy_image: "caddy:2.11.4-alpine"
+      caddy_root: "/opt/coduels/caddy"
+      docker_network: "coduels"
   tasks:
+      - name: Ensure frontend Docker network exists
+        docker_network:
+            name: "{{ docker_network }}"
+            state: present
+      - name: Ensure Caddy directories exist
+        file:
+            path: "{{ item }}"
+            state: directory
+            mode: "0755"
+        loop:
+            - "{{ caddy_root }}"
+            - "{{ caddy_root }}/conf"
+            - "{{ caddy_root }}/data"
+            - "{{ caddy_root }}/config"
+      - name: Upload Caddyfile
+        copy:
+            src: Caddyfile
+            dest: "{{ caddy_root }}/conf/Caddyfile"
+            mode: "0644"
       - name: Pull frontend image
         docker_image:
             name: divancode74/coduels-frontend
@@ -15,5 +39,35 @@
             recreate: yes
             restart: yes
             restart_policy: unless-stopped
+            networks:
+                - name: "{{ docker_network }}"
+      - name: Pull Caddy image
+        docker_image:
+            name: "{{ caddy_image }}"
+            source: pull
+            force_source: true
+      - name: Validate Caddy configuration
+        command: >
+            docker run --rm
+            -v {{ caddy_root }}/conf:/etc/caddy:ro
+            {{ caddy_image }}
+            caddy validate
+            --config /etc/caddy/Caddyfile
+            --adapter caddyfile
+        changed_when: false
+      - name: Run Caddy container
+        docker_container:
+            name: caddy
+            image: "{{ caddy_image }}"
+            recreate: yes
+            restart: yes
+            restart_policy: unless-stopped
             ports:
                 - "80:80"
+                - "443:443"
+            volumes:
+                - "{{ caddy_root }}/conf:/etc/caddy:ro"
+                - "{{ caddy_root }}/data:/data"
+                - "{{ caddy_root }}/config:/config"
+            networks:
+                - name: "{{ docker_network }}"
