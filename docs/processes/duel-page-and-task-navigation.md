@@ -21,7 +21,8 @@ and `DuelChanged`/`DuelFinished` events.
 
 The route ID must be numeric and the backend must allow viewing. Tasks come from
 the duel DTO; task content/files are fetched from Taski-facing endpoints.
-Participants and spectators receive different editing/submission capabilities.
+Participants, administrators, and ordinary spectators receive different
+editing/submission capabilities.
 
 ## Current behavior
 
@@ -32,7 +33,9 @@ string. Nested index redirects to description while preserving task selection.
 Tasks sort by key. `?task` selects a valid visible task; invalid/missing selection
 is replaced with the first, and legacy `task_id` falls back to key `A`. A task
 with null ID is locked. Participant status controls write/run/submit and
-anti-cheat enabling; spectator UI is read-only, while backend remains authority.
+anti-cheat enabling; spectator UI is read-only. Administrators remain read-only
+but may open submission detail routes that redirect ordinary spectators back to
+the submission list. The backend remains authoritative for access.
 
 ## Client state transitions
 
@@ -62,8 +65,10 @@ documented owners.
 
 ## UI effects
 
-The split view renders code and task panes. Spectators cannot edit/run/submit
-and cannot open submission detail, though they can view submission lists/authors.
+The split view renders code and task panes. Spectators cannot edit/run/submit.
+Ordinary spectators cannot open submission detail, though they can view
+submission lists/authors where permitted; administrators can open any detail
+without gaining participant mutation controls.
 Newly opened tasks can raise DuelInfo modal. A result modal appears only when the
 rendered finished duel matches the current user's pending result. Dismissal is
 shared across tabs but isolated by user and duel.

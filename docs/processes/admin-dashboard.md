@@ -30,8 +30,11 @@ list queries when it mounts. Users are displayed as active users followed by all
 remaining users. Pending duels are split into
 friendly, group, and tournament subsections, while ranked searchers have a live
 waiting duration. Testing submissions are followed by the `Done` subset of the
-all-submissions response. Groups are sorted by the backend, and group names are
-used to enrich tournament rows when that query is available.
+all-submissions response. Testing rows use a yellow status, `Accepted` uses
+green, and every other terminal verdict uses red. Each submission number links
+to its detail inside the owning duel and selects the row's task through the URL.
+Groups are sorted by the backend, and group names are used to enrich tournament
+rows when that query is available.
 
 All five main sections use accessible native `details` controls and start open.
 Their open state is local to the page. Each data block has independent loading,
@@ -60,7 +63,9 @@ Admin endpoints return creation-time ordering except groups, which are ordered
 by name. `/users/admin/all` includes active users, so the client subtracts IDs
 returned by `/users/admin/active`. `/duels/admin/submissions/all` includes both
 testing and finished submissions, so the client keeps `Done` entries for the
-completed subsection.
+completed subsection. Administrative submission rows expose `duel_id` and
+`task_key`; the corresponding regular duel/detail endpoints must allow an admin
+to read that duel and submission.
 
 ## State ownership
 
@@ -91,9 +96,10 @@ not streamed into the dashboard.
 ## Test coverage
 
 Helper tests cover access-token admin-claim parsing, active-user subtraction,
-terminal-submission selection, pending-duel grouping, waiting duration, and
-invalid dates. The publication smoke test covers admin and non-admin authenticated
-cold startup at `/admin`.
+terminal-submission selection and status tones, submission deep-link building,
+pending-duel grouping, waiting duration, and invalid dates. The publication
+smoke test covers admin and non-admin authenticated cold startup at `/admin` and
+the admin transition from a submission row to its detail inside the duel page.
 
 ## Current guarantees
 

@@ -19,6 +19,11 @@ export interface SubmissionItem {
     is_upsolving: boolean;
 }
 
+export interface AdminSubmissionItem extends SubmissionItem {
+    duel_id: number;
+    task_key: string;
+}
+
 export interface SubmissionDetail {
     id: number;
     solution: string | null;

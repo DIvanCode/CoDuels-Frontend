@@ -8,6 +8,7 @@ export {
 } from "./api/submissionApi";
 
 export type {
+    AdminSubmissionItem,
     SubmissionDetail,
     SubmissionItem,
     SubmissionStatus,

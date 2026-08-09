@@ -6,6 +6,8 @@ import type { UserData } from "entities/user";
 import {
     formatAdminDateTime,
     formatAdminWaitTime,
+    getAdminSubmissionPath,
+    getAdminSubmissionStatus,
     getCompletedSubmissions,
     getInactiveUsers,
     getPendingDuelsByType,
@@ -35,6 +37,31 @@ describe("admin page helpers", () => {
         expect(
             getCompletedSubmissions(submissions).map(({ submission_id }) => submission_id),
         ).toEqual([3]);
+    });
+
+    it.each([
+        [{ status: "Queued" }, { label: "В очереди", tone: "testing" }],
+        [{ status: "Running" }, { label: "Проверяется", tone: "testing" }],
+        [
+            { status: "Done", verdict: "Accepted" },
+            { label: "Accepted", tone: "accepted" },
+        ],
+        [
+            { status: "Done", verdict: "Wrong answer" },
+            { label: "Wrong answer", tone: "rejected" },
+        ],
+    ] as const)("maps submission status %# to its admin presentation", (submission, expected) => {
+        expect(getAdminSubmissionStatus(submission)).toEqual(expected);
+    });
+
+    it("builds a task-aware submission detail path", () => {
+        expect(
+            getAdminSubmissionPath({
+                duel_id: 17,
+                submission_id: 42,
+                task_key: "B",
+            }),
+        ).toBe("/duel/17/submissions/42?task=B");
     });
 
     it("groups pending duels by backend type", () => {

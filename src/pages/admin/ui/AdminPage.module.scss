@@ -178,7 +178,10 @@
 .active,
 .inactive,
 .accepted,
-.waiting {
+.waiting,
+.submissionAccepted,
+.submissionRejected,
+.submissionTesting {
     display: inline-flex;
     align-items: center;
     gap: 0.45em;
@@ -205,6 +208,18 @@
 }
 
 .waiting {
+    color: var(--warning);
+}
+
+.submissionAccepted {
+    color: var(--positive);
+}
+
+.submissionRejected {
+    color: var(--error);
+}
+
+.submissionTesting {
     color: var(--warning);
 }
 

@@ -11,6 +11,7 @@ import {
 
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
+import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import DescriptionIcon from "shared/assets/icons/document.svg?react";
 import SubmissionsIcon from "shared/assets/icons/inbox.svg?react";
 import { AppRoutes } from "shared/config";
@@ -27,6 +28,8 @@ export const TaskPanel = () => {
         skip: !duelId,
     });
     const currentUser = useAppSelector(selectCurrentUser);
+    const token = useAppSelector(selectAuthToken);
+    const isAdmin = isAdminAccessToken(token);
     const [searchParams] = useSearchParams();
     const { tasks, selectedTaskKey } = useDuelTaskSelection(duel);
     const selectedTaskValue = selectedTaskKey ?? tasks[0]?.key ?? "";
@@ -85,7 +88,7 @@ export const TaskPanel = () => {
                 </div>
             ) : null}
             <TabbedCard tabs={tabs} contentClassName={styles.taskPanelContent}>
-                {duel && !isParticipant && isSubmissionCodeRoute ? (
+                {duel && !isParticipant && !isAdmin && isSubmissionCodeRoute ? (
                     <Navigate
                         to={{ pathname: `/duel/${duelId}/submissions`, search: location.search }}
                         replace

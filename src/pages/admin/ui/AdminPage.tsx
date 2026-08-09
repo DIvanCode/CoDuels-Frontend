@@ -11,7 +11,7 @@ import {
 } from "entities/duel";
 import { useGetAdminGroupsQuery } from "entities/group";
 import {
-    type SubmissionItem,
+    type AdminSubmissionItem,
     useGetAdminSubmissionsQuery,
     useGetAdminTestingSubmissionsQuery,
 } from "entities/submission";
@@ -28,6 +28,8 @@ import { Loader, Table } from "shared/ui";
 import {
     formatAdminDateTime,
     formatAdminWaitTime,
+    getAdminSubmissionPath,
+    getAdminSubmissionStatus,
     getCompletedSubmissions,
     getInactiveUsers,
     getPendingDuelsByType,
@@ -46,12 +48,6 @@ const tournamentStatusLabels = {
     New: "Новый",
     InProgress: "Идёт",
     Finished: "Завершён",
-} as const;
-
-const submissionStatusLabels = {
-    Queued: "В очереди",
-    Running: "Проверяется",
-    Done: "Завершена",
 } as const;
 
 interface QueryContentProps {
@@ -248,7 +244,7 @@ const DuelTable = ({ duels, finished }: { duels: Duel[]; finished: boolean }) =>
     </div>
 );
 
-const SubmissionsTable = ({ submissions }: { submissions: SubmissionItem[] }) => (
+const SubmissionsTable = ({ submissions }: { submissions: AdminSubmissionItem[] }) => (
     <div className={styles.tableWrapper}>
         <Table className={styles.table}>
             <thead>
@@ -261,26 +257,40 @@ const SubmissionsTable = ({ submissions }: { submissions: SubmissionItem[] }) =>
                 </tr>
             </thead>
             <tbody>
-                {submissions.map((submission) => (
-                    <tr key={submission.submission_id}>
-                        <td>#{submission.submission_id}</td>
-                        <td>{submission.author ? <UserLink user={submission.author} /> : "—"}</td>
-                        <td>{formatAdminDateTime(submission.created_at)}</td>
-                        <td>{LANGUAGE_LABELS[fromApiLanguage(submission.language)]}</td>
-                        <td>
-                            <span
-                                className={
-                                    submission.status === "Done" ? styles.inactive : styles.waiting
-                                }
-                            >
-                                <span className={styles.statusDot} aria-hidden="true" />
-                                {submission.status === "Done"
-                                    ? (submission.verdict ?? submissionStatusLabels.Done)
-                                    : submissionStatusLabels[submission.status]}
-                            </span>
-                        </td>
-                    </tr>
-                ))}
+                {submissions.map((submission) => {
+                    const status = getAdminSubmissionStatus(submission);
+                    const statusClassName =
+                        status.tone === "accepted"
+                            ? styles.submissionAccepted
+                            : status.tone === "rejected"
+                              ? styles.submissionRejected
+                              : styles.submissionTesting;
+
+                    return (
+                        <tr key={submission.submission_id}>
+                            <td>
+                                <Link
+                                    className={styles.entityLink}
+                                    to={getAdminSubmissionPath(submission)}
+                                    aria-label={`Открыть посылку #${submission.submission_id}`}
+                                >
+                                    #{submission.submission_id}
+                                </Link>
+                            </td>
+                            <td>
+                                {submission.author ? <UserLink user={submission.author} /> : "—"}
+                            </td>
+                            <td>{formatAdminDateTime(submission.created_at)}</td>
+                            <td>{LANGUAGE_LABELS[fromApiLanguage(submission.language)]}</td>
+                            <td>
+                                <span className={statusClassName}>
+                                    <span className={styles.statusDot} aria-hidden="true" />
+                                    {status.label}
+                                </span>
+                            </td>
+                        </tr>
+                    );
+                })}
             </tbody>
         </Table>
     </div>

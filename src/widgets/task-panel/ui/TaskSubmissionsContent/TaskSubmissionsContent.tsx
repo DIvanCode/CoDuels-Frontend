@@ -4,6 +4,7 @@ import { Loader, Table } from "shared/ui";
 import { useGetSubmissionsQuery } from "features/submit-code";
 import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
+import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { useAppSelector } from "shared/lib/storeHooks";
 import {
     shouldPollSubmissionStatus,
@@ -16,6 +17,8 @@ export const TaskSubmissionsContent = () => {
     const { duelId } = useParams();
     const [searchParams] = useSearchParams();
     const currentUser = useAppSelector(selectCurrentUser);
+    const token = useAppSelector(selectAuthToken);
+    const isAdmin = isAdminAccessToken(token);
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(Number(duelId!), {
         skip: !duelId,
     });
@@ -94,7 +97,7 @@ export const TaskSubmissionsContent = () => {
                         duelId={duelId}
                         taskKey={resolvedTaskKey}
                         showAuthor={isViewer}
-                        canOpenDetail={!isViewer}
+                        canOpenDetail={!isViewer || isAdmin}
                     />
                 ))}
             </tbody>

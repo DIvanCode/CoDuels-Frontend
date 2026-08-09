@@ -14,7 +14,8 @@ and spectator.
 ## Entry points
 
 Click submit, open submissions list or detail, change task filter, receive
-`SubmissionStatusUpdated`, reconnect/reload, revisit a duel, or finish it.
+`SubmissionStatusUpdated`, reconnect/reload, revisit a duel, finish it, or follow
+an administrative submission deep-link.
 
 ## Preconditions
 
@@ -92,8 +93,11 @@ does not persist a submission outbox.
 
 Participant is immediately moved to the submissions page. Empty/loading state
 disables normal repeats, although very fast duplicates are possible. Lists show
-status/verdict; detail is hidden from spectators in UI, while list/authors remain
-visible. Failed submit after navigation can leave the target list unchanged.
+status/verdict; detail is hidden from ordinary spectators in UI, while
+list/authors remain visible. An administrator may open any submission detail and
+the admin dashboard links directly to `/duel/:duelId/submissions/:submissionId`
+with the owning task in the query string. Failed submit after navigation can
+leave the target list unchanged.
 
 ## Network effects
 
@@ -142,8 +146,9 @@ submit duplicates or display different statuses until independently refreshed.
   malformed payload rejection, duplicate cursor isolation, and handler safety.
 - **Needed integration:** all DTO ID shapes, filters/cache keys, status-before-
   create, duplicates, terminal regression, unknown ID, reconnect invalidation.
-- **Needed E2E:** success/failure/response loss, reload/in-flight, spectator,
-  multiple tasks/tabs, delayed judging, and out-of-order statuses.
+- **Needed E2E:** success/failure/response loss, reload/in-flight, ordinary
+  spectator versus administrator detail access, multiple tasks/tabs, delayed
+  judging, and out-of-order statuses.
 
 ## Current guarantees
 
