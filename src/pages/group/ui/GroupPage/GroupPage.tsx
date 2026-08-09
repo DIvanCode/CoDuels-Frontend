@@ -75,6 +75,10 @@ const tournamentMatchmakingOptions: Array<{
     },
 ];
 
+const visibleTournamentMatchmakingOptions = tournamentMatchmakingOptions.filter(
+    (option) => option.value !== "SingleEliminationBracket",
+);
+
 const isManagerRole = (role: GroupRole | null) => role === "Creator" || role === "Manager";
 
 const extractInviter = (member: GroupUser) => {
@@ -244,7 +248,7 @@ const GroupPage = () => {
     const [tournamentName, setTournamentName] = useState("");
     const [tournamentParticipants, setTournamentParticipants] = useState<number[]>([]);
     const [tournamentMatchmakingType, setTournamentMatchmakingType] =
-        useState<TournamentMatchmakingType>("SingleEliminationBracket");
+        useState<TournamentMatchmakingType>("GroupStage");
     const [tournamentFormError, setTournamentFormError] = useState<string | null>(null);
     const [selectedTournamentConfigId, setSelectedTournamentConfigId] = useState<number | null>(
         null,
@@ -568,7 +572,7 @@ const GroupPage = () => {
         setTournamentStep(1);
         setTournamentName("");
         setTournamentParticipants([]);
-        setTournamentMatchmakingType("SingleEliminationBracket");
+        setTournamentMatchmakingType("GroupStage");
         setTournamentFormError(null);
         setSelectedTournamentConfigId(null);
         setSelectedTournamentDefaultConfig(true);
@@ -1764,7 +1768,7 @@ const GroupPage = () => {
                         {tournamentStep === 3 && (
                             <div className={styles.tournamentStage}>
                                 <div className={styles.schemeList}>
-                                    {tournamentMatchmakingOptions.map((option) => (
+                                    {visibleTournamentMatchmakingOptions.map((option) => (
                                         <button
                                             key={option.value}
                                             type="button"
