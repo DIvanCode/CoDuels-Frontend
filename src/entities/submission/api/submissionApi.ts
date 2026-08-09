@@ -143,8 +143,19 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 }
             },
         }),
+        getAdminTestingSubmissions: builder.query<SubmissionItem[], void>({
+            query: () => "/duels/admin/submissions/testing",
+        }),
+        getAdminSubmissions: builder.query<SubmissionItem[], void>({
+            query: () => "/duels/admin/submissions/all",
+        }),
     }),
 });
 
-export const { useSubmitCodeMutation, useGetSubmissionsQuery, useGetSubmissionDetailQuery } =
-    submitCodeApiSlice;
+export const {
+    useSubmitCodeMutation,
+    useGetSubmissionsQuery,
+    useGetSubmissionDetailQuery,
+    useGetAdminTestingSubmissionsQuery,
+    useGetAdminSubmissionsQuery,
+} = submitCodeApiSlice;

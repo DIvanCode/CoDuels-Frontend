@@ -45,6 +45,28 @@ export interface GroupDuelEntry {
     created_at: string;
 }
 
+export type PendingDuelType = "Friendly" | "Group" | "Tournament";
+
+export interface PendingDuel {
+    id: number;
+    type: PendingDuelType;
+    created_at: string;
+    user1: UserData;
+    user2: UserData;
+    is_accepted_by_user1: boolean;
+    is_accepted_by_user2: boolean;
+    group_id?: number | null;
+    group_name?: string | null;
+    tournament_id?: number | null;
+    tournament_name?: string | null;
+}
+
+export interface RankedDuelSearcher {
+    user: UserData;
+    rating: number;
+    search_started_at: string;
+}
+
 export type DeltaInfo = Record<DuelResultType, number>;
 
 export type DuelResultType = "Win" | "Lose" | "Draw";

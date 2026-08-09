@@ -18,6 +18,12 @@ export const tournamentApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Tournament", id: `GROUP-${groupId}` }],
         }),
+        getAdminActiveTournaments: builder.query<Tournament[], void>({
+            query: () => "/tournaments/admin/active",
+        }),
+        getAdminFinishedTournaments: builder.query<Tournament[], void>({
+            query: () => "/tournaments/admin/finished",
+        }),
         createTournament: builder.mutation<Tournament, CreateTournamentRequest>({
             query: (body) => ({
                 url: "/tournaments",
@@ -50,4 +56,6 @@ export const {
     useCreateTournamentMutation,
     useGetTournamentQuery,
     useStartTournamentMutation,
+    useGetAdminActiveTournamentsQuery,
+    useGetAdminFinishedTournamentsQuery,
 } = tournamentApiSlice;

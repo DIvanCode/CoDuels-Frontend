@@ -14,6 +14,12 @@ export const userApiSlice = apiSlice.injectEndpoints({
             query: () => `/users/iam`,
             providesTags: [{ type: "User", id: "ME" }],
         }),
+        getAdminUsers: builder.query<UserData[], void>({
+            query: () => "/users/admin/all",
+        }),
+        getAdminActiveUsers: builder.query<UserData[], void>({
+            query: () => "/users/admin/active",
+        }),
         createTicket: builder.mutation<{ ticket: string }, void>({
             query: () => ({
                 url: "/users/ticket",
@@ -29,4 +35,6 @@ export const {
     useGetUserByNicknameQuery,
     useLazyGetUserByNicknameQuery,
     useGetMeQuery,
+    useGetAdminUsersQuery,
+    useGetAdminActiveUsersQuery,
 } = userApiSlice;

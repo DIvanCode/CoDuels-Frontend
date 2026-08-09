@@ -37,7 +37,7 @@ caught error and renders a router-independent Fallback with a normal home link;
 the router's `errorElement` uses the same component.
 
 `/auth` is public even when already authenticated. Protected routes are `/`,
-`/profile/:userNickname`, `/groups`, `/groups/:groupId`,
+`/admin`, `/profile/:userNickname`, `/groups`, `/groups/:groupId`,
 `/groups/:groupId/members`, `/groups/:groupId/duels`,
 `/groups/:groupId/tournaments`,
 `/groups/:groupId/tournaments/:tournamentId`, and `/duel/:duelId` with nested

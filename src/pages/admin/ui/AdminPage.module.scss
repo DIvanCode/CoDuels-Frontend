@@ -1,0 +1,276 @@
+.adminPage {
+    width: 100%;
+    min-width: 0;
+    padding: 2.25em 1.5em 4em;
+    font-family: var(--font-family-sans);
+}
+
+.pageContent {
+    width: min(100%, 1280px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.pageHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45em;
+    margin-bottom: 0.5em;
+}
+
+.pageHeader h1,
+.accessCard h1 {
+    font-size: clamp(1.75rem, 3vw, 2.4rem);
+    line-height: 1.15;
+}
+
+.pageHeader p,
+.accessCard p {
+    color: var(--text-secondary);
+}
+
+.eyebrow {
+    color: var(--accent-primary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sectionCard {
+    overflow: clip;
+    border: 1px solid color-mix(in srgb, var(--card-secondary) 70%, transparent);
+    border-radius: 0.9em;
+    background: var(--card-primary);
+    box-shadow: 0 0.2em 1em rgba(0, 0, 0, 0.05);
+}
+
+.sectionSummary {
+    min-height: 4.25em;
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 1em 1.25em;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+
+.sectionSummary::-webkit-details-marker {
+    display: none;
+}
+
+.sectionSummary:hover {
+    background: color-mix(in srgb, var(--card-secondary) 28%, transparent);
+}
+
+.sectionSummary:focus-visible {
+    outline: 0.125em solid var(--accent-secondary);
+    outline-offset: -0.25em;
+}
+
+.sectionTitle {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+}
+
+.sectionCount {
+    min-width: 1.8em;
+    padding: 0.18em 0.55em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+    color: var(--accent-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
+}
+
+.sectionChevron {
+    width: 0.65em;
+    height: 0.65em;
+    margin-left: auto;
+    border-right: 0.14em solid var(--text-secondary);
+    border-bottom: 0.14em solid var(--text-secondary);
+    transform: rotate(45deg);
+    transition: transform 0.18s ease;
+}
+
+.sectionCard[open] .sectionChevron {
+    transform: rotate(225deg);
+}
+
+.sectionContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    padding: 0 1.25em 1.5em;
+    border-top: 1px solid color-mix(in srgb, var(--card-secondary) 55%, transparent);
+}
+
+.subsection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65em;
+    padding-top: 1.25em;
+}
+
+.subsection + .subsection {
+    border-top: 1px solid color-mix(in srgb, var(--card-secondary) 50%, transparent);
+}
+
+.subsection h2 {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+}
+
+.tableWrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid color-mix(in srgb, var(--card-secondary) 65%, transparent);
+    border-radius: 0.65em;
+}
+
+.table {
+    width: 100%;
+    min-width: 680px;
+}
+
+.table :global(th),
+.table :global(td) {
+    padding: 0.7em 0.8em;
+    vertical-align: middle;
+}
+
+.table :global(th) {
+    background: color-mix(in srgb, var(--card-secondary) 34%, transparent);
+    white-space: nowrap;
+}
+
+.table :global(tbody tr) {
+    border-top: 1px solid color-mix(in srgb, var(--card-secondary) 50%, transparent);
+}
+
+.table :global(tbody tr:hover) {
+    cursor: default;
+    background: color-mix(in srgb, var(--card-secondary) 24%, transparent);
+}
+
+.entityLink,
+.backLink {
+    color: var(--accent-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.entityLink:hover,
+.backLink:hover {
+    text-decoration: underline;
+}
+
+.entityLink:focus-visible,
+.backLink:focus-visible {
+    border-radius: 0.2em;
+    outline: 0.125em solid var(--accent-secondary);
+    outline-offset: 0.15em;
+}
+
+.active,
+.inactive,
+.accepted,
+.waiting {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.statusDot {
+    width: 0.55em;
+    height: 0.55em;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.active,
+.accepted {
+    color: var(--positive);
+}
+
+.inactive {
+    color: var(--text-secondary);
+}
+
+.waiting {
+    color: var(--warning);
+}
+
+.contextLinks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
+}
+
+.participants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35em;
+}
+
+.separator {
+    margin-right: 0.35em;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.message {
+    padding: 0.85em 1em;
+    border-radius: 0.6em;
+    background: color-mix(in srgb, var(--card-secondary) 40%, transparent);
+    color: var(--text-secondary);
+}
+
+.loader {
+    min-height: 4em;
+}
+
+.accessCard {
+    width: min(100%, 520px);
+    margin: 10vh auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8em;
+    padding: 2em;
+    border-radius: 0.9em;
+    background: var(--card-primary);
+    box-shadow: 0 0.2em 1em rgba(0, 0, 0, 0.08);
+}
+
+.backLink {
+    margin-top: 0.4em;
+}
+
+@media (max-width: 720px) {
+    .adminPage {
+        padding: 1.5em 0.75em 3em;
+    }
+
+    .sectionSummary,
+    .sectionContent {
+        padding-left: 0.9em;
+        padding-right: 0.9em;
+    }
+
+    .sectionTitle {
+        font-size: var(--font-size-md);
+    }
+
+    .table {
+        font-size: var(--font-size-sm);
+    }
+}

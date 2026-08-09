@@ -6,6 +6,7 @@ import { HomePage } from "pages/home";
 import { GroupsPage } from "pages/groups";
 import { GroupPage } from "pages/group";
 import { TournamentPage } from "pages/tournament";
+import { AdminPage } from "pages/admin";
 import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -40,6 +41,16 @@ export const router = createBrowserRouter([
                             <HomePage />
                         </Suspense>
                     </ProtectedRoute>
+                ),
+            },
+            {
+                path: AppRoutes.ADMIN,
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <ProtectedRoute>
+                            <AdminPage />
+                        </ProtectedRoute>
+                    </Suspense>
                 ),
             },
             {

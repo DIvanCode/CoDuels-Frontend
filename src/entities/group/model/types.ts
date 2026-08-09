@@ -7,6 +7,11 @@ export interface Group {
     user_role: GroupRole;
 }
 
+export interface GroupListItem {
+    id: number;
+    name: string;
+}
+
 export interface CreateGroupRequest {
     name: string;
 }

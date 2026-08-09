@@ -10,6 +10,7 @@ contracts. An implementation fact is not automatically a product requirement.
 | ------------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------- |
 | Store rehydration, theme, routes, protected pages      | [Application bootstrap and routing](application-bootstrap-and-routing.md)        | `app`                           |
 | Login, logout, and refresh mutex                       | [Authentication and token refresh](authentication-and-token-refresh.md)          | `features/auth`, `shared/api`   |
+| Read-only users, duels, submissions, groups, tournaments | [Admin dashboard](admin-dashboard.md)                                           | admin page/entities             |
 | Redux, cache, local/component/browser state catalog    | [Client state ownership](client-state-ownership.md)                              | store and browser               |
 | Ticket, socket, events, code sync, two tabs            | [Realtime connection](realtime-connection.md)                                    | `features/duel-session`         |
 | Persisted `idle/searching/active` reconciliation       | [Duel session lifecycle](duel-session-lifecycle.md)                              | duel-session slice/manager      |

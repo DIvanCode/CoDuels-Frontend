@@ -10,6 +10,7 @@ export {
     useExcludeGroupUserMutation,
     useLeaveGroupMutation,
     useInviteGroupUserMutation,
+    useGetAdminGroupsQuery,
 } from "./api/groupApi";
 
 export type {
@@ -19,6 +20,7 @@ export type {
     GroupUserStatus,
     CreateGroupRequest,
     InviteGroupUserRequest,
+    GroupListItem,
 } from "./model/types";
 
 export { roleLabels } from "./lib/roleLabels";
