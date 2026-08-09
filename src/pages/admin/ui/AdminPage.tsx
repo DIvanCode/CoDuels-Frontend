@@ -21,7 +21,9 @@ import {
     useGetAdminFinishedTournamentsQuery,
 } from "entities/tournament";
 import { type UserData, useGetAdminActiveUsersQuery, useGetAdminUsersQuery } from "entities/user";
+import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { AppRoutes, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
+import { useAppSelector } from "shared/lib/storeHooks";
 import { Loader, Table } from "shared/ui";
 import {
     formatAdminDateTime,
@@ -351,25 +353,44 @@ const TournamentsTable = ({
 const isForbiddenError = (error: unknown) =>
     typeof error === "object" && error !== null && "status" in error && error.status === 403;
 
+const AccessDenied = () => (
+    <div className={styles.adminPage}>
+        <div className={styles.accessCard}>
+            <span className={styles.eyebrow}>403</span>
+            <h1>Нет доступа</h1>
+            <p>Административная панель доступна только администраторам.</p>
+            <Link className={styles.backLink} to={AppRoutes.INDEX}>
+                Вернуться на главную
+            </Link>
+        </div>
+    </div>
+);
+
 export const AdminPage = () => {
     const [now, setNow] = useState(() => Date.now());
+    const token = useAppSelector(selectAuthToken);
+    const isAdmin = isAdminAccessToken(token);
 
     useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
         return () => window.clearInterval(timer);
     }, []);
 
-    const usersQuery = useGetAdminUsersQuery();
-    const activeUsersQuery = useGetAdminActiveUsersQuery();
-    const pendingDuelsQuery = useGetAdminPendingDuelsQuery();
-    const rankedSearchersQuery = useGetAdminRankedDuelSearchersQuery();
-    const activeDuelsQuery = useGetAdminActiveDuelsQuery();
-    const finishedDuelsQuery = useGetAdminFinishedDuelsQuery();
-    const testingSubmissionsQuery = useGetAdminTestingSubmissionsQuery();
-    const submissionsQuery = useGetAdminSubmissionsQuery();
-    const groupsQuery = useGetAdminGroupsQuery();
-    const activeTournamentsQuery = useGetAdminActiveTournamentsQuery();
-    const finishedTournamentsQuery = useGetAdminFinishedTournamentsQuery();
+    const skipAdminQueries = { skip: !isAdmin };
+    const usersQuery = useGetAdminUsersQuery(undefined, skipAdminQueries);
+    const activeUsersQuery = useGetAdminActiveUsersQuery(undefined, skipAdminQueries);
+    const pendingDuelsQuery = useGetAdminPendingDuelsQuery(undefined, skipAdminQueries);
+    const rankedSearchersQuery = useGetAdminRankedDuelSearchersQuery(undefined, skipAdminQueries);
+    const activeDuelsQuery = useGetAdminActiveDuelsQuery(undefined, skipAdminQueries);
+    const finishedDuelsQuery = useGetAdminFinishedDuelsQuery(undefined, skipAdminQueries);
+    const testingSubmissionsQuery = useGetAdminTestingSubmissionsQuery(undefined, skipAdminQueries);
+    const submissionsQuery = useGetAdminSubmissionsQuery(undefined, skipAdminQueries);
+    const groupsQuery = useGetAdminGroupsQuery(undefined, skipAdminQueries);
+    const activeTournamentsQuery = useGetAdminActiveTournamentsQuery(undefined, skipAdminQueries);
+    const finishedTournamentsQuery = useGetAdminFinishedTournamentsQuery(
+        undefined,
+        skipAdminQueries,
+    );
 
     const activeUsers = activeUsersQuery.data ?? [];
     const inactiveUsers = useMemo(
@@ -402,19 +423,8 @@ export const AdminPage = () => {
         finishedTournamentsQuery.error,
     ];
 
-    if (queryErrors.some(isForbiddenError)) {
-        return (
-            <div className={styles.adminPage}>
-                <div className={styles.accessCard}>
-                    <span className={styles.eyebrow}>403</span>
-                    <h1>Нет доступа</h1>
-                    <p>Административная панель доступна только администраторам.</p>
-                    <Link className={styles.backLink} to={AppRoutes.INDEX}>
-                        Вернуться на главную
-                    </Link>
-                </div>
-            </div>
-        );
+    if (!isAdmin || queryErrors.some(isForbiddenError)) {
+        return <AccessDenied />;
     }
 
     const friendlyDuels = getPendingDuelsByType(pendingDuels, "Friendly");

@@ -23,8 +23,11 @@ not replace that backend policy.
 
 ## Current behavior
 
-The page starts all eleven admin list queries when it mounts. Users are displayed
-as active users followed by all remaining users. Pending duels are split into
+The page first reads the `is_admin` claim from the access token. An authenticated
+non-admin stays on `/admin`, sees the dedicated access-denied screen, and starts
+no admin list queries. For an administrator, the page starts all eleven admin
+list queries when it mounts. Users are displayed as active users followed by all
+remaining users. Pending duels are split into
 friendly, group, and tournament subsections, while ranked searchers have a live
 waiting duration. Testing submissions are followed by the `Done` subset of the
 all-submissions response. Groups are sorted by the backend, and group names are
@@ -33,8 +36,9 @@ used to enrich tournament rows when that query is available.
 All five main sections use accessible native `details` controls and start open.
 Their open state is local to the page. Each data block has independent loading,
 empty, and failure output. Any admin query returning 403 replaces the dashboard
-with a dedicated access-denied screen. User, group, tournament, and duel links
-use the existing application routes.
+with the same access-denied screen. This remains the fallback when a token claims
+admin access but Duely rejects it. User, group, tournament, and duel links use
+the existing application routes.
 
 The current backend `DuelDto` does not identify whether an active or finished
 duel originated as Friendly, Group, or Tournament and does not include related
@@ -66,10 +70,11 @@ search wait time. No dashboard state is persisted.
 
 ## Failure handling
 
-A 403 from any admin query is treated as an authorization failure. Other request
-failures remain local to the affected data block, allowing other lists to stay
-usable. Missing group lookup data falls back to `Группа #id`. Missing or invalid
-dates render an em dash.
+A missing or false `is_admin` access-token claim is treated as an authorization
+failure before admin requests start. A 403 from any admin query is also treated
+as an authorization failure. Other request failures remain local to the affected
+data block, allowing other lists to stay usable. Missing group lookup data falls
+back to `Группа #id`. Missing or invalid dates render an em dash.
 
 ## Reload and multiple tabs
 
@@ -85,16 +90,18 @@ not streamed into the dashboard.
 
 ## Test coverage
 
-Helper tests cover active-user subtraction, terminal-submission selection,
-pending-duel grouping, waiting duration, and invalid dates. The publication
-smoke test covers authenticated cold startup and the populated `/admin` route.
+Helper tests cover access-token admin-claim parsing, active-user subtraction,
+terminal-submission selection, pending-duel grouping, waiting duration, and
+invalid dates. The publication smoke test covers admin and non-admin authenticated
+cold startup at `/admin`.
 
 ## Current guarantees
 
-The dashboard never grants authorization by itself; it displays only data
-accepted by `OnlyAdmin`, excludes active users from the second user list,
-excludes non-terminal submissions from the completed list, and keeps all entity
-links on declared application routes.
+The dashboard never grants authorization by itself; client-side claim parsing
+only avoids known-forbidden requests, while Duely's `OnlyAdmin` policy remains
+authoritative. It displays only data accepted by that policy, excludes active
+users from the second user list, excludes non-terminal submissions from the
+completed list, and keeps all entity links on declared application routes.
 
 ## Open questions
 
