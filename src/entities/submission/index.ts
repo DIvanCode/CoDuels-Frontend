@@ -3,9 +3,12 @@ export {
     useGetSubmissionDetailQuery,
     useGetSubmissionsQuery,
     useSubmitCodeMutation,
+    useGetAdminTestingSubmissionsQuery,
+    useGetAdminSubmissionsQuery,
 } from "./api/submissionApi";
 
 export type {
+    AdminSubmissionItem,
     SubmissionDetail,
     SubmissionItem,
     SubmissionStatus,

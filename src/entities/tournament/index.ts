@@ -5,6 +5,8 @@ export {
     useCreateTournamentMutation,
     useGetTournamentQuery,
     useStartTournamentMutation,
+    useGetAdminActiveTournamentsQuery,
+    useGetAdminFinishedTournamentsQuery,
 } from "./api/tournamentApi";
 export { TournamentBracket } from "./ui/TournamentBracket/TournamentBracket";
 

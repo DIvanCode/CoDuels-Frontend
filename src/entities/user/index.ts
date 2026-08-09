@@ -9,6 +9,8 @@ export {
     useGetUserByNicknameQuery,
     useLazyGetUserByNicknameQuery,
     useGetMeQuery,
+    useGetAdminUsersQuery,
+    useGetAdminActiveUsersQuery,
 } from "./api/userApi";
 
 export { userApiSlice } from "./api/userApi";

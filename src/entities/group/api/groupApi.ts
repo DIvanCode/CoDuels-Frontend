@@ -1,6 +1,12 @@
 import { apiSlice } from "shared/api";
 
-import type { CreateGroupRequest, Group, GroupUser, InviteGroupUserRequest } from "../model/types";
+import type {
+    CreateGroupRequest,
+    Group,
+    GroupListItem,
+    GroupUser,
+    InviteGroupUserRequest,
+} from "../model/types";
 
 export const groupApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -13,6 +19,9 @@ export const groupApiSlice = apiSlice.injectEndpoints({
                           { type: "Group", id: "LIST" },
                       ]
                     : [{ type: "Group", id: "LIST" }],
+        }),
+        getAdminGroups: builder.query<GroupListItem[], void>({
+            query: () => "/groups/admin/all",
         }),
         createGroup: builder.mutation<Group, CreateGroupRequest>({
             query: (body) => ({
@@ -85,4 +94,5 @@ export const {
     useExcludeGroupUserMutation,
     useLeaveGroupMutation,
     useInviteGroupUserMutation,
+    useGetAdminGroupsQuery,
 } = groupApiSlice;

@@ -38,6 +38,7 @@ HTTP route catalog from injected endpoints:
 | Tournaments      | `GET /groups/{id}/tournaments`, `POST /tournaments`, `GET /tournaments/{id}`, `POST /tournaments/{id}/start`                                                                                                                        |
 | Tasks/runs       | `GET /task/{id}`, `/task/{id}/{file}`, `/task/topics`; `POST /code-runs`, `GET /code-runs/{id}`                                                                                                                                     |
 | Submissions      | `POST/GET /duels/{id}/submissions`, `GET /duels/{id}/submissions/{submissionId}`                                                                                                                                                    |
+| Admin lists      | `GET /users/admin/{all,active}`, `/duels/admin/{pending,ranked-searchers,active,finished}`, `/duels/admin/submissions/{testing,all}`, `/groups/admin/all`, `/tournaments/admin/{active,finished}`                                   |
 | Actions          | `POST /actions` with `{ actions: [...] }` through raw authenticated fetch                                                                                                                                                           |
 
 Current incoming Duely message enum is `DuelStarted`, `DuelFinished`,
@@ -60,6 +61,8 @@ and tournament-canceled aliases not emitted by current Duely.
 Known DTO boundaries: login/register responses rely on TypeScript only; refresh
 token pair and task test files use Superstruct. Submission list uses
 `submission_id`, while create/detail uses `id`, and code adapts this explicitly.
+Administrative submission-list items additionally expose `duel_id` and
+`task_key` for task-aware detail links.
 Frontend task model/UI focuses on `write_code`, a subset of Taski task types.
 Direct friendly invitations are queried/labeled with client type `Ranked`.
 

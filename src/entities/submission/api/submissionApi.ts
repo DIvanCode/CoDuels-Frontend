@@ -1,7 +1,12 @@
 import { apiSlice } from "shared/api";
 
 import { isSubmissionStatusForward } from "../model/submissionStatus";
-import type { SubmissionDetail, SubmissionItem, SubmitCodeRequestData } from "../model/types";
+import type {
+    AdminSubmissionItem,
+    SubmissionDetail,
+    SubmissionItem,
+    SubmitCodeRequestData,
+} from "../model/types";
 
 interface SubmissionsQueryArg {
     duelId: string;
@@ -143,8 +148,19 @@ export const submitCodeApiSlice = apiSlice.injectEndpoints({
                 }
             },
         }),
+        getAdminTestingSubmissions: builder.query<AdminSubmissionItem[], void>({
+            query: () => "/duels/admin/submissions/testing",
+        }),
+        getAdminSubmissions: builder.query<AdminSubmissionItem[], void>({
+            query: () => "/duels/admin/submissions/all",
+        }),
     }),
 });
 
-export const { useSubmitCodeMutation, useGetSubmissionsQuery, useGetSubmissionDetailQuery } =
-    submitCodeApiSlice;
+export const {
+    useSubmitCodeMutation,
+    useGetSubmissionsQuery,
+    useGetSubmissionDetailQuery,
+    useGetAdminTestingSubmissionsQuery,
+    useGetAdminSubmissionsQuery,
+} = submitCodeApiSlice;

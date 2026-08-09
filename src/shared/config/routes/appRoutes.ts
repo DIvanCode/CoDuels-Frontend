@@ -1,6 +1,7 @@
 export const enum AppRoutes {
     INDEX = "/",
     AUTH = "/auth",
+    ADMIN = "/admin",
     PROFILE = "/profile/:userNickname",
     GROUPS = "/groups",
     GROUP = "/groups/:groupId",
