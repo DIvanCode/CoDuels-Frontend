@@ -50,11 +50,13 @@ jobs:
               run: |
                   cd ansible/build
                   ansible-playbook -i inventory playbook.yml \
-                    --extra-vars="version=${{ github.sha }} vite_base_url=${{ vars.VITE_BASE_URL }}"
+                    --extra-vars="version=${{ github.sha }}"
 
     deploy:
         needs: build
         runs-on: ubuntu-latest
+        env:
+            VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -73,7 +75,7 @@ jobs:
                   cd ansible/deploy
                   ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory playbook.yml \
                     --private-key ~/.ssh/deploy_key.pem \
-                    --extra-vars="version=${{ github.sha }} ansible_user=ubuntu"
+                    --extra-vars="version=${{ github.sha }} ansible_user=ubuntu vite_base_url=${VITE_BASE_URL}"
             - name: Clean up SSH key
               if: always()
               run: rm -f ~/.ssh/deploy_key.pem

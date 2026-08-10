@@ -5,7 +5,6 @@
       - name: Build frontend image
         command: >
             docker build
-            --build-arg VITE_BASE_URL={{ vite_base_url }}
             -t divancode74/coduels-frontend:{{ version }}
             ../../
       - name: Push frontend image

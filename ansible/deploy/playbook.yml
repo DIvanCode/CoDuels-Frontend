@@ -39,6 +39,8 @@
             recreate: yes
             restart: yes
             restart_policy: unless-stopped
+            env:
+                VITE_BASE_URL: "{{ vite_base_url }}"
             networks:
                 - name: "{{ docker_network }}"
       - name: Pull Caddy image
