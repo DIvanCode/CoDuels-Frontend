@@ -4,21 +4,20 @@
 
     width: 100%;
     min-height: 100%;
-    padding: clamp(2rem, 4vw, 4rem) clamp(1rem, 4vw, 3.5rem) 2.5rem;
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 2.625rem) 1.875rem;
 
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(2rem, 4vw, 3.5rem);
+    gap: clamp(1.5rem, 3vw, 2.625rem);
 
-    overflow: hidden;
-    background:
-        radial-gradient(
-            circle at 50% 15%,
-            color-mix(in srgb, var(--accent-primary) 10%, transparent),
-            transparent 34rem
-        ),
-        var(--background);
+    overflow: visible;
+    background-color: var(--background);
+    background-image: radial-gradient(
+        circle at 50% 15%,
+        color-mix(in srgb, var(--accent-primary) 10%, transparent),
+        transparent 34rem
+    );
 
     &::before {
         content: "";
@@ -43,7 +42,8 @@
 }
 
 .hero {
-    width: min(58rem, 100%);
+    width: 100%;
+    max-width: 43.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -51,17 +51,17 @@
 }
 
 .eyebrow {
-    margin-bottom: 1.1rem;
+    margin-bottom: 0.8rem;
     color: var(--accent-primary);
-    font-size: clamp(0.82rem, 1.3vw, 1rem);
+    font-size: clamp(0.72rem, 1vw, 0.82rem);
     font-weight: 700;
     letter-spacing: 0.08em;
 }
 
 .hero h1 {
-    max-width: 56rem;
-    margin-bottom: 1.2rem;
-    font-size: clamp(2.15rem, 5vw, 4rem);
+    max-width: 42rem;
+    margin-bottom: 0.9rem;
+    font-size: clamp(1.75rem, 3.75vw, 3rem);
     line-height: 0.98;
     letter-spacing: -0.045em;
     text-wrap: balance;
@@ -69,26 +69,23 @@
 
 .description {
     color: var(--text-secondary);
-    font-size: clamp(1rem, 1.7vw, 1.2rem);
-    line-height: 1.55;
+    font-size: clamp(0.88rem, 1.3vw, 1rem);
+    line-height: 1.45;
     text-wrap: balance;
 }
 
 .cta {
-    min-width: min(18rem, 100%);
-    margin-top: 1.6rem;
-    padding: 1rem 1.5rem;
-    border-radius: 0.65rem;
+    min-width: min(14rem, 100%);
+    margin-top: 1.2rem;
+    padding: 0.75rem 1.125rem;
+    border-radius: 0.5rem;
 
-    background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--accent-primary) 85%, white),
-        var(--accent-primary)
-    );
-    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--accent-primary) 25%, transparent);
+    background-color: var(--accent-primary);
+    background-image: linear-gradient(135deg, #777bff, var(--accent-primary));
+    box-shadow: 0 0.6rem 1.5rem rgba(78, 82, 216, 0.24);
     color: #ffffff;
 
-    font-size: 1.18rem;
+    font-size: 1rem;
     font-weight: 700;
     text-align: center;
 
@@ -108,256 +105,59 @@
 }
 
 .hint {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.82rem;
 }
 
 .preview {
+    width: 100%;
+    max-width: 61.5rem;
+    margin: 0;
     flex: 0 0 auto;
-    width: min(82rem, 100%);
-    min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-    border-radius: 0.85rem;
+    border-radius: 0.7rem;
     overflow: hidden;
-
-    background: color-mix(in srgb, var(--card-primary) 90%, transparent);
-    box-shadow: 0 1.5rem 4.5rem color-mix(in srgb, #000000 24%, transparent);
+    box-shadow: 0 1.1rem 3.4rem rgba(0, 0, 0, 0.2);
 }
 
-.previewHeader {
-    min-height: 4.5rem;
-    padding: 0.7rem clamp(0.8rem, 2vw, 1.5rem);
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: clamp(0.6rem, 2vw, 1.5rem);
-    border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
-
-    .participant:last-child {
-        justify-self: end;
-
-        .avatar {
-            order: 2;
-        }
-
-        .participantText {
-            align-items: flex-end;
-        }
-    }
+.previewDark,
+.previewLight {
+    width: 100%;
+    height: auto;
 }
 
-.participant {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
+.previewDark {
+    display: block;
 }
 
-.avatar {
-    width: 2.55rem;
-    height: 2.55rem;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    overflow: hidden;
-    background: var(--card-secondary);
+.previewLight {
+    display: none;
 }
 
-.participantText {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-
-    strong {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.98rem;
-    }
-
-    span {
-        color: var(--accent-primary);
-        font-size: 0.82rem;
-        font-weight: 600;
-    }
+:global(.app[data-theme="light"]) .previewDark {
+    display: none;
 }
 
-.timer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    font-variant-numeric: tabular-nums;
-
-    svg {
-        width: 1.65rem;
-        height: 1.65rem;
-    }
-}
-
-.duelWorkspace {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.65rem;
-    padding: 0.65rem;
-    background: var(--background);
-}
-
-.editorPanel,
-.taskPanel {
-    min-width: 0;
-    height: 27rem;
-    display: flex;
-    flex-direction: column;
-    border-radius: 0.55rem;
-    overflow: hidden;
-    background: var(--card-primary);
-}
-
-.panelTabs {
-    min-height: 2.65rem;
-    padding: 0 1rem;
-    display: flex;
-    align-items: stretch;
-    gap: 1.3rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-
-    > span {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        white-space: nowrap;
-    }
-
-    svg {
-        width: 1rem;
-        color: var(--accent-primary);
-    }
-}
-
-.activeTab {
-    color: var(--text-primary);
-    font-weight: 600;
-
-    &::after {
-        content: "";
-        position: absolute;
-        right: 0;
-        bottom: -1px;
-        left: 0;
-        height: 2px;
-        background: var(--text-primary);
-    }
-}
-
-.editorToolbar,
-.taskPicker {
-    min-height: 2.7rem;
-    padding: 0.6rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    font-size: 0.85rem;
-}
-
-.submitLabel {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--accent-primary);
-
-    svg {
-        width: 1rem;
-    }
-}
-
-.code {
-    flex: 1;
-    padding: 0.3rem 1rem 1rem 3.8rem;
-    overflow: hidden;
-    counter-reset: line;
-    list-style: none;
-    background: color-mix(in srgb, var(--card-primary) 92%, var(--background));
-    color: var(--text-primary);
-
-    li {
-        position: relative;
-        min-height: 1.45rem;
-        padding-left: 0.85rem;
-        counter-increment: line;
-        color: color-mix(in srgb, var(--accent-primary) 72%, var(--text-primary));
-        font:
-            0.85rem/1.45rem ui-monospace,
-            SFMono-Regular,
-            Consolas,
-            monospace;
-        white-space: pre;
-
-        &::before {
-            content: counter(line);
-            position: absolute;
-            width: 2rem;
-            margin-left: -3.1rem;
-            color: var(--text-secondary);
-            text-align: right;
-        }
-    }
-}
-
-.taskPicker {
-    justify-content: flex-start;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
-
-    > span {
-        padding: 0.25rem 0.75rem;
-        border: 1px solid var(--text-secondary);
-        border-radius: 0.35rem;
-        color: var(--accent-primary);
-    }
-}
-
-.statement {
-    flex: 1;
-    padding: 1rem 1.2rem 1.5rem;
-    overflow: hidden;
-    color: var(--text-primary);
-
-    h2 {
-        margin-bottom: 0.8rem;
-        font-size: clamp(1.2rem, 2vw, 1.65rem);
-    }
-
-    h3 {
-        margin: 1.4rem 0 0.7rem;
-        font-size: 1.2rem;
-    }
-
-    p {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        line-height: 1.55;
-    }
+:global(.app[data-theme="light"]) .previewLight {
+    display: block;
 }
 
 .steps {
+    width: 100%;
+    max-width: 52.5rem;
     flex: 0 0 auto;
-    width: min(70rem, 100%);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 0.75rem;
     list-style: none;
 
     li {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.8rem;
+        gap: 0.6rem;
         color: var(--text-secondary);
+        font-size: 0.9rem;
         text-align: center;
     }
 
@@ -369,17 +169,8 @@
 
 @media (max-width: 760px) {
     .landing {
-        padding-top: 2rem;
-        gap: 2.25rem;
-    }
-
-    .duelWorkspace {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .editorPanel,
-    .taskPanel {
-        height: 22rem;
+        padding-top: 1.5rem;
+        gap: 1.7rem;
     }
 
     .steps {
@@ -394,61 +185,11 @@
 
 @media (max-width: 520px) {
     .landing {
-        padding-inline: 0.75rem;
+        padding-inline: 0.65rem;
     }
 
     .hero h1 {
-        font-size: clamp(2rem, 12vw, 3rem);
-    }
-
-    .previewHeader {
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        padding-inline: 0.65rem;
-        gap: 0.35rem;
-    }
-
-    .participant {
-        gap: 0.35rem;
-    }
-
-    .avatar {
-        width: 1.9rem;
-        height: 1.9rem;
-    }
-
-    .participantText strong {
-        font-size: 0.78rem;
-    }
-
-    .participantText span {
-        font-size: 0.7rem;
-    }
-
-    .timer {
-        font-size: 0.85rem;
-
-        svg {
-            width: 1.35rem;
-            height: 1.35rem;
-        }
-    }
-
-    .panelTabs {
-        gap: 0.8rem;
-        padding-inline: 0.75rem;
-        font-size: 0.76rem;
-    }
-
-    .code {
-        padding-left: 3.25rem;
-
-        li {
-            font-size: 0.72rem;
-
-            &::before {
-                margin-left: -2.7rem;
-            }
-        }
+        font-size: clamp(1.7rem, 10vw, 2.25rem);
     }
 }
 

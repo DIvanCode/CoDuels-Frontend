@@ -22,16 +22,16 @@ describe("LandingPage", () => {
         expect(markup).not.toContain(">Войти<");
     });
 
-    it("renders the duel demonstration without interactive application widgets", () => {
+    it("renders the duel demonstration as theme-specific images", () => {
         const markup = renderToStaticMarkup(
             <MemoryRouter>
                 <LandingPage />
             </MemoryRouter>,
         );
 
-        expect(markup).toContain("DIvanCode");
-        expect(markup).toContain("nightCoder");
-        expect(markup).toContain("10:31");
-        expect(markup).toContain("Минимум на отрезке");
+        expect(markup).toContain('role="img"');
+        expect(markup).toContain('aria-label="Демонстрация экрана дуэли"');
+        expect(markup.match(/<img /g)).toHaveLength(2);
+        expect(markup).not.toContain("Редактор кода");
     });
 });

@@ -34,9 +34,10 @@ DuelSessionManager outside RouterProvider, then starts the browser router.
 Layout always renders Header and Outlet. Suspense uses Loader for route elements,
 although pages are currently static imports. Header keeps the logo and theme
 switch on the left; after successful authentication it shows the existing
-profile menu, while a guest gets a `Войти` link to `/auth`. The global error
-boundary logs the caught error and renders a router-independent Fallback with a
-normal home link; the router's `errorElement` uses the same component.
+profile menu, while a guest gets a `Войти` link to `/auth` on every route except
+`/auth` itself. The global error boundary logs the caught error and renders a
+router-independent Fallback with a normal home link; the router's `errorElement`
+uses the same component.
 
 `/` is a mixed public/authenticated entry point. Without a token it renders the
 static LandingPage. With a persisted token it waits for `getMe`: success renders
@@ -103,9 +104,10 @@ route-dependent; direct duel access relies on `GET /duels/:id` authorization.
 
 PersistGate shows blank during rehydration. Suspense/protected queries show
 Loader. At `/`, missing credentials show the landing and an explicit 401 returns
-to it; a non-401 `getMe` failure can show an endless Loader. On other protected
-routes, a missing token/401 redirects with `replace` to `/auth`. Group/duel
-nested redirects replace history. Invalid
+to it; a non-401 `getMe` failure can show an endless Loader, but Header keeps an
+explicit logout action available while the saved token remains. On other
+protected routes, a missing token/401 redirects with `replace` to `/auth`.
+Group/duel nested redirects replace history. Invalid
 or thrown route renders generic Fallback; invalid numeric duel IDs lack a
 dedicated parent error view.
 
@@ -113,7 +115,8 @@ dedicated parent error view.
 
 HomeRoute, Header, and ProtectedRoute subscribe to the same cached `getMe` query
 when they need authentication state; auth refresh can replay it. LandingPage
-itself is static and starts no HTTP request or WebSocket. Manager starts
+itself is static, uses theme-specific duel preview images, and starts no HTTP
+request or WebSocket. Manager starts
 ticket/socket only after both `auth.user` and the access token are present, and
 owns active-duel reconciliation. No cache is restored from disk.
 
@@ -159,9 +162,10 @@ initial state. A second tab can replace the first backend socket.
 ## Test coverage
 
 - **Existing tests:** HomeRoute covers guest/loading/success/401 selection;
-  LandingPage covers its registration link and static duel content; Header covers
-  guest, token-checking, and authenticated actions; the global Fallback renders
-  without Router context. MSW has no handlers.
+  LandingPage covers its registration link and static duel images; Header covers
+  guest, auth-page, token-checking, failed-session recovery, and authenticated
+  actions; the global Fallback renders without Router context. MSW has no
+  handlers.
 - **Needed unit/integration:** persist configs, ProtectedRoute result matrix,
   router paths/redirects, error boundary, manager mount/unmount.
 - **Needed browser/E2E:** authorized cold load, corrupt/old storage, offline

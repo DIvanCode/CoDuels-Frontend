@@ -64,9 +64,12 @@
 .loginLink {
     min-width: 6.2rem;
     padding: 0.75rem 1.2rem;
+    border: 0;
     border-radius: 0.55rem;
     background: var(--accent-primary);
     color: #ffffff;
+    cursor: pointer;
+    font: inherit;
     font-weight: 700;
     text-align: center;
     transition:

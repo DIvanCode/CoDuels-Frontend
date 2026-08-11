@@ -1,5 +1,5 @@
 import { selectCurrentUser, UserCard, useGetMeQuery } from "entities/user";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
@@ -17,6 +17,7 @@ import styles from "./Header.module.scss";
 
 export const Header = () => {
     const { duelId } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
@@ -32,7 +33,10 @@ export const Header = () => {
         "status" in error &&
         error.status === 401;
     const showUserMenu = Boolean(token && isSuccess && user);
-    const showLogin = !token || isUnauthorized;
+    const isAuthRoute =
+        location.pathname === AppRoutes.AUTH || location.pathname.startsWith(`${AppRoutes.AUTH}/`);
+    const showLogin = (!token || isUnauthorized) && !isAuthRoute;
+    const showSessionRecovery = Boolean(token && isError && !isUnauthorized);
 
     const userMenuItems: DropdownItem[] = [
         {
@@ -85,6 +89,15 @@ export const Header = () => {
                     <Link className={styles.loginLink} to={AppRoutes.AUTH}>
                         Войти
                     </Link>
+                )}
+                {showSessionRecovery && (
+                    <button
+                        className={styles.loginLink}
+                        type="button"
+                        onClick={() => dispatch(authActions.logout())}
+                    >
+                        Выйти
+                    </button>
                 )}
             </div>
         </header>

@@ -59,9 +59,9 @@ vi.mock("shared/ui", () => ({
     }) => <button aria-label={triggerAriaLabel}>{trigger}</button>,
 }));
 
-const renderHeader = () =>
+const renderHeader = (path = "/") =>
     renderToStaticMarkup(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>
             <Header />
         </MemoryRouter>,
     );
@@ -82,11 +82,35 @@ describe("Header authentication action", () => {
         expect(markup).toContain('aria-label="На главную"');
     });
 
+    it("does not repeat the login action on the auth page", () => {
+        const markup = renderHeader("/auth");
+
+        expect(markup).not.toContain('href="/auth"');
+        expect(markup).not.toContain(">Войти<");
+        expect(markup).toContain('aria-label="На главную"');
+    });
+
     it("does not flash the guest action while a saved token is being checked", () => {
         mocks.state.auth.token = "saved-token";
 
         const markup = renderHeader();
 
+        expect(markup).not.toContain(">Войти<");
+        expect(markup).not.toContain("Открыть меню пользователя");
+    });
+
+    it("offers logout when checking a saved session fails", () => {
+        mocks.state.auth.token = "saved-token";
+        mocks.state.auth.user = { nickname: "DIvanCode" };
+        mocks.getMe.mockReturnValue({
+            isError: true,
+            isSuccess: false,
+            error: { status: 503 },
+        });
+
+        const markup = renderHeader();
+
+        expect(markup).toContain(">Выйти<");
         expect(markup).not.toContain(">Войти<");
         expect(markup).not.toContain("Открыть меню пользователя");
     });
