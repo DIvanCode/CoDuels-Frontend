@@ -12,7 +12,7 @@ const DuelPreview = () => (
     </figure>
 );
 
-const steps = ["Найди равного", "Решите одну задачу", "Забери победу"];
+const steps = ["Найди равного", "Реши задачу", "Забери победу"];
 
 export const LandingPage = () => (
     <div className={styles.landing}>
@@ -42,7 +42,5 @@ export const LandingPage = () => (
                 </li>
             ))}
         </ol>
-
-        <footer className={styles.footer}>Разработчик — Иван Добрынин</footer>
     </div>
 );
