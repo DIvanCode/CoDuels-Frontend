@@ -29,7 +29,7 @@ export const LandingPage = () => (
             <Link className={styles.cta} to={`${AppRoutes.AUTH}?tab=register`}>
                 Хочу участвовать!
             </Link>
-            <p className={styles.hint}>Никнейм и пароль — и ты в игре</p>
+            <p className={styles.hint}>Регистрируйся — и ты в игре</p>
         </section>
 
         <DuelPreview />
@@ -42,5 +42,7 @@ export const LandingPage = () => (
                 </li>
             ))}
         </ol>
+
+        <footer className={styles.footer}>Разработчик — Иван Добрынин</footer>
     </div>
 );

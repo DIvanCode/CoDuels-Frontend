@@ -13,6 +13,17 @@
     background: var(--card-primary);
 }
 
+.landingHeader {
+    min-height: 63px;
+    padding-block: 0.675em;
+
+    .loginLink {
+        min-width: 5.58rem;
+        padding: 0.675rem 1.08rem;
+        font-size: 0.9em;
+    }
+}
+
 .left {
     grid-area: left;
     display: flex;

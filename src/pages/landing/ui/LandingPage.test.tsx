@@ -19,6 +19,8 @@ describe("LandingPage", () => {
         expect(markup).toContain("ДУЭЛЬ НАЧИНАЕТСЯ ЗДЕСЬ");
         expect(markup).toContain('href="/auth?tab=register"');
         expect(markup).toContain("Хочу участвовать!");
+        expect(markup).toContain("Регистрируйся — и ты в игре");
+        expect(markup).toContain("Разработчик — Иван Добрынин");
         expect(markup).not.toContain(">Войти<");
     });
 

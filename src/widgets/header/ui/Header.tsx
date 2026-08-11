@@ -1,4 +1,5 @@
 import { selectCurrentUser, UserCard, useGetMeQuery } from "entities/user";
+import clsx from "clsx";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
@@ -37,6 +38,7 @@ export const Header = () => {
         location.pathname === AppRoutes.AUTH || location.pathname.startsWith(`${AppRoutes.AUTH}/`);
     const showLogin = (!token || isUnauthorized) && !isAuthRoute;
     const showSessionRecovery = Boolean(token && isError && !isUnauthorized);
+    const showLanding = location.pathname === AppRoutes.INDEX && showLogin;
 
     const userMenuItems: DropdownItem[] = [
         {
@@ -65,7 +67,7 @@ export const Header = () => {
     }, [isUserMenuOpen]);
 
     return (
-        <header className={styles.header}>
+        <header className={clsx(styles.header, showLanding && styles.landingHeader)}>
             <div className={styles.left}>
                 <Link className={styles.logoLink} to={AppRoutes.INDEX} aria-label="На главную">
                     <Favicon />

@@ -122,8 +122,10 @@
 
 .previewDark,
 .previewLight {
-    width: 100%;
+    width: 101%;
+    max-width: none;
     height: auto;
+    margin: -0.68% -0.5%;
 }
 
 .previewDark {
@@ -165,6 +167,13 @@
         color: var(--accent-primary);
         font-weight: 700;
     }
+}
+
+.footer {
+    margin-top: clamp(1rem, 2vw, 1.75rem);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    text-align: center;
 }
 
 @media (max-width: 760px) {
