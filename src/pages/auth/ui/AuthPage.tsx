@@ -1,15 +1,18 @@
 import { LoginForm, RegisterForm } from "features/auth";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MainCard, TabPanel, StatusCard, type StatusVariant, type ITab } from "shared/ui";
 
 import type { StatusPayload } from "features/auth";
 
+import { type AuthTab, resolveAuthTab } from "../lib/authTab";
 import styles from "./AuthPage.module.scss";
 
 type AuthStatus = StatusPayload & { variant: StatusVariant };
 
 const AuthPage = () => {
-    const [activeAuthTab, setActiveAuthTab] = useState<"login" | "register">("login");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeAuthTab = resolveAuthTab(searchParams);
     const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
     const [authStatusClosing, setAuthStatusClosing] = useState(false);
 
@@ -22,14 +25,14 @@ const AuthPage = () => {
         setAuthStatusClosing(false);
     };
 
-    const switchToLogin = () => {
-        setActiveAuthTab("login");
-        setAuthStatus(null);
-        setAuthStatusClosing(false);
-    };
-
-    const switchToRegister = () => {
-        setActiveAuthTab("register");
+    const switchAuthTab = (tab: AuthTab) => {
+        const nextSearchParams = new URLSearchParams(searchParams);
+        if (tab === "register") {
+            nextSearchParams.set("tab", "register");
+        } else {
+            nextSearchParams.delete("tab");
+        }
+        setSearchParams(nextSearchParams, { replace: true });
         setAuthStatus(null);
         setAuthStatusClosing(false);
     };
@@ -59,12 +62,12 @@ const AuthPage = () => {
         {
             label: "Вход",
             active: activeAuthTab === "login",
-            onClick: switchToLogin,
+            onClick: () => switchAuthTab("login"),
         },
         {
             label: "Регистрация",
             active: activeAuthTab === "register",
-            onClick: switchToRegister,
+            onClick: () => switchAuthTab("register"),
         },
     ];
 

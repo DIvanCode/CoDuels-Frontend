@@ -32,12 +32,21 @@ do not render until bootstrapping completes and the page can be blank meanwhile.
 AppRouter reads persisted theme, applies `.app--{mode}`, mounts exactly one
 DuelSessionManager outside RouterProvider, then starts the browser router.
 Layout always renders Header and Outlet. Suspense uses Loader for route elements,
-although pages are currently static imports. The global error boundary logs the
-caught error and renders a router-independent Fallback with a normal home link;
-the router's `errorElement` uses the same component.
+although pages are currently static imports. Header keeps the logo and theme
+switch on the left; after successful authentication it shows the existing
+profile menu, while a guest gets a `Войти` link to `/auth`. The global error
+boundary logs the caught error and renders a router-independent Fallback with a
+normal home link; the router's `errorElement` uses the same component.
 
-`/auth` is public even when already authenticated. Protected routes are `/`,
-`/admin`, `/profile/:userNickname`, `/groups`, `/groups/:groupId`,
+`/` is a mixed public/authenticated entry point. Without a token it renders the
+static LandingPage. With a persisted token it waits for `getMe`: success renders
+the existing HomePage, explicit 401 renders LandingPage, and loading or a
+non-401 error renders Loader. This decision never trusts the persisted `user`
+snapshot by itself, so an authenticated cold start cannot flash the landing.
+
+`/auth` is public even when already authenticated. `?tab=register` selects the
+registration tab on direct navigation and reload; `/auth` defaults to login.
+Protected routes are `/admin`, `/profile/:userNickname`, `/groups`, `/groups/:groupId`,
 `/groups/:groupId/members`, `/groups/:groupId/duels`,
 `/groups/:groupId/tournaments`,
 `/groups/:groupId/tournaments/:tournamentId`, and `/duel/:duelId` with nested
@@ -53,7 +62,7 @@ sequenceDiagram
     participant B as Browser
     participant P as Providers/PersistGate
     participant S as Redux/localStorage
-    participant R as Router/ProtectedRoute
+    participant R as Router/HomeRoute
     participant D as Duely
     participant M as DuelSessionManager
     B->>P: load URL and React bundle
@@ -61,17 +70,18 @@ sequenceDiagram
     S-->>P: persisted auth/session/editor/theme
     P->>M: mount once after rehydration
     P->>R: render route
-    R->>D: GET /users/iam with persisted token
+    R->>D: GET /users/iam when a token exists
     D-->>R: current user (or refresh path on 401)
-    R-->>B: protected page
+    R-->>B: HomePage after success, LandingPage for a guest
     M->>D: POST ticket, then WebSocket after user and token are ready
 ```
 
 ## Client state transitions
 
 `persist bootstrap: pending -> rehydrated`; `auth.user: persisted/null -> getMe
-result`; route `requested -> Loader/redirect/page/Fallback`. No persisted RTK
-cache transition exists.
+result`; root route `requested -> LandingPage` without a token or `Loader ->
+HomePage/LandingPage` with a token; protected route `requested ->
+Loader/redirect/page/Fallback`. No persisted RTK cache transition exists.
 
 ## Backend state assumptions
 
@@ -92,17 +102,20 @@ route-dependent; direct duel access relies on `GET /duels/:id` authorization.
 ## UI effects
 
 PersistGate shows blank during rehydration. Suspense/protected queries show
-Loader. Missing token/401 redirects with `replace` to `/auth`; network failure
-can show endless Loader. Group/duel nested redirects replace history. Invalid
+Loader. At `/`, missing credentials show the landing and an explicit 401 returns
+to it; a non-401 `getMe` failure can show an endless Loader. On other protected
+routes, a missing token/401 redirects with `replace` to `/auth`. Group/duel
+nested redirects replace history. Invalid
 or thrown route renders generic Fallback; invalid numeric duel IDs lack a
 dedicated parent error view.
 
 ## Network effects
 
-ProtectedRoute subscribes to cached `getMe`; auth refresh can replay it. Manager
-starts ticket/socket only after both `auth.user` and the access token are
-present, and owns active-duel reconciliation. Header/child pages may start their
-own queries after route render. No cache is restored from disk.
+HomeRoute, Header, and ProtectedRoute subscribe to the same cached `getMe` query
+when they need authentication state; auth refresh can replay it. LandingPage
+itself is static and starts no HTTP request or WebSocket. Manager starts
+ticket/socket only after both `auth.user` and the access token are present, and
+owns active-duel reconciliation. No cache is restored from disk.
 
 ## Idempotency and duplicate handling
 
@@ -138,14 +151,17 @@ initial state. A second tab can replace the first backend socket.
 
 - `src/main.tsx`, `src/app/{App,store}.tsx`, `src/app/store.ts`
 - `src/app/providers/Providers.tsx`
-- `src/app/router/{AppRouter,router,ProtectedRoute,GroupRedirect}.tsx`
+- `src/app/router/{AppRouter,router,HomeRoute,ProtectedRoute,GroupRedirect}.tsx`
 - `src/app/layout/Layout.tsx`
 - `src/shared/config/routes/appRoutes.ts`
+- `src/pages/landing/ui/LandingPage.tsx`
 
 ## Test coverage
 
-- **Existing tests:** the global Fallback renders without Router context; MSW has
-  no handlers.
+- **Existing tests:** HomeRoute covers guest/loading/success/401 selection;
+  LandingPage covers its registration link and static duel content; Header covers
+  guest, token-checking, and authenticated actions; the global Fallback renders
+  without Router context. MSW has no handlers.
 - **Needed unit/integration:** persist configs, ProtectedRoute result matrix,
   router paths/redirects, error boundary, manager mount/unmount.
 - **Needed browser/E2E:** authorized cold load, corrupt/old storage, offline
@@ -156,7 +172,8 @@ initial state. A second tab can replace the first backend socket.
 
 PersistGate blocks child rendering until redux-persist bootstraps; four named
 slices (not RTK cache) are version-1 persisted; one manager is present in the
-normal AppRouter tree; all non-auth declared pages use ProtectedRoute.
+normal AppRouter tree; `/` intentionally selects guest or authenticated content,
+and all other non-auth declared pages use ProtectedRoute.
 
 ## Open questions
 
