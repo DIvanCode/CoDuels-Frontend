@@ -1,0 +1,204 @@
+.landing {
+    position: relative;
+    isolation: isolate;
+
+    width: 100%;
+    min-height: 100%;
+    align-self: start;
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 2.625rem)
+        clamp(1.5rem, 3vw, 2.625rem);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 2.625rem);
+
+    overflow: visible;
+    background-color: var(--background);
+    background-image: radial-gradient(
+        circle at 50% 15%,
+        color-mix(in srgb, var(--accent-primary) 10%, transparent),
+        transparent 34rem
+    );
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.22;
+        background-image:
+            linear-gradient(
+                color-mix(in srgb, var(--text-secondary) 10%, transparent) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                90deg,
+                color-mix(in srgb, var(--text-secondary) 8%, transparent) 1px,
+                transparent 1px
+            );
+        background-size: 4rem 4rem;
+        mask-image: linear-gradient(to bottom, black, transparent 58%);
+    }
+}
+
+.hero {
+    width: 100%;
+    max-width: 43.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.eyebrow {
+    margin-bottom: 0.8rem;
+    color: var(--accent-primary);
+    font-size: clamp(0.72rem, 1vw, 0.82rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.hero h1 {
+    max-width: 42rem;
+    margin-bottom: 0.9rem;
+    font-size: clamp(1.75rem, 3.75vw, 3rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: clamp(0.88rem, 1.3vw, 1rem);
+    line-height: 1.45;
+    text-wrap: balance;
+}
+
+.cta {
+    min-width: min(14rem, 100%);
+    margin-top: 1.2rem;
+    padding: 0.75rem 1.125rem;
+    border-radius: 0.5rem;
+
+    background-color: var(--accent-primary);
+    background-image: linear-gradient(135deg, #777bff, var(--accent-primary));
+    box-shadow: 0 0.6rem 1.5rem rgba(78, 82, 216, 0.24);
+    color: #ffffff;
+
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+
+    transition:
+        transform 0.18s ease,
+        filter 0.18s ease;
+
+    &:hover {
+        filter: brightness(1.08);
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 0.2rem solid var(--accent-secondary);
+        outline-offset: 0.25rem;
+    }
+}
+
+.hint {
+    margin-top: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.preview {
+    width: 100%;
+    max-width: 61.5rem;
+    margin: 0;
+    flex: 0 0 auto;
+    border-radius: 0.7rem;
+    overflow: hidden;
+    box-shadow: 0 1.1rem 3.4rem rgba(0, 0, 0, 0.2);
+}
+
+.previewDark,
+.previewLight {
+    width: 101%;
+    max-width: none;
+    height: auto;
+    margin: -0.68% -0.5%;
+}
+
+.previewDark {
+    display: block;
+}
+
+.previewLight {
+    display: none;
+}
+
+:global(.app[data-theme="light"]) .previewDark {
+    display: none;
+}
+
+:global(.app[data-theme="light"]) .previewLight {
+    display: block;
+}
+
+.steps {
+    width: 100%;
+    max-width: 52.5rem;
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    span {
+        color: var(--accent-primary);
+        font-weight: 700;
+    }
+}
+
+@media (max-width: 760px) {
+    .landing {
+        padding-top: 1.5rem;
+        gap: 1.7rem;
+    }
+
+    .steps {
+        grid-template-columns: minmax(0, 1fr);
+
+        li {
+            justify-content: flex-start;
+            padding-left: max(1rem, 20vw);
+        }
+    }
+}
+
+@media (max-width: 520px) {
+    .landing {
+        padding-inline: 0.65rem;
+    }
+
+    .hero h1 {
+        font-size: clamp(1.7rem, 10vw, 2.25rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cta {
+        transition: none;
+    }
+}

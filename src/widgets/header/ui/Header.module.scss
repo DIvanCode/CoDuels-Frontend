@@ -13,11 +13,35 @@
     background: var(--card-primary);
 }
 
+.landingHeader {
+    min-height: 63px;
+    padding-block: 0.675em;
+
+    .loginLink {
+        min-width: 5.58rem;
+        padding: 0.675rem 1.08rem;
+        font-size: 0.9em;
+    }
+}
+
 .left {
     grid-area: left;
     display: flex;
     align-items: center;
     gap: 1em;
+}
+
+.logoLink {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    flex: 0 0 auto;
+    border-radius: 0.4rem;
+
+    &:focus-visible {
+        outline: 0.125rem solid var(--accent-secondary);
+        outline-offset: 0.2rem;
+    }
 }
 
 .center {
@@ -45,6 +69,32 @@
 
     &:hover {
         background: color-mix(in srgb, var(--card-secondary) 65%, transparent);
+    }
+}
+
+.loginLink {
+    min-width: 6.2rem;
+    padding: 0.75rem 1.2rem;
+    border: 0;
+    border-radius: 0.55rem;
+    background: var(--accent-primary);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    text-align: center;
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--accent-primary) 86%, white);
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        outline: 0.125rem solid var(--accent-secondary);
+        outline-offset: 0.2rem;
     }
 }
 

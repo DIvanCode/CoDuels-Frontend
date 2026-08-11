@@ -2,7 +2,6 @@ import { Layout } from "app/layout/Layout";
 import { AuthPage } from "pages/auth";
 import { ProfilePage } from "pages/profile";
 import { DuelPage } from "pages/duel";
-import { HomePage } from "pages/home";
 import { GroupsPage } from "pages/groups";
 import { GroupPage } from "pages/group";
 import { TournamentPage } from "pages/tournament";
@@ -18,6 +17,7 @@ import {
     TaskSubmissionCodeContent,
 } from "widgets/task-panel";
 import { GroupRedirect } from "./GroupRedirect";
+import { HomeRoute } from "./HomeRoute";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -36,11 +36,9 @@ export const router = createBrowserRouter([
             {
                 index: true,
                 element: (
-                    <ProtectedRoute>
-                        <Suspense fallback={<Loader />}>
-                            <HomePage />
-                        </Suspense>
-                    </ProtectedRoute>
+                    <Suspense fallback={<Loader />}>
+                        <HomeRoute />
+                    </Suspense>
                 ),
             },
             {

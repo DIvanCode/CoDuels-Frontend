@@ -25,9 +25,18 @@ token. Authenticated requests use the current Redux access token in Authorizatio
 
 Login posts snake-case-compatible `{nickname,password}` but trusts the response
 as `TokenPair` at runtime; the fulfilled matcher stores both tokens, invalidates
-User tags, then navigation goes to `/`. ProtectedRoute calls `getMe`, whose
-fulfilled matcher stores the current user. Registration first creates the user,
-then performs the same login. The previous/original URL is not restored.
+User tags, then navigation goes to `/`. HomeRoute, Header, and ProtectedRoute
+subscribe to `getMe` when a token exists; its fulfilled matcher stores the
+current user. `/` waits for this result before showing HomePage and does not use
+the persisted user snapshot as proof of authentication. Registration first
+creates the user, then performs the same login. The previous/original URL is not
+restored.
+
+Header sends guests to `/auth`, which defaults to the login tab. LandingPage
+sends its primary CTA to `/auth?tab=register`; AuthPage derives the active tab
+from that query parameter, so registration stays selected after direct
+navigation or reload. Switching tabs updates the same URL without adding a new
+route.
 
 For each API request, `prepareHeaders` reads the current store token. On 401 or
 `FETCH_ERROR` (except `/users/refresh`) with a refresh token, refresh waits for a
@@ -97,7 +106,9 @@ decode exists. Backend logout/revocation endpoint is not called.
 ## UI effects
 
 Forms disable during their mutations and display mapped errors. Success goes to
-home. Protected 401 redirects to auth; non-401 error is an indefinite Loader.
+home. The root entry shows LandingPage without credentials, waits while a saved
+token is checked, and shows HomePage only after `getMe` succeeds. A protected
+401 outside `/` redirects to auth; a non-401 error is an indefinite Loader.
 Logout on a protected page causes redirect after state change. No cross-tab
 logout notice or "session expired/offline" distinction exists.
 
@@ -140,7 +151,8 @@ forms remain independent; shared code/tokens use last-writer-wins persistence.
 - `src/features/auth/{api/authApi,model/authSlice,model/authStruct}.ts`
 - `src/features/auth/ui/{LoginForm,RegisterForm}`
 - `src/shared/api/{api,token/refreshAuthToken}.ts`
-- `src/app/store.ts`, `src/app/router/ProtectedRoute.tsx`
+- `src/app/store.ts`, `src/app/router/{HomeRoute,ProtectedRoute}.tsx`
+- `src/pages/{auth,landing}`
 - `src/widgets/header/ui/Header.tsx`
 - Backend `UsersController`, token DTO/refresh use cases
 
