@@ -4,7 +4,8 @@
 
     width: 100%;
     min-height: 100%;
-    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 2.625rem) 1.875rem;
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(0.75rem, 3vw, 2.625rem)
+        clamp(1.5rem, 3vw, 2.625rem);
 
     display: flex;
     flex-direction: column;
