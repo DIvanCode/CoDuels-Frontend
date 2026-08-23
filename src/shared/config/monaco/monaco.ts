@@ -1,18 +1,19 @@
-import * as monaco from "monaco-editor";
 import { loader } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
 type Monaco = typeof monaco;
+type MonacoGlobal = typeof globalThis & {
+    MonacoEnvironment?: {
+        getWorker: () => Worker;
+    };
+};
 
-loader.config({
-    "paths": {
-        vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs",
-    },
-    "vs/nls": {
-        availableLanguages: {
-            "*": "ru",
-        },
-    },
-});
+(globalThis as MonacoGlobal).MonacoEnvironment = {
+    getWorker: () => new editorWorker(),
+};
+
+loader.config({ monaco });
 
 const darkPalette = {
     cardPrimary: "#292929",

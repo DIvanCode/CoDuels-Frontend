@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Generated runtime assets
+public/monaco/
+public/fonts/
+public/licenses/inter/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
