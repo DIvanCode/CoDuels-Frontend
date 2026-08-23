@@ -3,8 +3,13 @@ import * as monaco from "monaco-editor";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
 type Monaco = typeof monaco;
+type MonacoGlobal = typeof globalThis & {
+    MonacoEnvironment?: {
+        getWorker: () => Worker;
+    };
+};
 
-self.MonacoEnvironment = {
+(globalThis as MonacoGlobal).MonacoEnvironment = {
     getWorker: () => new editorWorker(),
 };
 
