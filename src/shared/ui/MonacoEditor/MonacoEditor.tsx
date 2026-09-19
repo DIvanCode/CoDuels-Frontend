@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import Editor, { type OnChange, type OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { defaultEditorOptions, initializeMonaco } from "shared/config/monaco/monaco";
 import clsx from "clsx";
@@ -15,6 +15,7 @@ interface Props {
     theme: string;
     className?: string;
     onEditorMount?: OnMount;
+    path?: string;
 }
 
 export const MonacoEditor = ({
@@ -26,10 +27,58 @@ export const MonacoEditor = ({
     theme,
     className,
     onEditorMount,
+    path,
 }: Props) => {
     const monacoRef = useRef<typeof monaco | null>(null);
+    const modelPathsRef = useRef(new Set<string>());
+    const currentPathRef = useRef(path);
+    const lastModelChangeRef = useRef(0);
+    const hasPath = Boolean(path);
 
-    const handleEditorChange = (value: string | undefined) => onValueChange(value ?? "");
+    useLayoutEffect(() => {
+        if (path) lastModelChangeRef.current = Date.now();
+    }, [path]);
+
+    useEffect(() => {
+        if (!hasPath) return;
+
+        const handleCanceledModelWork = (event: PromiseRejectionEvent) => {
+            const reason = event.reason;
+            // Monaco can reject canceled work while switching models (microsoft/monaco-editor#5135).
+            if (
+                Date.now() - lastModelChangeRef.current < 1_000 &&
+                reason instanceof Error &&
+                reason.name === "Canceled" &&
+                reason.message === "Canceled"
+            ) {
+                event.preventDefault();
+            }
+        };
+
+        window.addEventListener("unhandledrejection", handleCanceledModelWork);
+        return () => window.removeEventListener("unhandledrejection", handleCanceledModelWork);
+    }, [hasPath]);
+
+    useEffect(() => {
+        currentPathRef.current = path;
+        if (path) modelPathsRef.current.add(path);
+    }, [path]);
+
+    useEffect(
+        () => () => {
+            for (const modelPath of modelPathsRef.current) {
+                if (modelPath !== currentPathRef.current) {
+                    monacoRef.current?.editor.getModel(monaco.Uri.parse(modelPath))?.dispose();
+                }
+            }
+        },
+        [],
+    );
+
+    const handleEditorChange: OnChange = (value, event) => {
+        if (event.isFlush) return;
+        onValueChange(value ?? "");
+    };
 
     const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
         monacoRef.current = monacoInstance;
@@ -53,6 +102,7 @@ export const MonacoEditor = ({
             className={clsx(styles.codeEditor, className)}
             theme={theme}
             value={value}
+            path={path}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
             options={{

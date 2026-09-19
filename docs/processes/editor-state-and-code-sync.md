@@ -33,6 +33,10 @@ unpersisted and continue to refresh from the backend.
 The selected `my/opponent` tab is sessionStorage key `duel.{duelId}.codeTab` and
 privacy forces `my` when opponent view is unavailable. Read-only mode also
 blocks copy/cut/context menu.
+The editor uses a separate Monaco model and undo history for each user, duel,
+task, and code tab. Local unsent drafts follow the same identity, so switching
+to the opponent tab and back cannot put opponent code into the own-code undo
+history.
 
 Every second, the standalone solution publisher chooses the active/route duel
 and selected/first task, reads code/language, requires an open socket, an

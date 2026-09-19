@@ -67,8 +67,14 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     });
     const theme = useAppSelector(selectThemeMode);
 
-    const [localCode, setLocalCode] = useState<string>(initialCode);
-    const [localLanguage, setLocalLanguage] = useState<LANGUAGES>(initialLanguage);
+    const editorPath = `inmemory://duel/${currentUser?.id ?? "viewer"}/${duelId ?? "unknown"}/${encodeURIComponent(selectedTaskId ?? "none")}/${mode}`;
+    const [localDrafts, setLocalDrafts] = useState<
+        Record<string, { code?: string; language?: LANGUAGES }>
+    >({});
+    const localDraft = localDrafts[editorPath];
+    const localCode = mode === "my" ? (localDraft?.code ?? initialCode) : initialCode;
+    const localLanguage =
+        mode === "my" ? (localDraft?.language ?? initialLanguage) : initialLanguage;
     const [mountedEditor, setMountedEditor] =
         useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
@@ -92,7 +98,10 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const onCodeChange = (code: string) => {
         if (isReadOnly) return;
-        setLocalCode(code);
+        setLocalDrafts((drafts) => ({
+            ...drafts,
+            [editorPath]: { ...drafts[editorPath], code },
+        }));
         if (taskKey) {
             debouncedCodeCb(code, taskKey);
         }
@@ -100,7 +109,10 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const onLanguageChange = (language: LANGUAGES) => {
         if (isReadOnly) return;
-        setLocalLanguage(language);
+        setLocalDrafts((drafts) => ({
+            ...drafts,
+            [editorPath]: { ...drafts[editorPath], language },
+        }));
 
         const duelIdNumber = duelId ? Number(duelId) : NaN;
         if (Number.isFinite(duelIdNumber) && currentUser?.id) {
@@ -347,14 +359,6 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         });
     };
 
-    useEffect(() => {
-        setLocalCode(initialCode);
-    }, [initialCode]);
-
-    useEffect(() => {
-        setLocalLanguage(initialLanguage);
-    }, [initialLanguage]);
-
     if (!duelId) return null;
 
     return (
@@ -372,6 +376,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
             <MonacoEditor
                 height="100%"
                 value={localCode}
+                path={editorPath}
                 onValueChange={onCodeChange}
                 language={localLanguage}
                 theme={theme}
