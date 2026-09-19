@@ -132,6 +132,16 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     const handleEditorMount = useCallback<OnMount>((editor) => {
         editorRef.current = editor;
         setMountedEditor(editor);
+
+        editor.addAction({
+            id: "duplicate-current-line",
+            label: "Duplicate line",
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD],
+            precondition: "!editorReadonly",
+            run: (activeEditor) => {
+                activeEditor.trigger("keyboard", "editor.action.copyLinesDownAction", null);
+            },
+        });
     }, []);
 
     useEffect(() => {

@@ -37,6 +37,8 @@ The editor uses a separate Monaco model and undo history for each user, duel,
 task, and code tab. Local unsent drafts follow the same identity, so switching
 to the opponent tab and back cannot put opponent code into the own-code undo
 history.
+In the editable own-code tab, Ctrl/Cmd+D duplicates the current line below it
+using Monaco's built-in line operation; the opponent tab remains read-only.
 
 Every second, the standalone solution publisher chooses the active/route duel
 and selected/first task, reads code/language, requires an open socket, an
