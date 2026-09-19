@@ -175,6 +175,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
         domNode.addEventListener("copy", preventDefault);
         domNode.addEventListener("cut", preventDefault);
+        domNode.addEventListener("dragstart", preventDefault);
         domNode.addEventListener("contextmenu", preventDefault);
         domNode.addEventListener("keydown", handleKeyDown, true);
         document.addEventListener("copy", preventIfFromEditor, true);
@@ -183,6 +184,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         editorCleanupRef.current = () => {
             domNode.removeEventListener("copy", preventDefault);
             domNode.removeEventListener("cut", preventDefault);
+            domNode.removeEventListener("dragstart", preventDefault);
             domNode.removeEventListener("contextmenu", preventDefault);
             domNode.removeEventListener("keydown", handleKeyDown, true);
             document.removeEventListener("copy", preventIfFromEditor, true);

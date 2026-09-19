@@ -69,6 +69,10 @@ The split view renders code and task panes. Spectators cannot edit/run/submit.
 Ordinary spectators cannot open submission detail, though they can view
 submission lists/authors where permitted; administrators can open any detail
 without gaining participant mutation controls.
+The statement, limits, and examples suppress browser selection, copy/cut,
+dragging, and context menus. The opponent Monaco view likewise suppresses
+ordinary copy/cut actions. These UI controls do not hide text from browser
+developer tools or network responses.
 Newly opened tasks can raise DuelInfo modal. A result modal appears only when the
 rendered finished duel matches the current user's pending result. Dismissal is
 shared across tabs but isolated by user and duel.
