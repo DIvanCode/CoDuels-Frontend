@@ -18,7 +18,7 @@ import { baseEditorConfig, fromApiLanguage, LANGUAGE_LABELS } from "shared/confi
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { selectThemeMode } from "features/theme";
 import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
-import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
+import { applySubmissionCode } from "widgets/code-panel/model/codeEditorSlice";
 import styles from "./TaskSubmissionCodeContent.module.scss";
 
 export const TaskSubmissionCodeContent = () => {
@@ -76,8 +76,13 @@ export const TaskSubmissionCodeContent = () => {
     const handleApplyCodeToEditor = () => {
         if (!editorTaskKey) return;
 
-        dispatch(setCode({ taskKey: editorTaskKey, code: solutionText }));
-        dispatch(setLanguage({ taskKey: editorTaskKey, language: languageValue }));
+        dispatch(
+            applySubmissionCode({
+                taskKey: editorTaskKey,
+                code: solutionText,
+                language: languageValue,
+            }),
+        );
     };
     const languageLabel = language ? LANGUAGE_LABELS[fromApiLanguage(language)] : "—";
 

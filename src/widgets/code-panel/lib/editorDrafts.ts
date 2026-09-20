@@ -2,11 +2,14 @@ import type { LANGUAGES } from "shared/config";
 
 export type EditorMode = "my" | "opponent";
 
-export type EditorDrafts = Record<string, { code?: string; language?: LANGUAGES }>;
+export type EditorDrafts = Record<
+    string,
+    { code?: string; language?: LANGUAGES; appliedRevision: number }
+>;
 
 export type EditorDraftAction =
-    | { type: "code"; path: string; code: string }
-    | { type: "language"; path: string; language: LANGUAGES };
+    | { type: "code"; path: string; code: string; appliedRevision: number }
+    | { type: "language"; path: string; language: LANGUAGES; appliedRevision: number };
 
 export const buildEditorPath = (
     userId: number | null | undefined,
@@ -22,7 +25,10 @@ export const editorDraftsReducer = (
 ): EditorDrafts => ({
     ...drafts,
     [action.path]: {
-        ...drafts[action.path],
+        ...(drafts[action.path]?.appliedRevision === action.appliedRevision
+            ? drafts[action.path]
+            : {}),
+        appliedRevision: action.appliedRevision,
         ...(action.type === "code" ? { code: action.code } : { language: action.language }),
     },
 });
@@ -33,7 +39,11 @@ export const resolveEditorContent = (
     mode: EditorMode,
     code: string,
     language: LANGUAGES,
-) => ({
-    code: mode === "my" ? (drafts[path]?.code ?? code) : code,
-    language: mode === "my" ? (drafts[path]?.language ?? language) : language,
-});
+    appliedRevision: number,
+) => {
+    const draft =
+        mode === "my" && drafts[path]?.appliedRevision === appliedRevision
+            ? drafts[path]
+            : undefined;
+    return { code: draft?.code ?? code, language: draft?.language ?? language };
+};

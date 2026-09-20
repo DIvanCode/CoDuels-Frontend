@@ -25,51 +25,108 @@ describe("duel editor identity and unsent drafts", () => {
 
     it("restores each unsent own-code draft after switching tasks and tabs", () => {
         let drafts: EditorDrafts = {};
-        drafts = editorDraftsReducer(drafts, { type: "code", path: ownA, code: "unsent A" });
+        drafts = editorDraftsReducer(drafts, {
+            type: "code",
+            path: ownA,
+            code: "unsent A",
+            appliedRevision: 0,
+        });
         drafts = editorDraftsReducer(drafts, {
             type: "language",
             path: ownA,
             language: python,
+            appliedRevision: 0,
         });
-        drafts = editorDraftsReducer(drafts, { type: "code", path: ownB, code: "unsent B" });
+        drafts = editorDraftsReducer(drafts, {
+            type: "code",
+            path: ownB,
+            code: "unsent B",
+            appliedRevision: 0,
+        });
 
-        expect(resolveEditorContent(drafts, ownB, "my", "server B", cpp).code).toBe("unsent B");
-        expect(resolveEditorContent(drafts, opponentA, "opponent", "opponent A", cpp)).toEqual({
+        expect(resolveEditorContent(drafts, ownB, "my", "server B", cpp, 0).code).toBe("unsent B");
+        expect(resolveEditorContent(drafts, opponentA, "opponent", "opponent A", cpp, 0)).toEqual({
             code: "opponent A",
             language: cpp,
         });
-        expect(resolveEditorContent(drafts, ownA, "my", "server A", cpp)).toEqual({
+        expect(resolveEditorContent(drafts, ownA, "my", "server A", cpp, 0)).toEqual({
             code: "unsent A",
             language: python,
         });
     });
 
+    it("shows an applied submission immediately and does not revive the old draft", () => {
+        let drafts: EditorDrafts = {};
+        drafts = editorDraftsReducer(drafts, {
+            type: "code",
+            path: ownA,
+            code: "unsent A",
+            appliedRevision: 0,
+        });
+        drafts = editorDraftsReducer(drafts, {
+            type: "language",
+            path: ownA,
+            language: python,
+            appliedRevision: 0,
+        });
+
+        expect(resolveEditorContent(drafts, ownA, "my", "applied code", cpp, 1)).toEqual({
+            code: "applied code",
+            language: cpp,
+        });
+
+        drafts = editorDraftsReducer(drafts, {
+            type: "language",
+            path: ownA,
+            language: python,
+            appliedRevision: 1,
+        });
+        expect(resolveEditorContent(drafts, ownA, "my", "applied code", cpp, 1)).toEqual({
+            code: "applied code",
+            language: python,
+        });
+        expect(resolveEditorContent(drafts, ownA, "my", "applied code", cpp, 0)).toEqual({
+            code: "applied code",
+            language: cpp,
+        });
+    });
+
     it("does not expose an old user's draft after the editor remounts on logout", () => {
-        const oldSession = editorDraftsReducer({}, { type: "code", path: ownA, code: "user 1" });
+        const oldSession = editorDraftsReducer(
+            {},
+            { type: "code", path: ownA, code: "user 1", appliedRevision: 0 },
+        );
         const newSession: EditorDrafts = {};
 
-        expect(resolveEditorContent(oldSession, otherUserA, "my", "user 2", cpp).code).toBe(
+        expect(resolveEditorContent(oldSession, otherUserA, "my", "user 2", cpp, 0).code).toBe(
             "user 2",
         );
-        expect(resolveEditorContent(newSession, ownA, "my", "", cpp).code).toBe("");
+        expect(resolveEditorContent(newSession, ownA, "my", "", cpp, 0).code).toBe("");
     });
 
     it("restores the persisted own-code snapshot on reload without restoring opponent code", () => {
         const reloadedDrafts: EditorDrafts = {};
 
-        expect(resolveEditorContent(reloadedDrafts, ownA, "my", "saved own", cpp).code).toBe(
+        expect(resolveEditorContent(reloadedDrafts, ownA, "my", "saved own", cpp, 0).code).toBe(
             "saved own",
         );
         expect(
-            resolveEditorContent(reloadedDrafts, opponentA, "opponent", "fresh opponent", cpp).code,
+            resolveEditorContent(reloadedDrafts, opponentA, "opponent", "fresh opponent", cpp, 0)
+                .code,
         ).toBe("fresh opponent");
     });
 
     it("keeps unsent edits independent in two open tabs with the same editor identity", () => {
-        const tabOne = editorDraftsReducer({}, { type: "code", path: ownA, code: "tab one" });
-        const tabTwo = editorDraftsReducer({}, { type: "code", path: ownA, code: "tab two" });
+        const tabOne = editorDraftsReducer(
+            {},
+            { type: "code", path: ownA, code: "tab one", appliedRevision: 0 },
+        );
+        const tabTwo = editorDraftsReducer(
+            {},
+            { type: "code", path: ownA, code: "tab two", appliedRevision: 0 },
+        );
 
-        expect(resolveEditorContent(tabOne, ownA, "my", "saved", cpp).code).toBe("tab one");
-        expect(resolveEditorContent(tabTwo, ownA, "my", "saved", cpp).code).toBe("tab two");
+        expect(resolveEditorContent(tabOne, ownA, "my", "saved", cpp, 0).code).toBe("tab one");
+        expect(resolveEditorContent(tabTwo, ownA, "my", "saved", cpp, 0).code).toBe("tab two");
     });
 });

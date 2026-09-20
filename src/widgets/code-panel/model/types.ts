@@ -5,4 +5,6 @@ export interface CodeEditorState {
     languageByTaskKey: Record<string, LanguageValue>;
     opponentCodeByTaskKey: Record<string, string>;
     opponentLanguageByTaskKey: Record<string, LanguageValue>;
+    appliedRevisionByTaskKey: Record<string, number>;
+    sessionEpoch: number;
 }

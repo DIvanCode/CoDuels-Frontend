@@ -55,6 +55,12 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         !isDuelLoading && (duel?.participants ?? []).some((p) => p.id === currentUser?.id);
     const isReadOnly = mode === "opponent" || !canEdit;
     const { selectedTaskId, selectedTaskKey } = useDuelTaskSelection(duel);
+    const taskKey =
+        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
+    const appliedRevision = useAppSelector((state) =>
+        taskKey ? (state.codeEditor.appliedRevisionByTaskKey[taskKey] ?? 0) : 0,
+    );
+    const sessionEpoch = useAppSelector((state) => state.codeEditor.sessionEpoch);
 
     const initialCode = useAppSelector((state) => {
         if (!duelId) return "";
@@ -79,6 +85,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         mode,
         initialCode,
         initialLanguage,
+        appliedRevision,
     );
     const [mountedEditor, setMountedEditor] =
         useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
@@ -88,30 +95,38 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     const pendingPasteMetaRef = useRef<{ beginLine: number; charsCount: number } | null>(null);
     const pendingCutRef = useRef(false);
 
-    const taskKey =
-        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
-
     const debouncedCodeCb = useDebouncedCallback(
-        (code: string, key: string) => dispatch(setCode({ taskKey: key, code })),
+        (code: string, key: string, revision: number, epoch: number) =>
+            dispatch(
+                setCode({ taskKey: key, code, appliedRevision: revision, sessionEpoch: epoch }),
+            ),
         DEBOUNCE_DELAY,
     );
 
     const debouncedLanguageCb = useDebouncedCallback(
-        (language: LANGUAGES, key: string) => dispatch(setLanguage({ taskKey: key, language })),
+        (language: LANGUAGES, key: string, revision: number, epoch: number) =>
+            dispatch(
+                setLanguage({
+                    taskKey: key,
+                    language,
+                    appliedRevision: revision,
+                    sessionEpoch: epoch,
+                }),
+            ),
         DEBOUNCE_DELAY,
     );
 
     const onCodeChange = (code: string) => {
         if (isReadOnly) return;
-        updateLocalDrafts({ type: "code", path: editorPath, code });
+        updateLocalDrafts({ type: "code", path: editorPath, code, appliedRevision });
         if (taskKey) {
-            debouncedCodeCb(code, taskKey);
+            debouncedCodeCb(code, taskKey, appliedRevision, sessionEpoch);
         }
     };
 
     const onLanguageChange = (language: LANGUAGES) => {
         if (isReadOnly) return;
-        updateLocalDrafts({ type: "language", path: editorPath, language });
+        updateLocalDrafts({ type: "language", path: editorPath, language, appliedRevision });
 
         const duelIdNumber = duelId ? Number(duelId) : NaN;
         if (Number.isFinite(duelIdNumber) && currentUser?.id) {
@@ -124,7 +139,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         }
 
         if (taskKey) {
-            debouncedLanguageCb(language, taskKey);
+            debouncedLanguageCb(language, taskKey, appliedRevision, sessionEpoch);
         }
     };
 

@@ -25,15 +25,37 @@ const initialState: CodeEditorState = {
     languageByTaskKey: {},
     opponentCodeByTaskKey: {},
     opponentLanguageByTaskKey: {},
+    appliedRevisionByTaskKey: {},
+    sessionEpoch: 0,
 };
 
 const codeEditorSlice = createSlice({
     name: "codeEditor",
     initialState,
     reducers: {
-        setCode: (state, action: PayloadAction<{ taskKey: string; code: string }>) => {
-            const { taskKey, code } = action.payload;
+        setCode: (
+            state,
+            action: PayloadAction<{
+                taskKey: string;
+                code: string;
+                appliedRevision: number;
+                sessionEpoch: number;
+            }>,
+        ) => {
+            const { taskKey, code, appliedRevision, sessionEpoch } = action.payload;
+            if (sessionEpoch !== state.sessionEpoch) return;
+            if (appliedRevision !== (state.appliedRevisionByTaskKey[taskKey] ?? 0)) return;
             state.codeByTaskKey[taskKey] = code;
+        },
+        applySubmissionCode: (
+            state,
+            action: PayloadAction<{ taskKey: string; code: string; language: LanguageValue }>,
+        ) => {
+            const { taskKey, code, language } = action.payload;
+            state.codeByTaskKey[taskKey] = code;
+            state.languageByTaskKey[taskKey] = language;
+            state.appliedRevisionByTaskKey[taskKey] =
+                (state.appliedRevisionByTaskKey[taskKey] ?? 0) + 1;
         },
         setOpponentCode: (
             state,
@@ -45,15 +67,25 @@ const codeEditorSlice = createSlice({
         },
         setLanguage: (
             state,
-            action: PayloadAction<{ taskKey: string; language: LanguageValue }>,
+            action: PayloadAction<{
+                taskKey: string;
+                language: LanguageValue;
+                appliedRevision: number;
+                sessionEpoch: number;
+            }>,
         ) => {
-            const { taskKey, language } = action.payload;
+            const { taskKey, language, appliedRevision, sessionEpoch } = action.payload;
+            if (sessionEpoch !== state.sessionEpoch) return;
+            if (appliedRevision !== (state.appliedRevisionByTaskKey[taskKey] ?? 0)) return;
             state.languageByTaskKey[taskKey] = language;
         },
     },
 
     extraReducers: (builder) => {
-        builder.addCase(authActions.logout, () => initialState);
+        builder.addCase(authActions.logout, (state) => ({
+            ...initialState,
+            sessionEpoch: state.sessionEpoch + 1,
+        }));
         builder.addMatcher(duelApiSlice.endpoints.getDuel.matchFulfilled, (state, { payload }) => {
             if (!payload?.id) return;
 
@@ -102,5 +134,6 @@ const codeEditorSlice = createSlice({
     },
 });
 
-export const { setCode, setOpponentCode, setLanguage } = codeEditorSlice.actions;
+export const { setCode, applySubmissionCode, setOpponentCode, setLanguage } =
+    codeEditorSlice.actions;
 export default codeEditorSlice.reducer;

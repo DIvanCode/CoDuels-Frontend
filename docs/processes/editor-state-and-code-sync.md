@@ -37,6 +37,10 @@ The editor uses a separate Monaco model and undo history for each user, duel,
 task, and code tab. Local unsent drafts follow the same identity, so switching
 to the opponent tab and back cannot put opponent code into the own-code undo
 history.
+Applying a previous submission replaces own code and language together. That
+explicit replacement advances a local revision, so an older in-memory draft or
+delayed debounced edit cannot overwrite the applied submission. Logout advances
+the session epoch, which also rejects delayed edits from the previous user.
 Changing the authenticated user remounts the editor and discards its in-memory
 drafts and models. A reload starts with empty in-memory drafts and restores only
 the persisted own-code snapshot; separate browser tabs keep separate unsent
@@ -149,7 +153,8 @@ backend solution. Logout in one tab is not an atomic purge in the others.
   ordering, failed-send retry, reconnect reset, interval cleanup, one-time own
   solution hydration, stale-poll preservation, and opponent refresh. Editor
   tests cover model identity, unsent draft restoration across tasks and tabs,
-  logout cleanup, reload fallback, and independent local drafts in two tabs.
+  explicit submission replacement versus stale edits, logout cleanup, reload
+  fallback, and independent local drafts in two tabs.
 - **Needed unit/integration:** debounce timing, privacy, duplicate suppression,
   invalid event/task, and cross-tab persistence races.
 - **Needed E2E:** edit/reload/offline/close, two tabs/users, spectator attempts,
