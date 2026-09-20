@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import type { editor as MonacoEditorType } from "monaco-editor";
@@ -20,6 +20,12 @@ import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { MonacoEditor } from "shared/ui";
 import clsx from "clsx";
 import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
+import {
+    buildEditorPath,
+    editorDraftsReducer,
+    resolveEditorContent,
+    type EditorMode,
+} from "widgets/code-panel/lib/editorDrafts";
 import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
 import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
 import {
@@ -31,10 +37,8 @@ import {
 import EditorHeader from "./EditorHeader/EditorHeader";
 import styles from "./CodeEditor.module.scss";
 
-type CodeEditorMode = "my" | "opponent";
-
 interface CodeEditorProps {
-    mode?: CodeEditorMode;
+    mode?: EditorMode;
 }
 
 function CodeEditor({ mode = "my" }: CodeEditorProps) {
@@ -51,6 +55,12 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         !isDuelLoading && (duel?.participants ?? []).some((p) => p.id === currentUser?.id);
     const isReadOnly = mode === "opponent" || !canEdit;
     const { selectedTaskId, selectedTaskKey } = useDuelTaskSelection(duel);
+    const taskKey =
+        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
+    const appliedRevision = useAppSelector((state) =>
+        taskKey ? (state.codeEditor.appliedRevisionByTaskKey[taskKey] ?? 0) : 0,
+    );
+    const sessionEpoch = useAppSelector((state) => state.codeEditor.sessionEpoch);
 
     const initialCode = useAppSelector((state) => {
         if (!duelId) return "";
@@ -67,8 +77,16 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     });
     const theme = useAppSelector(selectThemeMode);
 
-    const [localCode, setLocalCode] = useState<string>(initialCode);
-    const [localLanguage, setLocalLanguage] = useState<LANGUAGES>(initialLanguage);
+    const editorPath = buildEditorPath(currentUser?.id, duelId, selectedTaskId, mode);
+    const [localDrafts, updateLocalDrafts] = useReducer(editorDraftsReducer, {});
+    const { code: localCode, language: localLanguage } = resolveEditorContent(
+        localDrafts,
+        editorPath,
+        mode,
+        initialCode,
+        initialLanguage,
+        appliedRevision,
+    );
     const [mountedEditor, setMountedEditor] =
         useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
@@ -77,30 +95,38 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     const pendingPasteMetaRef = useRef<{ beginLine: number; charsCount: number } | null>(null);
     const pendingCutRef = useRef(false);
 
-    const taskKey =
-        duelId && selectedTaskId ? buildDuelTaskKey(Number(duelId), selectedTaskId) : null;
-
     const debouncedCodeCb = useDebouncedCallback(
-        (code: string, key: string) => dispatch(setCode({ taskKey: key, code })),
+        (code: string, key: string, revision: number, epoch: number) =>
+            dispatch(
+                setCode({ taskKey: key, code, appliedRevision: revision, sessionEpoch: epoch }),
+            ),
         DEBOUNCE_DELAY,
     );
 
     const debouncedLanguageCb = useDebouncedCallback(
-        (language: LANGUAGES, key: string) => dispatch(setLanguage({ taskKey: key, language })),
+        (language: LANGUAGES, key: string, revision: number, epoch: number) =>
+            dispatch(
+                setLanguage({
+                    taskKey: key,
+                    language,
+                    appliedRevision: revision,
+                    sessionEpoch: epoch,
+                }),
+            ),
         DEBOUNCE_DELAY,
     );
 
     const onCodeChange = (code: string) => {
         if (isReadOnly) return;
-        setLocalCode(code);
+        updateLocalDrafts({ type: "code", path: editorPath, code, appliedRevision });
         if (taskKey) {
-            debouncedCodeCb(code, taskKey);
+            debouncedCodeCb(code, taskKey, appliedRevision, sessionEpoch);
         }
     };
 
     const onLanguageChange = (language: LANGUAGES) => {
         if (isReadOnly) return;
-        setLocalLanguage(language);
+        updateLocalDrafts({ type: "language", path: editorPath, language, appliedRevision });
 
         const duelIdNumber = duelId ? Number(duelId) : NaN;
         if (Number.isFinite(duelIdNumber) && currentUser?.id) {
@@ -113,13 +139,23 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         }
 
         if (taskKey) {
-            debouncedLanguageCb(language, taskKey);
+            debouncedLanguageCb(language, taskKey, appliedRevision, sessionEpoch);
         }
     };
 
     const handleEditorMount = useCallback<OnMount>((editor) => {
         editorRef.current = editor;
         setMountedEditor(editor);
+
+        editor.addAction({
+            id: "duplicate-current-line",
+            label: "Duplicate line",
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD],
+            precondition: "!editorReadonly",
+            run: (activeEditor) => {
+                activeEditor.trigger("keyboard", "editor.action.copyLinesDownAction", null);
+            },
+        });
     }, []);
 
     useEffect(() => {
@@ -175,6 +211,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
         domNode.addEventListener("copy", preventDefault);
         domNode.addEventListener("cut", preventDefault);
+        domNode.addEventListener("dragstart", preventDefault);
         domNode.addEventListener("contextmenu", preventDefault);
         domNode.addEventListener("keydown", handleKeyDown, true);
         document.addEventListener("copy", preventIfFromEditor, true);
@@ -183,6 +220,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         editorCleanupRef.current = () => {
             domNode.removeEventListener("copy", preventDefault);
             domNode.removeEventListener("cut", preventDefault);
+            domNode.removeEventListener("dragstart", preventDefault);
             domNode.removeEventListener("contextmenu", preventDefault);
             domNode.removeEventListener("keydown", handleKeyDown, true);
             document.removeEventListener("copy", preventIfFromEditor, true);
@@ -345,14 +383,6 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
         });
     };
 
-    useEffect(() => {
-        setLocalCode(initialCode);
-    }, [initialCode]);
-
-    useEffect(() => {
-        setLocalLanguage(initialLanguage);
-    }, [initialLanguage]);
-
     if (!duelId) return null;
 
     return (
@@ -370,6 +400,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
             <MonacoEditor
                 height="100%"
                 value={localCode}
+                path={editorPath}
                 onValueChange={onCodeChange}
                 language={localLanguage}
                 theme={theme}

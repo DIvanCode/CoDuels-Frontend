@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { SyntheticEvent } from "react";
 import { trackRunCustomTestAction, trackRunSampleTestAction } from "features/anti-cheat";
 import { useCreateCodeRunMutation, useLazyGetCodeRunQuery } from "entities/task";
 import { LanguageValue, toApiLanguage } from "shared/config";
@@ -152,6 +153,11 @@ const getRunResultMessage = (output: string | null, error: string | null): RunSt
     }
 
     return { type: "done", text: "Программа завершилась без вывода." };
+};
+
+const preventCopy = (event: SyntheticEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
 };
 
 export const TaskDescription = ({
@@ -465,28 +471,44 @@ export const TaskDescription = ({
 
     return (
         <div className={styles.taskDescription}>
-            <TaskSection content={taskDescription} filename={task.statement} />
+            <div
+                className={styles.copyProtected}
+                onCopyCapture={preventCopy}
+                onCutCapture={preventCopy}
+                onContextMenu={preventCopy}
+                onDragStart={preventCopy}
+                onKeyDownCapture={(event) => {
+                    if (
+                        (event.ctrlKey || event.metaKey) &&
+                        ["a", "c", "x"].includes(event.key.toLowerCase())
+                    ) {
+                        preventCopy(event);
+                    }
+                }}
+            >
+                <TaskSection content={taskDescription} filename={task.statement} />
 
-            <Section title="Ограничения">
-                <dl className={styles.runtimeLimits}>
-                    <dt>Лимит по времени</dt>
-                    <dd>{task.tl / 1000} с</dd>
-                    <dt>Лимит по памяти</dt>
-                    <dd>{task.ml} МБ</dd>
-                </dl>
-            </Section>
+                <Section title="Ограничения">
+                    <dl className={styles.runtimeLimits}>
+                        <dt>Лимит по времени</dt>
+                        <dd>{task.tl / 1000} с</dd>
+                        <dt>Лимит по памяти</dt>
+                        <dd>{task.ml} МБ</dd>
+                    </dl>
+                </Section>
 
-            <Section className={styles.testCases} title="Примеры">
-                {testCases?.map((testCase) => (
-                    <TestCaseSection
-                        key={testCase.order}
-                        testCase={testCase}
-                        onRun={onRunExample}
-                        isRunDisabled={isRunning}
-                        canRun={canRunCode}
-                    />
-                )) ?? "No test cases"}
-            </Section>
+                <Section className={styles.testCases} title="Примеры">
+                    {testCases?.map((testCase) => (
+                        <TestCaseSection
+                            key={testCase.order}
+                            testCase={testCase}
+                            onRun={onRunExample}
+                            isRunDisabled={isRunning}
+                            canRun={canRunCode}
+                        />
+                    )) ?? "No test cases"}
+                </Section>
+            </div>
 
             {canRunCode && (
                 <div ref={runPanelRef}>
