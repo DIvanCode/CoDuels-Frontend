@@ -69,7 +69,7 @@ export const CodePanel = () => {
 
     return (
         <TabbedCard contentClassName={styles.codePanelContent} tabs={leftTabs}>
-            <CodeEditor mode={activeTab} />
+            <CodeEditor key={currentUser?.id ?? "viewer"} mode={activeTab} />
         </TabbedCard>
     );
 };

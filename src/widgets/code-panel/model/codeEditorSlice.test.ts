@@ -33,11 +33,7 @@ vi.mock("entities/duel", () => ({
     },
 }));
 
-const duelFulfilled = (
-    solution: string,
-    language: string,
-    opponentSolution = "opponent code",
-) => ({
+const duelFulfilled = (solution: string, language: string, opponentSolution = "opponent code") => ({
     type: "duel/getDuel/fulfilled",
     payload: {
         id: 42,
@@ -81,5 +77,17 @@ describe("code editor duel hydration", () => {
         expect(state.codeByTaskKey[editorKey]).toBe("own code");
         expect(state.opponentCodeByTaskKey[editorKey]).toBe("opponent v2");
         expect(state.opponentLanguageByTaskKey[editorKey]).toBe(python);
+    });
+
+    it("clears both users' code on logout before a new session hydrates", () => {
+        let state = reducer(undefined, duelFulfilled("user 1", "Cpp", "opponent 1"));
+        state = reducer(state, { type: "auth/logout" });
+
+        expect(state.codeByTaskKey[editorKey]).toBeUndefined();
+        expect(state.opponentCodeByTaskKey[editorKey]).toBeUndefined();
+
+        state = reducer(state, duelFulfilled("user 2", "Python", "opponent 2"));
+        expect(state.codeByTaskKey[editorKey]).toBe("user 2");
+        expect(state.opponentCodeByTaskKey[editorKey]).toBe("opponent 2");
     });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import type { editor as MonacoEditorType } from "monaco-editor";
@@ -20,6 +20,12 @@ import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { MonacoEditor } from "shared/ui";
 import clsx from "clsx";
 import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
+import {
+    buildEditorPath,
+    editorDraftsReducer,
+    resolveEditorContent,
+    type EditorMode,
+} from "widgets/code-panel/lib/editorDrafts";
 import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
 import { setCode, setLanguage } from "widgets/code-panel/model/codeEditorSlice";
 import {
@@ -31,10 +37,8 @@ import {
 import EditorHeader from "./EditorHeader/EditorHeader";
 import styles from "./CodeEditor.module.scss";
 
-type CodeEditorMode = "my" | "opponent";
-
 interface CodeEditorProps {
-    mode?: CodeEditorMode;
+    mode?: EditorMode;
 }
 
 function CodeEditor({ mode = "my" }: CodeEditorProps) {
@@ -67,14 +71,15 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
     });
     const theme = useAppSelector(selectThemeMode);
 
-    const editorPath = `inmemory://duel/${currentUser?.id ?? "viewer"}/${duelId ?? "unknown"}/${encodeURIComponent(selectedTaskId ?? "none")}/${mode}`;
-    const [localDrafts, setLocalDrafts] = useState<
-        Record<string, { code?: string; language?: LANGUAGES }>
-    >({});
-    const localDraft = localDrafts[editorPath];
-    const localCode = mode === "my" ? (localDraft?.code ?? initialCode) : initialCode;
-    const localLanguage =
-        mode === "my" ? (localDraft?.language ?? initialLanguage) : initialLanguage;
+    const editorPath = buildEditorPath(currentUser?.id, duelId, selectedTaskId, mode);
+    const [localDrafts, updateLocalDrafts] = useReducer(editorDraftsReducer, {});
+    const { code: localCode, language: localLanguage } = resolveEditorContent(
+        localDrafts,
+        editorPath,
+        mode,
+        initialCode,
+        initialLanguage,
+    );
     const [mountedEditor, setMountedEditor] =
         useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
@@ -98,10 +103,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const onCodeChange = (code: string) => {
         if (isReadOnly) return;
-        setLocalDrafts((drafts) => ({
-            ...drafts,
-            [editorPath]: { ...drafts[editorPath], code },
-        }));
+        updateLocalDrafts({ type: "code", path: editorPath, code });
         if (taskKey) {
             debouncedCodeCb(code, taskKey);
         }
@@ -109,10 +111,7 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const onLanguageChange = (language: LANGUAGES) => {
         if (isReadOnly) return;
-        setLocalDrafts((drafts) => ({
-            ...drafts,
-            [editorPath]: { ...drafts[editorPath], language },
-        }));
+        updateLocalDrafts({ type: "language", path: editorPath, language });
 
         const duelIdNumber = duelId ? Number(duelId) : NaN;
         if (Number.isFinite(duelIdNumber) && currentUser?.id) {
