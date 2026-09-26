@@ -64,12 +64,34 @@
 }
 
 .userMenuTrigger {
-    border-radius: 0.6em;
+    width: auto;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.125rem 0.4rem;
+    border: 1px solid var(--card-secondary);
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--card-secondary) 20%, var(--card-primary));
     transition: background 0.15s ease;
 
     &:hover {
-        background: color-mix(in srgb, var(--card-secondary) 65%, transparent);
+        background: color-mix(in srgb, var(--card-secondary) 65%, var(--card-primary));
     }
+
+    &[aria-expanded="true"] .menuChevron {
+        transform: rotate(180deg);
+    }
+}
+
+.menuChevron {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    fill: currentColor;
+    color: var(--text-primary);
+    transition: transform 0.15s ease;
 }
 
 .loginLink {

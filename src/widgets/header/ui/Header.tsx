@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ExitIcon from "shared/assets/icons/exit.svg?react";
 import Favicon from "shared/assets/icons/favicon.svg?react";
 import GroupIcon from "shared/assets/icons/group.svg?react";
+import ArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
@@ -79,7 +80,10 @@ export const Header = () => {
                 {showUserMenu && user && (
                     <DropdownMenu
                         trigger={
-                            <UserCard user={user} hideInfo={Boolean(duelId)} compactOnMobile />
+                            <>
+                                <UserCard user={user} hideInfo={Boolean(duelId)} compactOnMobile />
+                                <ArrowDownIcon className={styles.menuChevron} aria-hidden="true" />
+                            </>
                         }
                         items={userMenuItems}
                         onOpenChange={setIsUserMenuOpen}
