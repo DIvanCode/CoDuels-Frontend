@@ -1,9 +1,8 @@
 import { UserData } from "entities/user/model/types";
 import CupIcon from "shared/assets/icons/cup.svg?react";
-import UserIcon from "shared/assets/icons/user.svg?react";
-
 import clsx from "clsx";
 import { AnimatedNumber } from "shared/ui";
+import { UserAvatar } from "../UserAvatar/UserAvatar";
 import styles from "./UserCard.module.scss";
 
 interface Props {
@@ -49,7 +48,7 @@ export const UserCard = ({
                 </span>
             )}
 
-            <UserIcon className={styles.userIcon} />
+            <UserAvatar nickname={user.nickname} className={styles.userIcon} />
         </>
     );
 
