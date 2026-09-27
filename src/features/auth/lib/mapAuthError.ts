@@ -10,8 +10,17 @@ export interface StatusPayload {
 const isFetchBaseQueryError = (error: unknown): error is FetchBaseQueryError =>
     typeof error === "object" && error !== null && "status" in error;
 
+const nicknameCharactersError: StatusPayload = {
+    title: "Некорректный никнейм",
+    description: "Используйте только латинские буквы (a-z, A-Z), цифры (0-9) и _.",
+};
+
 export const mapValidationError = (error: StructError): StatusPayload => {
     const rawMessage = error.message;
+
+    if (error.refinement === "RegistrationNickname") {
+        return nicknameCharactersError;
+    }
 
     if (rawMessage.includes("Passwords do not match")) {
         return {
@@ -45,6 +54,18 @@ export const mapAuthApiError = (
 ): StatusPayload => {
     if (isFetchBaseQueryError(error)) {
         const status = error.status;
+        if (
+            status === 400 &&
+            "data" in error &&
+            typeof error.data === "object" &&
+            error.data !== null &&
+            "errors" in error.data &&
+            typeof error.data.errors === "object" &&
+            error.data.errors !== null &&
+            "Nickname" in error.data.errors
+        ) {
+            return nicknameCharactersError;
+        }
         if (status === 401) {
             return {
                 title: "Неверный никнейм или пароль",
