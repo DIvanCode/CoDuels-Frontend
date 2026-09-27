@@ -7,15 +7,15 @@ invitations, including the distinct acceptance and cancellation semantics.
 
 ## Participants
 
-Home panels, group pages, invitation RTK endpoints, duel-session Redux,
-sessionStorage waiting fields, Duely HTTP/WebSocket producers, invitee/inviter,
+Home and the global invitation panel, group pages, invitation RTK endpoints,
+duel-session Redux, sessionStorage waiting fields, Duely HTTP/WebSocket producers, invitee/inviter,
 group managers, and tournament scheduler.
 
 ## Entry points
 
 Create a friendly invitation, receive/open invitation lists, accept or deny,
 accept group membership, accept a group/tournament duel, cancel from another
-client, reload Home, and receive invitation WebSocket messages.
+client, reload any authenticated page, and receive invitation WebSocket messages.
 
 ## Preconditions
 
@@ -35,24 +35,28 @@ rather than the generic matchmaking cancel endpoint. The selected rules and
 nickname remain in the widget after a cancellation, ready for another attempt.
 Configuration queries mount only while the configuration scenario is open.
 
-Home queries direct pending invitations using argument `Ranked`, although the
-backend domain calls them friendly; its transform labels the returned item
-`Ranked`. Direct accept,
-group-duel accept, and tournament accept wait for HTTP success, persist selected
-matching fields, set Home's `waitingForStart`, and wait for `DuelStarted`.
-Group-duel acceptance from either Home or the group page records the `Group`
+Entering Home immediately queries all four invitation lists. On another
+authenticated page, the first scheduled fetch runs after ten seconds. The global
+panel then polls all four lists every ten seconds while the user remains
+authenticated. Home queries direct pending invitations using argument `Ranked`,
+although the backend domain calls them friendly; its transform labels the
+returned item `Ranked`. Direct, group-duel, and tournament accept wait for HTTP
+success, persist selected matching fields, set the panel's `waitingForStart`,
+and wait for `DuelStarted`.
+Group-duel acceptance from either the global panel or the group page records the `Group`
 pending type so a group cancellation cannot clear a simultaneous direct flow.
-Only direct invitations expose deny on Home. Group membership accept/deny updates
+Only direct duel invitations expose deny on the global panel. Group membership
+accept/deny updates
 membership caches but accept does not navigate to the group.
 
 ```mermaid
 sequenceDiagram
     participant A as Inviter
     participant D as Duely
-    participant B as Invitee Home
+    participant B as Invitee panel
     participant S as duelSession
     A->>D: POST /duels/invitations
-    D-->>B: DuelInvitation + list invalidation
+    D-->>B: DuelInvitation + list refetch
     B->>D: Accept invitation
     D-->>B: Success
     B->>S: Store opponent/config/type; searching
@@ -102,13 +106,19 @@ Invitation lists are RTK snapshots. Pending outgoing/accepted matching values
 are persisted in duelSession. The friendly widget keeps its configuration/nickname
 in non-persisted Redux state, restores its pending projection from the matching
 session fields after reload, and clears it after matching or explicit close.
-Home's pending invitation IDs and `waitingForStart` remain sessionStorage values,
-not backend facts and not user-scoped. Duely owns invitation existence and
+The global panel's pending invitation IDs and `waitingForStart` remain
+sessionStorage values, not backend facts and not user-scoped. Duely owns invitation existence and
 acceptance.
 
 ## UI effects
 
-Home aggregates direct, group-duel, tournament-duel, and group-membership cards.
+The global panel aggregates direct, group-duel, tournament-duel, and
+group-membership cards on every authenticated route. It hides cards while the
+session phase is `active`, including when an active duel is being viewed. A
+finished duel page can remain open after the phase returns to `idle`, and its
+invitation cards can then appear. The existing accept/deny controls remain
+type-specific.
+
 The friendly widget owns its configuration panels, pending cancel control, and
 matched/canceled/error UI; it does not share stale panel flags with Home. Its
 buttons are serialized while a create/cancel request is pending. Group/tournament
@@ -118,10 +128,11 @@ duel invitations offer accept but no symmetric deny in the current UI.
 
 RTK mutations create/accept/deny invitations. Runtime-validated WebSocket
 handlers recognize direct, group-membership, group-duel, and tournament-duel
-invitation events. They invalidate their owning invitation projection;
-group-duel events also refresh groups, and tournament events refresh tournament
-projections. Every reconnect broadly invalidates all active invitation/group/
-tournament projections.
+invitation events on every route. Each event immediately refetches its owning
+invitation list; group-duel events also refresh groups, and tournament events
+refresh tournament projections. The global panel polls all four invitation
+queries every ten seconds after its first scheduled fetch. Every reconnect
+broadly invalidates all active invitation/group/tournament projections.
 
 ## Idempotency and duplicate handling
 
@@ -151,7 +162,7 @@ single query for the precise outgoing pending workflow.
 ## Reload and multiple tabs
 
 Persisted matching survives reload and is shared through localStorage bytes;
-Home waiting/panel flags survive only in the same tab's sessionStorage. Tabs do
+The panel waiting flag survives only in the same tab's sessionStorage. Tabs do
 not broadcast accepted/canceled state. Old session keys survive logout and can
 be presented to another user in the same tab.
 
@@ -159,6 +170,7 @@ be presented to another user in the same tab.
 
 - `src/widgets/friendly-duel/`
 - `src/pages/home/ui/HomePage.tsx`
+- `src/widgets/invitation-notifications/`
 - invitation APIs under `src/entities/duel-invitation`
 - group invitation and group-duel APIs under `src/entities/group`
 - tournament API under `src/entities/tournament`
