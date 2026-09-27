@@ -74,7 +74,6 @@
     border: 0;
     border-radius: 0.6rem;
     background: color-mix(in srgb, var(--card-secondary) 20%, var(--card-primary));
-    transition: background 0.15s ease;
 
     &:hover {
         background: color-mix(in srgb, var(--card-secondary) 65%, var(--card-primary));
