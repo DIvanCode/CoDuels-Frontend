@@ -30,7 +30,8 @@ subscribe to `getMe` when a token exists; its fulfilled matcher stores the
 current user. `/` waits for this result before showing HomePage and does not use
 the persisted user snapshot as proof of authentication. Registration first
 checks that the nickname is 2–30 characters and contains only Latin letters,
-digits, and underscores. Invalid characters show a Russian explanation without
+digits, underscores, and hyphens. Registration requires a password of at least
+eight characters. Invalid characters show a Russian explanation without
 sending a request. The backend applies the character rule before saving; its
 `400` validation response is also mapped to that explanation. Valid registration
 creates the user, then performs the same login. The previous/original URL is not

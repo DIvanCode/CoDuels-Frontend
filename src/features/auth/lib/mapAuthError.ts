@@ -12,7 +12,7 @@ const isFetchBaseQueryError = (error: unknown): error is FetchBaseQueryError =>
 
 const nicknameCharactersError: StatusPayload = {
     title: "Некорректный никнейм",
-    description: "Используйте только латинские буквы (a-z, A-Z), цифры (0-9) и _.",
+    description: "Используйте только латинские буквы (a-z, A-Z), цифры (0-9), _ и дефис (-).",
 };
 
 export const mapValidationError = (error: StructError): StatusPayload => {
@@ -29,14 +29,21 @@ export const mapValidationError = (error: StructError): StatusPayload => {
         };
     }
 
-    if (rawMessage.includes("Expected a string with a length between 2 and 30")) {
+    if (rawMessage.includes("Expected a string with a length between `2` and `30`")) {
         return {
             title: "Некорректный никнейм",
             description: "Допустимая длина — от 2 до 30 символов.",
         };
     }
 
-    if (rawMessage.includes("Expected a string with a length between 6 and 30")) {
+    if (rawMessage.includes("Expected a string with a length between `8` and `30`")) {
+        return {
+            title: "Некорректный пароль",
+            description: "При регистрации пароль должен быть длиной от 8 до 30 символов.",
+        };
+    }
+
+    if (rawMessage.includes("Expected a string with a length between `6` and `30`")) {
         return {
             title: "Некорректный пароль",
             description: "Пароль должен быть длиной от 6 до 30 символов.",

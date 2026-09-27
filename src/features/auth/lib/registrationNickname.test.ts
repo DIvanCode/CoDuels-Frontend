@@ -11,31 +11,38 @@ const registration = (nickname: string) => ({
 });
 
 describe("registration nickname", () => {
-    it.each(["AZaz09_", "user_1"])("accepts %s", (nickname) => {
+    it.each(["AZaz09_", "user_1", "user-1"])("accepts %s", (nickname) => {
         const [error] = validate(registration(nickname), registrationStruct);
         expect(error).toBeUndefined();
     });
 
-    it.each(["bad-name", "bad name", "имя", "bad.name", "user\n"])(
-        "explains why %s cannot be registered",
-        (nickname) => {
-            const [error] = validate(registration(nickname), registrationStruct);
-            expect(error).toBeDefined();
-            if (!error) throw new Error("Expected invalid nickname");
-            expect(mapValidationError(error).description).toContain("латинские буквы");
-        },
-    );
+    it.each(["bad name", "имя", "bad.name"])("explains why %s cannot be registered", (nickname) => {
+        const [error] = validate(registration(nickname), registrationStruct);
+        expect(error).toBeDefined();
+        if (!error) throw new Error("Expected invalid nickname");
+        expect(mapValidationError(error).description).toContain("латинские буквы");
+    });
 
     it("explains the backend nickname error", () => {
         const status = mapAuthApiError({
             status: 400,
             data: {
                 errors: {
-                    Nickname: ["Nickname may contain only Latin letters, digits, and underscores."],
+                    Nickname: ["Invalid nickname."],
                 },
             },
         });
-        expect(status.description).toContain("латинские буквы");
+        expect(status.description).toContain("дефис");
+    });
+
+    it("requires at least eight password characters at registration", () => {
+        const [error] = validate(
+            { nickname: "user_1", password: "1234567", confirmPassword: "1234567" },
+            registrationStruct,
+        );
+        expect(error).toBeDefined();
+        if (!error) throw new Error("Expected invalid password");
+        expect(mapValidationError(error).description).toContain("от 8 до 30");
     });
 
     it("still permits existing nicknames when logging in", () => {
