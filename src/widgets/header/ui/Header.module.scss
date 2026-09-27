@@ -132,7 +132,13 @@
 
 @media (max-width: 560px) {
     .header {
+        column-gap: 0.5em;
         padding-inline: 0.75em;
+    }
+
+    .userMenuTrigger {
+        gap: 0.2rem;
+        padding-inline: 0.15rem;
     }
 
     .left {

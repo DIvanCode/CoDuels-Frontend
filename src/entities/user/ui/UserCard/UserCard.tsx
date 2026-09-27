@@ -11,7 +11,7 @@ interface Props {
     reversed?: boolean;
     ratingDelta?: number;
     onClick?: () => void;
-    compactOnMobile?: boolean;
+    hideInfoOnDesktop?: boolean;
     ariaLabel?: string;
 }
 
@@ -21,7 +21,7 @@ export const UserCard = ({
     reversed,
     ratingDelta,
     onClick,
-    compactOnMobile,
+    hideInfoOnDesktop,
     ariaLabel,
 }: Props) => {
     const content = (
@@ -55,7 +55,7 @@ export const UserCard = ({
     const className = clsx(
         styles.user,
         reversed && styles.reversed,
-        compactOnMobile && styles.compactOnMobile,
+        hideInfoOnDesktop && styles.hideInfoOnDesktop,
         onClick && styles.interactive,
     );
 

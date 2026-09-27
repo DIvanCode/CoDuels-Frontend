@@ -81,7 +81,7 @@ export const Header = () => {
                     <DropdownMenu
                         trigger={
                             <>
-                                <UserCard user={user} hideInfo={Boolean(duelId)} compactOnMobile />
+                                <UserCard user={user} hideInfoOnDesktop={Boolean(duelId)} />
                                 <ArrowDownIcon className={styles.menuChevron} aria-hidden="true" />
                             </>
                         }

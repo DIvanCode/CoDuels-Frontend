@@ -81,8 +81,8 @@
     font-size: 1.25rem;
 }
 
-@media (max-width: 560px) {
-    .compactOnMobile .userInfo {
+@media (min-width: 561px) {
+    .hideInfoOnDesktop .userInfo {
         display: none;
     }
 }
