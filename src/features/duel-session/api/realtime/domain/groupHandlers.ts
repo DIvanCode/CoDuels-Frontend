@@ -13,8 +13,11 @@ export const createGroupHandlers = (context: DomainEventContext): RealtimeEventH
     };
     const refreshMembershipInvitations = () => {
         if (!isCurrentDomainSession(context)) return;
-        context.dispatch(
-            groupInvitationApiSlice.util.invalidateTags([{ type: "GroupInvitation", id: "LIST" }]),
+        void context.dispatch(
+            groupInvitationApiSlice.endpoints.getGroupInvitations.initiate(undefined, {
+                subscribe: false,
+                forceRefetch: true,
+            }),
         );
         refreshGroups();
     };

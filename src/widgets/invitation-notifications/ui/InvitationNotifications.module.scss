@@ -1,0 +1,72 @@
+.invitationsList {
+    grid-area: content;
+    align-self: start;
+    justify-self: end;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: min(320px, calc(100vw - 3em));
+    max-height: calc(100% - 2em);
+    margin: 1em 1.5em;
+    overflow-y: auto;
+}
+
+:global(body.user-menu-open) {
+    .invitationsList {
+        max-height: calc(100% - 8em);
+        margin-top: 7em;
+    }
+}
+
+.invitationItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    padding: 1em;
+    border-radius: 0.75em;
+    background: color-mix(in srgb, var(--card-secondary) 75%, transparent);
+}
+
+.invitationInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.invitationLabel {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.invitationMeta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.invitationGroupName {
+    display: block;
+    font-weight: 600;
+}
+
+.invitationActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4em;
+}
+
+.invitationAcceptButton {
+    --btn-bg-color: #1f8d4d;
+    --btn-text-color: #ffffff;
+}
+
+.invitationDenyButton {
+    --btn-bg-color: #d14b42;
+    --btn-text-color: #ffffff;
+}
+
+.invitationAcceptButton,
+.invitationDenyButton {
+    font-size: 0.85rem;
+    padding: 0.55em 0.75em;
+}
