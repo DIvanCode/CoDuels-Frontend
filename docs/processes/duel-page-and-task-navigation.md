@@ -35,7 +35,9 @@ is replaced with the first, and legacy `task_id` falls back to key `A`. A task
 with null ID is locked. Participant status controls write/run/submit and
 anti-cheat enabling; spectator UI is read-only. Administrators remain read-only
 but may open submission detail routes that redirect ordinary spectators back to
-the submission list. The backend remains authoritative for access.
+the submission list. The backend remains authoritative for access. A custom test run longer than
+10,000 input characters is stopped with a visible message before the request,
+matching Duely validation.
 
 ## Client state transitions
 

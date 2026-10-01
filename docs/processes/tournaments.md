@@ -27,7 +27,8 @@ strategies include `SingleEliminationBracket` and `GroupStage`.
 ## Current behavior
 
 Creation uses four component-state steps and posts participant nicknames plus
-configuration. The participant step separates accepted group members from
+configuration. The participant step requires at least two selected members before
+continuing or submitting, matching Duely validation. The participant step separates accepted group members from
 pending membership invitations; only accepted members with a nickname are
 selectable, while pending invitees remain visible with an unavailable status.
 Success invalidates the group tournament tag. Detail is cached by tournament ID;

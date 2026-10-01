@@ -34,6 +34,8 @@ direct-invitation cancel endpoint with the same nickname and configuration,
 rather than the generic matchmaking cancel endpoint. The selected rules and
 nickname remain in the widget after a cancellation, ready for another attempt.
 Configuration queries mount only while the configuration scenario is open.
+Custom duel configuration forms require an integer duration of 5–300 minutes
+and 1–10 sequentially keyed tasks, matching Duely validation.
 
 Home queries direct pending invitations using argument `Ranked`, although the
 backend domain calls them friendly; its transform labels the returned item
