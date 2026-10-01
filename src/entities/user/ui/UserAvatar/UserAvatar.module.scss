@@ -1,0 +1,13 @@
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+    background: var(--card-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1;
+    user-select: none;
+}

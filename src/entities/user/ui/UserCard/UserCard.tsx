@@ -1,9 +1,8 @@
 import { UserData } from "entities/user/model/types";
 import CupIcon from "shared/assets/icons/cup.svg?react";
-import UserIcon from "shared/assets/icons/user.svg?react";
-
 import clsx from "clsx";
 import { AnimatedNumber } from "shared/ui";
+import { UserAvatar } from "../UserAvatar/UserAvatar";
 import styles from "./UserCard.module.scss";
 
 interface Props {
@@ -12,7 +11,7 @@ interface Props {
     reversed?: boolean;
     ratingDelta?: number;
     onClick?: () => void;
-    compactOnMobile?: boolean;
+    hideInfoOnDesktop?: boolean;
     ariaLabel?: string;
 }
 
@@ -22,7 +21,7 @@ export const UserCard = ({
     reversed,
     ratingDelta,
     onClick,
-    compactOnMobile,
+    hideInfoOnDesktop,
     ariaLabel,
 }: Props) => {
     const content = (
@@ -49,14 +48,14 @@ export const UserCard = ({
                 </span>
             )}
 
-            <UserIcon className={styles.userIcon} />
+            <UserAvatar nickname={user.nickname} className={styles.userIcon} />
         </>
     );
 
     const className = clsx(
         styles.user,
         reversed && styles.reversed,
-        compactOnMobile && styles.compactOnMobile,
+        hideInfoOnDesktop && styles.hideInfoOnDesktop,
         onClick && styles.interactive,
     );
 

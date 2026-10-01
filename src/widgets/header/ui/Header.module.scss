@@ -64,12 +64,33 @@
 }
 
 .userMenuTrigger {
-    border-radius: 0.6em;
-    transition: background 0.15s ease;
+    width: auto;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.125rem 0.4rem;
+    border: 0;
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--card-secondary) 20%, var(--card-primary));
 
     &:hover {
-        background: color-mix(in srgb, var(--card-secondary) 65%, transparent);
+        background: color-mix(in srgb, var(--card-secondary) 65%, var(--card-primary));
     }
+
+    &[aria-expanded="true"] .menuChevron {
+        transform: rotate(180deg);
+    }
+}
+
+.menuChevron {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    fill: currentColor;
+    color: var(--text-primary);
+    transition: transform 0.15s ease;
 }
 
 .loginLink {
@@ -110,7 +131,13 @@
 
 @media (max-width: 560px) {
     .header {
+        column-gap: 0.5em;
         padding-inline: 0.75em;
+    }
+
+    .userMenuTrigger {
+        gap: 0.2rem;
+        padding-inline: 0.15rem;
     }
 
     .left {

@@ -1,7 +1,6 @@
-import UserIcon from "shared/assets/icons/user.svg?react";
-
 import { UserData } from "entities/user";
 import { parseRegistrationDate } from "entities/user/lib/DateHelpers";
+import { UserAvatar } from "../UserAvatar/UserAvatar";
 import styles from "./BriefUserInfo.module.scss";
 
 interface Props {
@@ -12,7 +11,7 @@ export const BriefUserInfo = ({ user }: Props) => {
     console.log(new Date(user.created_at));
     return (
         <div className={styles.briefUserInfo}>
-            <UserIcon className={styles.userIcon} />
+            <UserAvatar nickname={user.nickname} className={styles.userIcon} />
 
             <div className={styles.userInfo}>
                 <div className={styles.infoItem}>
