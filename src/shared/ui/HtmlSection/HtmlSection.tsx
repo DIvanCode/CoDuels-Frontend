@@ -18,8 +18,14 @@ const LEGACY_INLINE_MATH_DELIMITER = "$";
 const INLINE_MATH_DELIMITER = "$$$";
 const DISPLAY_MATH_DELIMITER = "$$$$$$";
 
+const decodeMathEntities = (source: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = source;
+    return textarea.value;
+};
+
 const renderMath = (source: string, displayMode: boolean) => {
-    return katex.renderToString(source, {
+    return katex.renderToString(decodeMathEntities(source), {
         displayMode,
         throwOnError: false,
         strict: false,
