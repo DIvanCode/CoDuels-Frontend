@@ -613,8 +613,8 @@ const GroupPage = () => {
             }
         }
         if (tournamentStep === 2) {
-            if (tournamentParticipants.length === 0) {
-                setTournamentFormError("Выберите участников турнира.");
+            if (tournamentParticipants.length < 2) {
+                setTournamentFormError("Выберите минимум двух участников турнира.");
                 return;
             }
         }
@@ -646,8 +646,8 @@ const GroupPage = () => {
             setTournamentStep(1);
             return;
         }
-        if (tournamentParticipants.length === 0) {
-            setTournamentFormError("Выберите участников турнира.");
+        if (tournamentParticipants.length < 2) {
+            setTournamentFormError("Выберите минимум двух участников турнира.");
             setTournamentStep(2);
             return;
         }

@@ -33,6 +33,9 @@ interface StoredDuelConfiguration {
 }
 
 const DEFAULT_DURATION_MINUTES = "30";
+const MIN_DURATION_MINUTES = 5;
+const MAX_DURATION_MINUTES = 300;
+const MAX_TASKS_COUNT = 10;
 
 const TASK_ORDER_OPTIONS: Array<{
     value: DuelTasksOrder;
@@ -225,13 +228,21 @@ export const DuelConfigurationManager = ({
         setFormError(null);
 
         const duration = Number(maxDurationMinutes);
-        if (!Number.isFinite(duration) || duration <= 0) {
-            setFormError("Укажите корректную длительность.");
+        if (
+            !Number.isInteger(duration) ||
+            duration < MIN_DURATION_MINUTES ||
+            duration > MAX_DURATION_MINUTES
+        ) {
+            setFormError("Укажите длительность от 5 до 300 минут.");
             return;
         }
 
         if (tasks.length === 0) {
             setFormError("Добавьте хотя бы одну задачу.");
+            return;
+        }
+        if (tasks.length > MAX_TASKS_COUNT) {
+            setFormError("Допустимо не более 10 задач.");
             return;
         }
 
@@ -463,7 +474,9 @@ export const DuelConfigurationManager = ({
                                             id="duel-duration"
                                             className={inputStyles.input}
                                             type="number"
-                                            min={1}
+                                            min={MIN_DURATION_MINUTES}
+                                            max={MAX_DURATION_MINUTES}
+                                            step={1}
                                             value={maxDurationMinutes}
                                             onChange={(event) =>
                                                 setMaxDurationMinutes(event.target.value)
@@ -473,7 +486,7 @@ export const DuelConfigurationManager = ({
                                         <span
                                             className={`${inputStyles.inputLabel} ${styles.mutedLabel}`}
                                         >
-                                            Длительность (минуты)
+                                            Длительность (5–300 минут)
                                         </span>
                                     </div>
                                 </div>
@@ -516,7 +529,7 @@ export const DuelConfigurationManager = ({
 
                                 <div className={styles.taskList}>
                                     <div className={styles.taskHeader}>
-                                        <h3>Задачи ({taskCount})</h3>
+                                        <h3>Задачи ({taskCount}/10)</h3>
                                         <Button
                                             variant="outlined"
                                             className={styles.inlineButton}
@@ -524,6 +537,7 @@ export const DuelConfigurationManager = ({
                                                 setTasks((prev) => [...prev, createTask()])
                                             }
                                             type="button"
+                                            disabled={taskCount >= MAX_TASKS_COUNT}
                                         >
                                             Добавить задачу
                                         </Button>

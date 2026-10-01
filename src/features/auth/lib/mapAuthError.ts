@@ -10,8 +10,17 @@ export interface StatusPayload {
 const isFetchBaseQueryError = (error: unknown): error is FetchBaseQueryError =>
     typeof error === "object" && error !== null && "status" in error;
 
+const nicknameCharactersError: StatusPayload = {
+    title: "Некорректный никнейм",
+    description: "Используйте только латинские буквы (a-z, A-Z), цифры (0-9), _ и дефис (-).",
+};
+
 export const mapValidationError = (error: StructError): StatusPayload => {
     const rawMessage = error.message;
+
+    if (error.refinement === "RegistrationNickname") {
+        return nicknameCharactersError;
+    }
 
     if (rawMessage.includes("Passwords do not match")) {
         return {
@@ -20,14 +29,21 @@ export const mapValidationError = (error: StructError): StatusPayload => {
         };
     }
 
-    if (rawMessage.includes("Expected a string with a length between 2 and 30")) {
+    if (rawMessage.includes("Expected a string with a length between `2` and `30`")) {
         return {
             title: "Некорректный никнейм",
             description: "Допустимая длина — от 2 до 30 символов.",
         };
     }
 
-    if (rawMessage.includes("Expected a string with a length between 6 and 30")) {
+    if (rawMessage.includes("Expected a string with a length between `8` and `30`")) {
+        return {
+            title: "Некорректный пароль",
+            description: "При регистрации пароль должен быть длиной от 8 до 30 символов.",
+        };
+    }
+
+    if (rawMessage.includes("Expected a string with a length between `6` and `30`")) {
         return {
             title: "Некорректный пароль",
             description: "Пароль должен быть длиной от 6 до 30 символов.",
@@ -45,6 +61,18 @@ export const mapAuthApiError = (
 ): StatusPayload => {
     if (isFetchBaseQueryError(error)) {
         const status = error.status;
+        if (
+            status === 400 &&
+            "data" in error &&
+            typeof error.data === "object" &&
+            error.data !== null &&
+            "errors" in error.data &&
+            typeof error.data.errors === "object" &&
+            error.data.errors !== null &&
+            "Nickname" in error.data.errors
+        ) {
+            return nicknameCharactersError;
+        }
         if (status === 401) {
             return {
                 title: "Неверный никнейм или пароль",

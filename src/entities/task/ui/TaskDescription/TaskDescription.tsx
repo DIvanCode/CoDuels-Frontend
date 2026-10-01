@@ -335,6 +335,17 @@ export const TaskDescription = ({
             return;
         }
 
+        if (input.length > 10_000) {
+            const errorState: RunState = {
+                type: "error",
+                text: "Ввод для проверки должен быть не длиннее 10 000 символов.",
+            };
+            persistRunStateForKey(panelKey, errorState);
+            setRunState(errorState);
+            scrollToRunPanel();
+            return;
+        }
+
         const runToken = (runTokensByKeyRef.current[panelKey] ?? 0) + 1;
         runTokensByKeyRef.current[panelKey] = runToken;
 
