@@ -1,6 +1,10 @@
 import { useLoginMutation, useRegisterMutation } from "features/auth/api/authApi";
 import { registrationStruct } from "features/auth/model/authStruct";
-import { mapAuthApiError, mapValidationError } from "features/auth/lib/mapAuthError";
+import {
+    mapAuthApiError,
+    mapRegistrationApiError,
+    mapValidationError,
+} from "features/auth/lib/mapAuthError";
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -44,13 +48,18 @@ export const RegisterForm = ({ onStatusChange }: RegisterFormProps) => {
 
         try {
             await register(result).unwrap();
+        } catch (err) {
+            onStatusChange?.(mapRegistrationApiError(err));
+            return;
+        }
+
+        try {
             await login({ nickname, password }).unwrap();
 
             onStatusChange?.(null);
 
             navigate(AppRoutes.INDEX);
         } catch (err) {
-            console.log(err);
             const payload = mapAuthApiError(err);
             onStatusChange?.(payload);
         }
