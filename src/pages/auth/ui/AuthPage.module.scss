@@ -11,6 +11,8 @@
     top: 5rem;
     left: 50%;
     transform: translate(-50%, 0);
+    width: max-content;
+    max-width: calc(100vw - 2rem);
 
     z-index: 1200;
     pointer-events: auto;

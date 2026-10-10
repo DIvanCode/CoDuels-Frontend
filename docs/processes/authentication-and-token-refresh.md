@@ -31,11 +31,13 @@ current user. `/` waits for this result before showing HomePage and does not use
 the persisted user snapshot as proof of authentication. Registration first
 checks that the nickname is 2–30 characters and contains only Latin letters,
 digits, underscores, and hyphens. Registration requires a password of at least
-eight characters. Invalid characters show a Russian explanation without
-sending a request. The backend applies the character rule before saving; its
-`400` validation response is also mapped to that explanation. Valid registration
-creates the user, then performs the same login. The previous/original URL is not
-restored.
+eight characters. Invalid characters and short passwords show Russian
+explanations without sending a request. Backend `400` validation arrays for
+`Nickname` and `Password` are translated into Russian; when both fields are
+invalid, both explanations appear in the status banner. A registration `409`
+explains that the nickname is already taken. Valid registration creates the
+user, then performs the same login. A failure during that login uses the login
+error mapping. The previous/original URL is not restored.
 
 Header sends guests to `/auth`, which defaults to the login tab. LandingPage
 sends its primary CTA to `/auth?tab=register`; AuthPage derives the active tab
@@ -139,8 +141,9 @@ Logout cleanup happens in multiple effects/reducers with no single atomic reset.
 
 ## Failure handling
 
-Login/register errors remain anonymous and show a banner. Refresh failure clears
-credentials, including on offline exceptions. Invalid login response has no
+Login/register errors remain anonymous and show a banner. Registration handles
+`400` field errors and `409` conflicts separately from login errors. Refresh
+failure clears credentials, including on offline exceptions. Invalid login response has no
 runtime guard and may store undefined fields; invalid refresh response is
 guarded and logs out. Old RTK/browser data can remain visible after user switch.
 
@@ -163,7 +166,8 @@ forms remain independent; shared code/tokens use last-writer-wins persistence.
 
 ## Test coverage
 
-- **Existing tests/MSW:** none.
+- **Existing tests:** registration nickname/password validation and registration
+  `400`/`409` error mapping; no auth MSW integration tests.
 - **Needed unit/integration:** form validation/mapping, login response validation,
   all base-query refresh branches, mutex waiters, replay headers, logout reset.
 - **Needed browser/E2E:** expired token with parallel requests, offline versus
