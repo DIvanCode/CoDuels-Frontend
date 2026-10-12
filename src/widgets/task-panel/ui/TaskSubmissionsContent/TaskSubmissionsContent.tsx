@@ -6,6 +6,7 @@ import { useDuelTaskSelection, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
 import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { useAppSelector } from "shared/lib/storeHooks";
+import { timestampMs } from "shared/lib/isoTimestamp";
 import {
     shouldPollSubmissionStatus,
     useSubmissionStatusPolling,
@@ -73,8 +74,8 @@ export const TaskSubmissionsContent = () => {
     }
 
     const sortedSubmissions = [...submissions].sort((a, b) => {
-        const dateA = new Date(a.created_at).getTime();
-        const dateB = new Date(b.created_at).getTime();
+        const dateA = timestampMs(a.created_at) ?? 0;
+        const dateB = timestampMs(b.created_at) ?? 0;
         return dateB - dateA;
     });
 

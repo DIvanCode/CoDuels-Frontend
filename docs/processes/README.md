@@ -22,6 +22,7 @@ contracts. An implementation fact is not automatically a product requirement.
 | Duel access, nested routes, tasks opening              | [Duel page and task navigation](duel-page-and-task-navigation.md)                | Duel page/widgets               |
 | Monaco persistence and opponent synchronization        | [Editor state and code sync](editor-state-and-code-sync.md)                      | code panel/session socket       |
 | Submit and reconcile judging state                     | [Submissions](submissions.md)                                                    | submit-code and task panel      |
+| Parse and display API instants                          | [Timestamp display](timestamp-display.md)                                       | `shared/lib/isoTimestamp`       |
 | Capture/batch behavior actions                         | [Anti-cheat actions](anti-cheat-actions.md)                                      | anti-cheat feature              |
 | Endpoint cache keys/tags/manual changes                | [RTK Query cache](rtk-query-cache.md)                                            | shared API slice                |
 | Browser persistence and tab conflicts                  | [Reload recovery and multiple tabs](reload-recovery-and-multiple-tabs.md)        | redux-persist/storage           |

@@ -2,23 +2,9 @@ import { useNavigate } from "react-router-dom";
 
 import { AppRoutes } from "shared/config";
 import { Table } from "shared/ui";
+import { formatIsoDateTime } from "shared/lib/isoTimestamp";
 import type { GroupStageDuel, TournamentDetailsResponse } from "../../model/types";
 import styles from "./GroupStageView.module.scss";
-
-const formatDateTime = (value?: string | null) => {
-    if (!value) return "-";
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "-";
-
-    return date.toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
 
 const getResultLetterForUser = (winnerId: number | null | undefined, userId: number) => {
     if (winnerId == null) return "D";
@@ -53,8 +39,14 @@ const DuelTable = ({ title, duels }: { title: string; duels: GroupStageDuel[] })
                     </thead>
                     <tbody>
                         {duels.map((duel) => {
-                            const user1Result = getResultLetterForUser(duel.winner_id, duel.user1.id);
-                            const user2Result = getResultLetterForUser(duel.winner_id, duel.user2.id);
+                            const user1Result = getResultLetterForUser(
+                                duel.winner_id,
+                                duel.user1.id,
+                            );
+                            const user2Result = getResultLetterForUser(
+                                duel.winner_id,
+                                duel.user2.id,
+                            );
                             const duelPath = AppRoutes.DUEL.replace(":duelId", String(duel.id));
 
                             return (
@@ -92,7 +84,7 @@ const DuelTable = ({ title, duels }: { title: string; duels: GroupStageDuel[] })
                                             {duel.user2.nickname}
                                         </div>
                                     </td>
-                                    <td>{formatDateTime(duel.start_time)}</td>
+                                    <td>{formatIsoDateTime(duel.start_time, "-")}</td>
                                 </tr>
                             );
                         })}

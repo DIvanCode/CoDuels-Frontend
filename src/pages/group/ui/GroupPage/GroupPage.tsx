@@ -32,6 +32,7 @@ import {
 } from "features/duel-session";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { formatIsoDateTime, timestampMs } from "shared/lib/isoTimestamp";
 import EditIcon from "shared/assets/icons/edit.svg?react";
 import { Button, IconButton, InputField, Modal, Select, Table } from "shared/ui";
 import inputStyles from "shared/ui/InputField/InputField.module.scss";
@@ -87,26 +88,13 @@ const extractInviter = (member: GroupUser) => {
     return { id: inviter.id, nickname: inviter.nickname };
 };
 
-const formatCreatedAt = (value?: string | null) => {
-    if (!value) return "Неизвестно";
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "Неизвестно";
-
-    return date.toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
+const formatCreatedAt = (value?: string | null) => formatIsoDateTime(value, "Неизвестно");
 
 const formatCountdown = (deadline?: string | null, nowMs: number = Date.now()) => {
     if (!deadline) return "00:00";
 
-    const deadlineMs = new Date(`${deadline}Z`).getTime();
-    if (Number.isNaN(deadlineMs)) return "00:00";
+    const deadlineMs = timestampMs(deadline);
+    if (deadlineMs === null) return "00:00";
 
     const remainingMs = Math.max(0, deadlineMs - nowMs);
     const totalSeconds = Math.floor(remainingMs / 1000);
@@ -475,16 +463,16 @@ const GroupPage = () => {
 
     const sortedGroupDuels = useMemo(() => {
         return [...(groupDuels ?? [])].sort((left, right) => {
-            const leftTime = new Date(left.created_at).getTime();
-            const rightTime = new Date(right.created_at).getTime();
+            const leftTime = timestampMs(left.created_at) ?? 0;
+            const rightTime = timestampMs(right.created_at) ?? 0;
             return rightTime - leftTime;
         });
     }, [groupDuels]);
 
     const sortedGroupTournaments = useMemo(() => {
         return [...(groupTournaments ?? [])].sort((left, right) => {
-            const leftTime = new Date(left.created_at).getTime();
-            const rightTime = new Date(right.created_at).getTime();
+            const leftTime = timestampMs(left.created_at) ?? 0;
+            const rightTime = timestampMs(right.created_at) ?? 0;
             return rightTime - leftTime;
         });
     }, [groupTournaments]);

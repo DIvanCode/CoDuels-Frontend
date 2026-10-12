@@ -3,27 +3,13 @@ import type { AdminSubmissionItem, SubmissionItem } from "entities/submission";
 import type { UserData } from "entities/user";
 import { AppRoutes } from "shared/config/routes/appRoutes";
 import { formatDuration } from "shared/lib/timeHelpers";
+import { formatIsoDateTime, timestampMs } from "shared/lib/isoTimestamp";
 
-const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-});
-
-export const formatAdminDateTime = (value?: string | null) => {
-    if (!value) return "—";
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "—";
-
-    return dateTimeFormatter.format(date);
-};
+export const formatAdminDateTime = formatIsoDateTime;
 
 export const formatAdminWaitTime = (startedAt: string, now: number) => {
-    const startedAtMs = new Date(startedAt).getTime();
-    if (Number.isNaN(startedAtMs)) return "—";
+    const startedAtMs = timestampMs(startedAt);
+    if (startedAtMs === null) return "—";
 
     return formatDuration(now - startedAtMs);
 };
