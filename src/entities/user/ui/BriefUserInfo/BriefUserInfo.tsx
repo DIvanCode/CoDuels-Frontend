@@ -8,7 +8,6 @@ interface Props {
 }
 
 export const BriefUserInfo = ({ user }: Props) => {
-    console.log(new Date(user.created_at));
     return (
         <div className={styles.briefUserInfo}>
             <UserAvatar nickname={user.nickname} className={styles.userIcon} />

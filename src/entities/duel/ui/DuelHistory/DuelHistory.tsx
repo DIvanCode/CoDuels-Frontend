@@ -2,6 +2,7 @@ import { Table } from "shared/ui";
 import CupIcon from "shared/assets/icons/cup.svg?react";
 import { useNavigate } from "react-router-dom";
 import { formatDurationBetween } from "shared/lib/timeHelpers";
+import { formatIsoDate } from "shared/lib/isoTimestamp";
 import { Duel } from "../../model/types";
 import { getDuelResultForUser } from "../../lib/duelResultHelpers";
 import styles from "./DuelHistory.module.scss";
@@ -62,12 +63,7 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
                                 </span>
                             </td>
 
-                            <td>
-                                {formatDurationBetween(
-                                    new Date(duel.start_time),
-                                    new Date(duel.deadline_time),
-                                )}
-                            </td>
+                            <td>{formatDurationBetween(duel.start_time, duel.deadline_time)}</td>
 
                             <td
                                 className={
@@ -81,7 +77,7 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
                                     : "-"}
                             </td>
 
-                            <td>{new Date(duel.start_time).toLocaleDateString("ru-RU")}</td>
+                            <td>{formatIsoDate(duel.start_time)}</td>
                         </tr>
                     );
                 })}

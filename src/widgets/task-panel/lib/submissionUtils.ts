@@ -1,17 +1,8 @@
 import type { SubmissionStatus } from "features/submit-code";
 import { fromApiLanguage, LanguageValue } from "shared/config";
+import { formatIsoDateTimeWithSeconds } from "shared/lib/isoTimestamp";
 
-const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const seconds = date.getSeconds().toString().padStart(2, "0");
-
-    return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
-};
+const formatDate = formatIsoDateTimeWithSeconds;
 
 const isTestingStatus = (status?: SubmissionStatus, message?: string | null): boolean => {
     if (!status) return false;

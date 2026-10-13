@@ -1,6 +1,7 @@
 ﻿import { DuelResult, DuelResultType, getDuelResultForUser, useGetDuelQuery } from "entities/duel";
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
+import { parseIsoTimestamp } from "shared/lib/isoTimestamp";
 import { Button, Modal } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
@@ -94,7 +95,9 @@ export const DuelInfo = ({ duelId }: Props) => {
                 />
                 <div className={styles.duelContent}>
                     {duel.status === "InProgress" ? (
-                        <ActiveDuelTimer expiryTimestamp={new Date(`${duel.deadline_time}Z`)} />
+                        <ActiveDuelTimer
+                            expiryTimestamp={parseIsoTimestamp(duel.deadline_time) ?? new Date(0)}
+                        />
                     ) : (
                         <DuelResult
                             winnerId={duel?.winner_id ?? null}

@@ -1,3 +1,5 @@
+import { timestampMs } from "./isoTimestamp";
+
 export function formatDuration(ms: number): string {
     if (ms < 0) ms = 0;
 
@@ -20,6 +22,8 @@ export function formatDuration(ms: number): string {
     return parts.slice(0, 2).join(" ");
 }
 
-export function formatDurationBetween(start: Date, end: Date) {
-    return formatDuration(end.getTime() - start.getTime());
+export function formatDurationBetween(start: string, end: string) {
+    const startMs = timestampMs(start);
+    const endMs = timestampMs(end);
+    return startMs === null || endMs === null ? "—" : formatDuration(endMs - startMs);
 }
