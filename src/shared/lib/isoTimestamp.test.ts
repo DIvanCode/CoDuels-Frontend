@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     formatIsoDate,
@@ -40,5 +40,26 @@ describe("ISO timestamps", () => {
         expect(formatIsoDateTime(instant, "—", "ru-RU", "UTC")).not.toBe(
             formatIsoDateTime(instant, "—", "ru-RU", "America/New_York"),
         );
+    });
+
+    it("reuses formatters for rows with the same locale and timezone", () => {
+        const NativeDateTimeFormat = Intl.DateTimeFormat;
+        const NativeRelativeTimeFormat = Intl.RelativeTimeFormat;
+        const dateFormatter = vi
+            .spyOn(Intl, "DateTimeFormat")
+            .mockImplementation((locale, options) => new NativeDateTimeFormat(locale, options));
+        const relativeFormatter = vi
+            .spyOn(Intl, "RelativeTimeFormat")
+            .mockImplementation((locale, options) => new NativeRelativeTimeFormat(locale, options));
+        const timestamp = "2026-03-29T00:30:00Z";
+
+        formatIsoDateTime(timestamp, "—", "fr-FR", "Pacific/Honolulu");
+        formatIsoDateTime(timestamp, "—", "fr-FR", "Pacific/Honolulu");
+        formatRelativeTime(timestamp, 0, "—", "fr-FR");
+        formatRelativeTime(timestamp, 0, "—", "fr-FR");
+
+        expect(dateFormatter).toHaveBeenCalledTimes(1);
+        expect(relativeFormatter).toHaveBeenCalledTimes(1);
+        vi.restoreAllMocks();
     });
 });

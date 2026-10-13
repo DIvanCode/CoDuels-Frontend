@@ -44,15 +44,53 @@ export const parseIsoTimestamp = (value?: string | null): Date | null => {
 export const timestampMs = (value?: string | null): number | null =>
     parseIsoTimestamp(value)?.getTime() ?? null;
 
+type DateFormatStyle = "date" | "dateTime" | "dateTimeWithSeconds";
+
+const dateFormatOptions: Record<DateFormatStyle, Intl.DateTimeFormatOptions> = {
+    date: { day: "2-digit", month: "2-digit", year: "numeric" },
+    dateTime: {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    },
+    dateTimeWithSeconds: {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    },
+};
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+const relativeTimeFormatters = new Map<string, Intl.RelativeTimeFormat>();
+let dateFormatterConstructor = Intl.DateTimeFormat;
+
+const getDateFormatter = (style: DateFormatStyle, locale: string, timeZone?: string) => {
+    if (dateFormatterConstructor !== Intl.DateTimeFormat) {
+        dateFormatters.clear();
+        dateFormatterConstructor = Intl.DateTimeFormat;
+    }
+    const key = JSON.stringify([style, locale, timeZone]);
+    let formatter = dateFormatters.get(key);
+    if (!formatter) {
+        formatter = new Intl.DateTimeFormat(locale, { ...dateFormatOptions[style], timeZone });
+        dateFormatters.set(key, formatter);
+    }
+    return formatter;
+};
+
 const format = (
     value: string | null | undefined,
-    options: Intl.DateTimeFormatOptions,
+    style: DateFormatStyle,
     fallback: string,
     locale: string,
     timeZone?: string,
 ) => {
     const date = parseIsoTimestamp(value);
-    return date ? new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(date) : fallback;
+    return date ? getDateFormatter(style, locale, timeZone).format(date) : fallback;
 };
 
 export const formatIsoDate = (
@@ -60,55 +98,21 @@ export const formatIsoDate = (
     fallback = "—",
     locale = dateLocale,
     timeZone?: string,
-) =>
-    format(
-        value,
-        { day: "2-digit", month: "2-digit", year: "numeric" },
-        fallback,
-        locale,
-        timeZone,
-    );
+) => format(value, "date", fallback, locale, timeZone);
 
 export const formatIsoDateTime = (
     value?: string | null,
     fallback = "—",
     locale = dateLocale,
     timeZone?: string,
-) =>
-    format(
-        value,
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        },
-        fallback,
-        locale,
-        timeZone,
-    );
+) => format(value, "dateTime", fallback, locale, timeZone);
 
 export const formatIsoDateTimeWithSeconds = (
     value?: string | null,
     fallback = "—",
     locale = dateLocale,
     timeZone?: string,
-) =>
-    format(
-        value,
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        },
-        fallback,
-        locale,
-        timeZone,
-    );
+) => format(value, "dateTimeWithSeconds", fallback, locale, timeZone);
 
 export const formatRelativeTime = (
     value?: string | null,
@@ -121,7 +125,11 @@ export const formatRelativeTime = (
 
     const seconds = Math.round((timestamp - now) / 1000);
     const magnitude = Math.abs(seconds);
-    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    let formatter = relativeTimeFormatters.get(locale);
+    if (!formatter) {
+        formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+        relativeTimeFormatters.set(locale, formatter);
+    }
     if (magnitude < 60) return formatter.format(seconds, "second");
     if (magnitude < 3600) return formatter.format(Math.round(seconds / 60), "minute");
     if (magnitude < 86400) return formatter.format(Math.round(seconds / 3600), "hour");
