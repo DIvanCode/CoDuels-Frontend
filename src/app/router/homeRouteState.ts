@@ -5,7 +5,7 @@ type GetMeState = {
     error?: unknown;
 };
 
-export type HomeRouteView = "home" | "landing" | "loading";
+export type HomeRouteView = "admin" | "home" | "landing" | "loading";
 
 const isUnauthorized = (state: GetMeState) =>
     state.isError &&
@@ -14,13 +14,17 @@ const isUnauthorized = (state: GetMeState) =>
     "status" in state.error &&
     state.error.status === 401;
 
-export const resolveHomeRouteView = (token: string | null, state: GetMeState): HomeRouteView => {
+export const resolveHomeRouteView = (
+    token: string | null,
+    state: GetMeState,
+    isAdmin: boolean,
+): HomeRouteView => {
     if (!token || isUnauthorized(state)) {
         return "landing";
     }
 
     if (state.isSuccess) {
-        return "home";
+        return isAdmin ? "admin" : "home";
     }
 
     return "loading";

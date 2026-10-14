@@ -8,12 +8,19 @@ import { Header } from "./Header";
 const mocks = vi.hoisted(() => ({
     dispatch: vi.fn(),
     getMe: vi.fn(),
+    navigate: vi.fn(),
+    menuItems: [] as Array<{ label: string; onClick?: () => void }>,
     state: {
         auth: {
             token: null as string | null,
             user: null as { nickname: string } | null,
         },
     },
+}));
+
+vi.mock("react-router-dom", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("react-router-dom")>()),
+    useNavigate: () => mocks.navigate,
 }));
 
 vi.mock("shared/lib/storeHooks", () => ({
@@ -29,6 +36,7 @@ vi.mock("entities/user", () => ({
 
 vi.mock("features/auth", () => ({
     authActions: { logout: () => ({ type: "auth/logout" }) },
+    isAdminAccessToken: (token: string | null) => token === "admin-token",
     selectAuthToken: (state: typeof mocks.state) => state.auth.token,
 }));
 
@@ -42,6 +50,7 @@ vi.mock("features/theme", () => ({
 
 vi.mock("shared/config", () => ({
     AppRoutes: {
+        ADMIN: "/admin",
         AUTH: "/auth",
         GROUPS: "/groups",
         INDEX: "/",
@@ -53,10 +62,15 @@ vi.mock("shared/ui", () => ({
     DropdownMenu: ({
         trigger,
         triggerAriaLabel,
+        items,
     }: {
         trigger: ReactNode;
         triggerAriaLabel: string;
-    }) => <button aria-label={triggerAriaLabel}>{trigger}</button>,
+        items: typeof mocks.menuItems;
+    }) => {
+        mocks.menuItems = items;
+        return <button aria-label={triggerAriaLabel}>{trigger}</button>;
+    },
 }));
 
 const renderHeader = (path = "/") =>
@@ -71,6 +85,8 @@ describe("Header authentication action", () => {
         mocks.state.auth.token = null;
         mocks.state.auth.user = null;
         mocks.getMe.mockReset();
+        mocks.navigate.mockReset();
+        mocks.menuItems = [];
         mocks.getMe.mockReturnValue({ isError: false, isSuccess: false });
     });
 
@@ -124,5 +140,32 @@ describe("Header authentication action", () => {
 
         expect(markup).toContain('aria-label="Открыть меню пользователя DIvanCode"');
         expect(markup).not.toContain(">Войти<");
+        expect(mocks.menuItems.map((item) => item.label)).toEqual(["Группы", "Профиль", "Выйти"]);
+    });
+
+    it("adds an admin item after a successful admin session check", () => {
+        mocks.state.auth.token = "admin-token";
+        mocks.state.auth.user = { nickname: "DIvanCode" };
+        mocks.getMe.mockReturnValue({ isError: false, isSuccess: true });
+
+        renderHeader();
+
+        expect(mocks.menuItems.map((item) => item.label)).toEqual([
+            "Группы",
+            "Профиль",
+            "Админка",
+            "Выйти",
+        ]);
+        mocks.menuItems.find((item) => item.label === "Админка")?.onClick?.();
+        expect(mocks.navigate).toHaveBeenCalledWith("/admin");
+    });
+
+    it("does not expose the admin item while the admin session is being checked", () => {
+        mocks.state.auth.token = "admin-token";
+        mocks.state.auth.user = { nickname: "DIvanCode" };
+
+        renderHeader();
+
+        expect(mocks.menuItems).toEqual([]);
     });
 });

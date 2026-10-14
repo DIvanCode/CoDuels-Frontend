@@ -33,17 +33,20 @@ AppRouter reads persisted theme, applies `.app--{mode}`, mounts exactly one
 DuelSessionManager outside RouterProvider, then starts the browser router.
 Layout always renders Header and Outlet. Suspense uses Loader for route elements,
 although pages are currently static imports. Header keeps the logo and theme
-switch on the left; after successful authentication it shows the existing
-profile menu, while a guest gets a `Войти` link to `/auth` on every route except
-`/auth` itself. The global error boundary logs the caught error and renders a
+switch on the left; after successful `getMe` it shows the profile menu, with an
+`Админка` item only when the current access token has a true `is_admin` claim.
+A guest gets a `Войти` link to `/auth` on every route except `/auth` itself.
+The global error boundary logs the caught error and renders a
 router-independent Fallback with a normal home link; the router's `errorElement`
 uses the same component.
 
 `/` is a mixed public/authenticated entry point. Without a token it renders the
-static LandingPage. With a persisted token it waits for `getMe`: success renders
-the existing HomePage, explicit 401 renders LandingPage, and loading or a
-non-401 error renders Loader. This decision never trusts the persisted `user`
-snapshot by itself, so an authenticated cold start cannot flash the landing.
+static LandingPage. With a persisted token it waits for `getMe`: success with a
+true `is_admin` access-token claim redirects to `/admin` with history replacement;
+other successful sessions render HomePage. An explicit 401 renders LandingPage,
+and loading or a non-401 error renders Loader. This decision never trusts the
+persisted `user` snapshot by itself, so an authenticated cold start cannot flash
+the home page before the admin redirect.
 
 `/auth` is public even when already authenticated. `?tab=register` selects the
 registration tab on direct navigation and reload; `/auth` defaults to login.
@@ -73,7 +76,7 @@ sequenceDiagram
     P->>R: render route
     R->>D: GET /users/iam when a token exists
     D-->>R: current user (or refresh path on 401)
-    R-->>B: HomePage after success, LandingPage for a guest
+    R-->>B: AdminPage for an admin, HomePage for a regular user, LandingPage for a guest
     M->>D: POST ticket, then WebSocket after user and token are ready
 ```
 
@@ -81,7 +84,7 @@ sequenceDiagram
 
 `persist bootstrap: pending -> rehydrated`; `auth.user: persisted/null -> getMe
 result`; root route `requested -> LandingPage` without a token or `Loader ->
-HomePage/LandingPage` with a token; protected route `requested ->
+AdminPage/HomePage/LandingPage` with a token; protected route `requested ->
 Loader/redirect/page/Fallback`. No persisted RTK cache transition exists.
 
 ## Backend state assumptions
@@ -104,8 +107,9 @@ route-dependent; direct duel access relies on `GET /duels/:id` authorization.
 
 PersistGate shows blank during rehydration. Suspense/protected queries show
 Loader. At `/`, missing credentials show the landing and an explicit 401 returns
-to it; a non-401 `getMe` failure can show an endless Loader, but Header keeps an
-explicit logout action available while the saved token remains. On other
+to it; a successful admin session redirects to `/admin` without rendering the
+ordinary home. A non-401 `getMe` failure can show an endless Loader, but Header
+keeps an explicit logout action available while the saved token remains. On other
 protected routes, a missing token/401 redirects with `replace` to `/auth`.
 Group/duel nested redirects replace history. Invalid
 or thrown route renders generic Fallback; invalid numeric duel IDs lack a
@@ -114,7 +118,8 @@ dedicated parent error view.
 ## Network effects
 
 HomeRoute, Header, and ProtectedRoute subscribe to the same cached `getMe` query
-when they need authentication state; auth refresh can replay it. LandingPage
+when they need authentication state; auth refresh can replay it. The redirect
+does not start an admin request until `/admin` passes ProtectedRoute. LandingPage
 itself is static, uses theme-specific duel preview images, and starts no HTTP
 request or WebSocket. Manager starts
 ticket/socket only after both `auth.user` and the access token are present, and
@@ -161,10 +166,11 @@ initial state. A second tab can replace the first backend socket.
 
 ## Test coverage
 
-- **Existing tests:** HomeRoute covers guest/loading/success/401 selection;
+- **Existing tests:** HomeRoute covers guest/loading/admin and regular
+  success/401 selection;
   LandingPage covers its registration link and static duel images; Header covers
-  guest, auth-page, token-checking, failed-session recovery, and authenticated
-  actions; the global Fallback renders without Router context. MSW has no
+  guest, auth-page, token-checking, failed-session recovery, and admin/regular
+  menu composition; the global Fallback renders without Router context. MSW has no
   handlers.
 - **Needed unit/integration:** persist configs, ProtectedRoute result matrix,
   router paths/redirects, error boundary, manager mount/unmount.
@@ -176,7 +182,8 @@ initial state. A second tab can replace the first backend socket.
 
 PersistGate blocks child rendering until redux-persist bootstraps; four named
 slices (not RTK cache) are version-1 persisted; one manager is present in the
-normal AppRouter tree; `/` intentionally selects guest or authenticated content,
+normal AppRouter tree; `/` selects guest, regular-user, or admin destinations
+after session validation,
 and all other non-auth declared pages use ProtectedRoute.
 
 ## Open questions
