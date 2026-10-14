@@ -12,8 +12,10 @@ and the ordinary profile/group/tournament/duel pages used by dashboard links.
 
 ## Entry points
 
-Direct navigation to `/admin`, reload, opening or closing a dashboard section,
-following an entity link, or an authenticated non-admin opening the route.
+Successful admin login or navigation to `/`, direct navigation to `/admin`, reload,
+opening or closing a dashboard section, following an entity link, or an
+authenticated non-admin opening the route. The Header profile menu links to
+`/admin` after successful `getMe` when the token has a true `is_admin` claim.
 
 ## Preconditions
 
@@ -24,7 +26,7 @@ not replace that backend policy.
 ## Current behavior
 
 The page first reads the `is_admin` claim from the access token. An authenticated
-non-admin stays on `/admin`, sees the dedicated access-denied screen, and starts
+non-admin stays on `/admin`, sees a neutral `Страница не найдена` screen, and starts
 no admin list queries. For an administrator, the page starts all eleven admin
 list queries when it mounts. Users are displayed as active users followed by all
 remaining users. Pending duels are split into
@@ -39,7 +41,7 @@ rows when that query is available.
 All five main sections use accessible native `details` controls and start open.
 Their open state is local to the page. Each data block has independent loading,
 empty, and failure output. Any admin query returning 403 replaces the dashboard
-with the same access-denied screen. This remains the fallback when a token claims
+with the same neutral screen. This remains the fallback when a token claims
 admin access but Duely rejects it. User, group, tournament, and duel links use
 the existing application routes.
 
@@ -75,9 +77,9 @@ search wait time. No dashboard state is persisted.
 
 ## Failure handling
 
-A missing or false `is_admin` access-token claim is treated as an authorization
-failure before admin requests start. A 403 from any admin query is also treated
-as an authorization failure. Other request failures remain local to the affected
+A missing or false `is_admin` access-token claim shows a neutral not-found page
+before admin requests start. A 403 from any admin query shows the same page.
+Other request failures remain local to the affected
 data block, allowing other lists to stay usable. Missing group lookup data falls
 back to `Группа #id`. Missing or invalid dates render an em dash.
 
@@ -95,7 +97,8 @@ not streamed into the dashboard.
 
 ## Test coverage
 
-Helper tests cover access-token admin-claim parsing, active-user subtraction,
+Helper and page tests cover access-token admin-claim parsing, neutral denial with
+all admin queries skipped, 403 handling, active-user subtraction,
 terminal-submission selection and status tones, submission deep-link building,
 pending-duel grouping, waiting duration, and invalid dates. The publication
 smoke test covers admin and non-admin authenticated cold startup at `/admin` and

@@ -363,12 +363,12 @@ const TournamentsTable = ({
 const isForbiddenError = (error: unknown) =>
     typeof error === "object" && error !== null && "status" in error && error.status === 403;
 
-const AccessDenied = () => (
+const NotFound = () => (
     <div className={styles.adminPage}>
         <div className={styles.accessCard}>
-            <span className={styles.eyebrow}>403</span>
-            <h1>Нет доступа</h1>
-            <p>Административная панель доступна только администраторам.</p>
+            <span className={styles.eyebrow}>404</span>
+            <h1>Страница не найдена</h1>
+            <p>Проверьте адрес или вернитесь на главную.</p>
             <Link className={styles.backLink} to={AppRoutes.INDEX}>
                 Вернуться на главную
             </Link>
@@ -434,7 +434,7 @@ export const AdminPage = () => {
     ];
 
     if (!isAdmin || queryErrors.some(isForbiddenError)) {
-        return <AccessDenied />;
+        return <NotFound />;
     }
 
     const friendlyDuels = getPendingDuelsByType(pendingDuels, "Friendly");

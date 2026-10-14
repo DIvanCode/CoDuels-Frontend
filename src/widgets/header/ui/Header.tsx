@@ -7,13 +7,14 @@ import Favicon from "shared/assets/icons/favicon.svg?react";
 import GroupIcon from "shared/assets/icons/group.svg?react";
 import ArrowDownIcon from "shared/assets/icons/keyboard-arrow-down.svg?react";
 import ProfileIcon from "shared/assets/icons/profile.svg?react";
+import DashboardIcon from "shared/assets/icons/dashboard.svg?react";
 import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { DropdownMenu } from "shared/ui";
 
 import type { DropdownItem } from "shared/ui";
 import { DuelInfo } from "features/duel-session";
-import { authActions, selectAuthToken } from "features/auth";
+import { authActions, isAdminAccessToken, selectAuthToken } from "features/auth";
 import { ThemeSwitch } from "features/theme";
 import styles from "./Header.module.scss";
 
@@ -35,6 +36,7 @@ export const Header = () => {
         "status" in error &&
         error.status === 401;
     const showUserMenu = Boolean(token && isSuccess && user);
+    const showAdminLink = showUserMenu && isAdminAccessToken(token);
     const isAuthRoute =
         location.pathname === AppRoutes.AUTH || location.pathname.startsWith(`${AppRoutes.AUTH}/`);
     const showLogin = (!token || isUnauthorized) && !isAuthRoute;
@@ -53,6 +55,15 @@ export const Header = () => {
             onClick: () =>
                 navigate(AppRoutes.PROFILE.replace(":userNickname", String(user?.nickname))),
         },
+        ...(showAdminLink
+            ? [
+                  {
+                      icon: <DashboardIcon />,
+                      label: "Админка",
+                      onClick: () => navigate(AppRoutes.ADMIN),
+                  },
+              ]
+            : []),
         {
             icon: <ExitIcon />,
             label: "Выйти",

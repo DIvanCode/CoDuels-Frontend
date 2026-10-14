@@ -27,8 +27,9 @@ Login posts snake-case-compatible `{nickname,password}` but trusts the response
 as `TokenPair` at runtime; the fulfilled matcher stores both tokens, invalidates
 User tags, then navigation goes to `/`. HomeRoute, Header, and ProtectedRoute
 subscribe to `getMe` when a token exists; its fulfilled matcher stores the
-current user. `/` waits for this result before showing HomePage and does not use
-the persisted user snapshot as proof of authentication. Registration first
+current user. `/` waits for this result before selecting HomePage or redirecting
+an admin access token to `/admin`; it does not use the persisted user snapshot
+as proof of authentication. Registration first
 checks that the nickname is 2–30 characters and contains only Latin letters,
 digits, underscores, and hyphens. Registration requires a password of at least
 eight characters. Invalid characters and short passwords show Russian
@@ -39,7 +40,9 @@ explains that the nickname is already taken. Valid registration creates the
 user, then performs the same login. A failure during that login uses the login
 error mapping. The previous/original URL is not restored.
 
-Header sends guests to `/auth`, which defaults to the login tab. LandingPage
+Header sends guests to `/auth`, which defaults to the login tab. After `getMe`
+succeeds, it adds `Админка` to the profile menu only for an admin access token.
+LandingPage
 sends its primary CTA to `/auth?tab=register`; AuthPage derives the active tab
 from that query parameter, so registration stays selected after direct
 navigation or reload. Switching tabs updates the same URL without adding a new
@@ -114,7 +117,7 @@ decode exists. Backend logout/revocation endpoint is not called.
 
 Forms disable during their mutations and display mapped errors. Success goes to
 home. The root entry shows LandingPage without credentials, waits while a saved
-token is checked, and shows HomePage only after `getMe` succeeds. A protected
+token is checked, and selects HomePage or `/admin` only after `getMe` succeeds. A protected
 401 outside `/` redirects to auth; a non-401 error is an indefinite Loader.
 Logout on a protected page causes redirect after state change. No cross-tab
 logout notice or "session expired/offline" distinction exists.
