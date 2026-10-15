@@ -1,10 +1,10 @@
 import { Table } from "shared/ui";
 import CupIcon from "shared/assets/icons/cup.svg?react";
 import { useNavigate } from "react-router-dom";
-import { formatDurationBetween } from "shared/lib/timeHelpers";
-import { formatIsoDate } from "shared/lib/isoTimestamp";
+import { formatIsoDateTime } from "shared/lib/isoTimestamp";
 import { Duel } from "../../model/types";
 import { getDuelResultForUser } from "../../lib/duelResultHelpers";
+import { formatDuelDuration } from "../../lib/formatDuelDuration";
 import styles from "./DuelHistory.module.scss";
 
 interface DuelHistoryProps {
@@ -26,7 +26,7 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
             <thead>
                 <tr>
                     <th>Оппонент</th>
-                    <th>Контроль по времени</th>
+                    <th>Продолжительность дуэли</th>
                     <th>Изменение рейтинга</th>
                     <th>Дата</th>
                 </tr>
@@ -46,9 +46,10 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
                     const duelResult = isParticipant
                         ? getDuelResultForUser(duel, currentUserId)
                         : null;
-                    const delta = duelResult
-                        ? duel.rating_changes?.[currentUserId]?.[duelResult]
-                        : null;
+                    const delta =
+                        duel.is_rated && duelResult
+                            ? duel.rating_changes?.[currentUserId]?.[duelResult]
+                            : null;
 
                     return (
                         <tr
@@ -63,21 +64,27 @@ export const DuelHistory = ({ duels, currentUserId }: DuelHistoryProps) => {
                                 </span>
                             </td>
 
-                            <td>{formatDurationBetween(duel.start_time, duel.deadline_time)}</td>
+                            <td>{formatDuelDuration(duel.start_time, duel.end_time)}</td>
 
                             <td
                                 className={
-                                    duelResult ? deltaClassName[duelResult] : styles.neutralDelta
+                                    duel.is_rated
+                                        ? duelResult
+                                            ? deltaClassName[duelResult]
+                                            : styles.neutralDelta
+                                        : undefined
                                 }
                             >
-                                {delta !== null && delta !== undefined
-                                    ? delta > 0
-                                        ? `+${delta}`
-                                        : delta
-                                    : "-"}
+                                {duel.is_rated
+                                    ? delta !== null && delta !== undefined
+                                        ? delta > 0
+                                            ? `+${delta}`
+                                            : delta
+                                        : "-"
+                                    : "—"}
                             </td>
 
-                            <td>{formatIsoDate(duel.start_time)}</td>
+                            <td>{formatIsoDateTime(duel.start_time)}</td>
                         </tr>
                     );
                 })}
