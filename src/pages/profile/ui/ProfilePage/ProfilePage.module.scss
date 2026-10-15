@@ -28,3 +28,22 @@
 
     margin-top: 1em;
 }
+
+.ratedOnlyFilter {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.5em;
+    cursor: pointer;
+
+    input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent-primary);
+    }
+}
+
+.emptyHistory {
+    padding: 1em;
+    color: var(--text-secondary);
+}

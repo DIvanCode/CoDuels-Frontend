@@ -14,7 +14,7 @@ export const BriefUserInfo = ({ user }: Props) => {
 
             <div className={styles.userInfo}>
                 <div className={styles.infoItem}>
-                    <h4 className={styles.infoItemTitle}>Ник</h4>
+                    <h4 className={styles.infoItemTitle}>Никнейм</h4>
                     <p className={styles.infoItemValue}>{user.nickname}</p>
                 </div>
 
