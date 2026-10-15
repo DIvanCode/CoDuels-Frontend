@@ -13,6 +13,8 @@ export const UserStats = ({ user, userDuels }: UserStatsProps) => {
     const { rating, wins, losses, draws } = useMemo(() => {
         return userDuels.reduce(
             (acc, duel) => {
+                if (duel.is_rated !== true) return acc;
+
                 const result = getDuelResultForUser(duel, user.id);
 
                 if (result === "Win") acc.wins++;
