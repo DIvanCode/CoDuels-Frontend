@@ -1,6 +1,12 @@
 import { apiSlice } from "shared/api";
 
-import type { Duel, GroupDuelEntry, PendingDuel, RankedDuelSearcher } from "../model/types";
+import type {
+    ActiveDuelIdResponse,
+    Duel,
+    GroupDuelEntry,
+    PendingDuel,
+    RankedDuelSearcher,
+} from "../model/types";
 
 export const duelApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -18,9 +24,14 @@ export const duelApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Duel", id: "LIST" }],
         }),
-        getActiveDuel: builder.query<Duel, void>({
-            query: () => `/duels/active`,
-            providesTags: (result) => [{ type: "Duel", id: result?.id ?? "ACTIVE" }],
+        getActiveDuelId: builder.query<ActiveDuelIdResponse, number>({
+            query: () => `/duels/active/id`,
+            providesTags: (result) => [
+                { type: "Duel", id: "ACTIVE" },
+                ...(result?.duel_id === null || result?.duel_id === undefined
+                    ? []
+                    : [{ type: "Duel" as const, id: result.duel_id }]),
+            ],
         }),
         getGroupDuels: builder.query<GroupDuelEntry[], number>({
             query: (groupId) => `/groups/${groupId}/duels`,
@@ -53,7 +64,7 @@ export const duelApiSlice = apiSlice.injectEndpoints({
 export const {
     useGetDuelQuery,
     useGetAllUserDuelsQuery,
-    useGetActiveDuelQuery,
+    useGetActiveDuelIdQuery,
     useGetGroupDuelsQuery,
     useGetAdminPendingDuelsQuery,
     useGetAdminRankedDuelSearchersQuery,

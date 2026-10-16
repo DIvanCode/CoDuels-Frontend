@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 
-import { useGetActiveDuelQuery } from "entities/duel";
+import { useGetActiveDuelIdQuery } from "entities/duel";
 import { selectCurrentUser } from "entities/user";
 import { startDuelRealtimeSession } from "features/duel-session/api/duelSessionApi";
 import { requestDuelSessionReconnect } from "features/duel-session/api/realtime/connectionRegistry";
@@ -9,38 +10,39 @@ import { selectDuelSession } from "features/duel-session/model/selectors";
 import {
     acknowledgeDuelResult,
     resetDuelSession,
-    setActiveDuel,
 } from "features/duel-session/model/duelSessionSlice";
 import { removeLegacyDuelResultDismissals } from "features/duel-session/model/duelResultAcknowledgement";
-import { restoreDuelSession } from "features/duel-session/model/thunks";
+import { restoreActiveDuel, restoreDuelSession } from "features/duel-session/model/thunks";
+import { shouldClearSessionAfterNullActiveDuel } from "features/duel-session/model/sessionFreshness";
 import { useDuelResultAcknowledgement } from "features/duel-session/model/useDuelResultAcknowledgement";
 import { useAppDispatch, useAppSelector, useAppStore } from "shared/lib/storeHooks";
 import { Button, Modal } from "shared/ui";
 
 import styles from "./DuelSessionManager.module.scss";
 
-const isNotFoundError = (error: unknown) =>
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status?: number }).status === 404;
-
 export const DuelSessionManager = () => {
     const dispatch = useAppDispatch();
     const store = useAppStore();
     const userId = useAppSelector(selectCurrentUser)?.id ?? null;
     const realtimeUserId = useAppSelector(selectRealtimeUserId);
-    const { phase, activeDuelId, activeDuelUserId, sessionInterrupted, pendingResult } =
-        useAppSelector(selectDuelSession);
+    const {
+        phase,
+        activeDuelId,
+        activeDuelUserId,
+        pendingStartedInCurrentRuntime,
+        sessionInterrupted,
+        pendingResult,
+    } = useAppSelector(selectDuelSession);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const previousUserIdRef = useRef<number | null>(userId);
 
-    const { data: activeDuel, error: activeDuelError } = useGetActiveDuelQuery(undefined, {
-        skip: realtimeUserId === null,
-        pollingInterval: phase === "searching" ? 2_000 : 0,
-        skipPollingIfUnfocused: true,
-        refetchOnReconnect: true,
-    });
+    const { currentData: activeDuelResponse, isSuccess: activeDuelLoaded } =
+        useGetActiveDuelIdQuery(realtimeUserId ?? skipToken, {
+            pollingInterval: phase === "searching" ? 2_000 : 0,
+            skipPollingIfUnfocused: true,
+            refetchOnReconnect: true,
+            refetchOnMountOrArgChange: true,
+        });
     const pendingResultIsAcknowledged = useDuelResultAcknowledgement(
         pendingResult?.userId ?? null,
         pendingResult?.duelId ?? null,
@@ -49,26 +51,48 @@ export const DuelSessionManager = () => {
     useEffect(() => removeLegacyDuelResultDismissals(), []);
 
     useEffect(() => {
-        const isCurrentUserParticipant = (activeDuel?.participants ?? []).some(
-            (participant) => participant.id === userId,
-        );
-        if (activeDuel?.status === "InProgress" && userId !== null && isCurrentUserParticipant) {
-            dispatch(setActiveDuel({ duelId: activeDuel.id, userId }));
+        const duelId = activeDuelResponse?.duel_id;
+        if (
+            !activeDuelLoaded ||
+            realtimeUserId === null ||
+            duelId === null ||
+            duelId === undefined
+        ) {
+            return;
         }
-    }, [activeDuel, userId, dispatch]);
+        const request = dispatch(restoreActiveDuel({ duelId, userId: realtimeUserId }));
+        return () => request.abort();
+    }, [activeDuelResponse, activeDuelLoaded, realtimeUserId, dispatch]);
 
     useEffect(() => {
-        const shouldVerifyPersistedDuel = phase === "idle" || isNotFoundError(activeDuelError);
-
-        if (
-            userId !== null &&
-            activeDuelId !== null &&
-            (activeDuelUserId === userId || activeDuelUserId === null) &&
-            shouldVerifyPersistedDuel
-        ) {
-            dispatch(restoreDuelSession(activeDuelId));
+        if (!activeDuelLoaded || realtimeUserId === null || activeDuelResponse?.duel_id !== null) {
+            return;
         }
-    }, [userId, activeDuelId, activeDuelUserId, phase, activeDuelError, dispatch]);
+        if (
+            activeDuelId !== null &&
+            (activeDuelUserId === realtimeUserId || activeDuelUserId === null)
+        ) {
+            const request = dispatch(restoreDuelSession(activeDuelId));
+            return () => request.abort();
+        } else if (
+            shouldClearSessionAfterNullActiveDuel({
+                phase,
+                activeDuelId,
+                pendingStartedInCurrentRuntime,
+            })
+        ) {
+            dispatch(resetDuelSession());
+        }
+    }, [
+        activeDuelResponse,
+        activeDuelLoaded,
+        realtimeUserId,
+        activeDuelId,
+        activeDuelUserId,
+        phase,
+        pendingStartedInCurrentRuntime,
+        dispatch,
+    ]);
 
     useEffect(() => {
         if (userId === null || previousUserIdRef.current !== userId) {

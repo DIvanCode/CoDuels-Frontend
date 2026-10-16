@@ -3,7 +3,7 @@ export { duelApiSlice } from "./api/duelApi";
 export {
     useGetDuelQuery,
     useGetAllUserDuelsQuery,
-    useGetActiveDuelQuery,
+    useGetActiveDuelIdQuery,
     useGetGroupDuelsQuery,
     useGetAdminPendingDuelsQuery,
     useGetAdminRankedDuelSearchersQuery,
@@ -16,6 +16,7 @@ export { DuelHistory } from "./ui/DuelHistory/DuelHistory";
 
 export type {
     DuelResultType,
+    ActiveDuelIdResponse,
     Duel,
     DuelTaskRef,
     PendingDuel,

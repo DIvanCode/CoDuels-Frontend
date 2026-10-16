@@ -4,7 +4,7 @@ import { finishActiveDuel, resetDuelSession } from "../../../model/duelSessionSl
 import { startInitialSync } from "../initialSync";
 
 const syncMocks = vi.hoisted(() => ({
-    getActiveDuel: vi.fn(),
+    getActiveDuelId: vi.fn(),
     getDuel: vi.fn(),
     invalidateTags: vi.fn((payload: unknown) => ({ type: "api/invalidate", payload })),
 }));
@@ -12,9 +12,8 @@ const syncMocks = vi.hoisted(() => ({
 vi.mock("entities/duel", () => ({
     duelApiSlice: {
         endpoints: {
-            getActiveDuel: {
-                initiate: syncMocks.getActiveDuel,
-                matchRejected: () => false,
+            getActiveDuelId: {
+                initiate: syncMocks.getActiveDuelId,
             },
             getDuel: {
                 initiate: syncMocks.getDuel,
@@ -28,11 +27,11 @@ vi.mock("shared/api", () => ({
     apiSlice: { util: { invalidateTags: syncMocks.invalidateTags } },
 }));
 
-const createState = (activeDuelId: number, activeDuelUserId: number | null) =>
+const createState = (activeDuelId: number | null, activeDuelUserId: number | null) =>
     ({
         auth: { user: { id: 7 }, token: "token", refreshToken: "refresh" },
         duelSession: {
-            phase: "active",
+            phase: activeDuelId === null ? "idle" : "active",
             activeDuelId,
             activeDuelUserId,
             pendingStartedInCurrentRuntime: false,
@@ -42,16 +41,16 @@ const createState = (activeDuelId: number, activeDuelUserId: number | null) =>
 
 describe("initial duel synchronization", () => {
     beforeEach(() => {
-        syncMocks.getActiveDuel.mockReset();
+        syncMocks.getActiveDuelId.mockReset();
         syncMocks.getDuel.mockReset();
         syncMocks.invalidateTags.mockClear();
     });
 
-    it("verifies an ownerless legacy candidate after active-duel 404", async () => {
+    it("verifies an ownerless legacy candidate after a null active ID", async () => {
         const activeAction = { type: "duel/active" };
         const detailAction = { type: "duel/detail" };
         const activeRequest = {
-            unwrap: vi.fn().mockRejectedValue({ status: 404 }),
+            unwrap: vi.fn().mockResolvedValue({ duel_id: null }),
             unsubscribe: vi.fn(),
             abort: vi.fn(),
         };
@@ -64,7 +63,7 @@ describe("initial duel synchronization", () => {
             unsubscribe: vi.fn(),
             abort: vi.fn(),
         };
-        syncMocks.getActiveDuel.mockReturnValue(activeAction);
+        syncMocks.getActiveDuelId.mockReturnValue(activeAction);
         syncMocks.getDuel.mockReturnValue(detailAction);
         const dispatch = vi.fn((action) => {
             if (action === activeAction) return activeRequest;
@@ -81,6 +80,65 @@ describe("initial duel synchronization", () => {
         await synchronization.promise;
 
         expect(dispatch).toHaveBeenCalledWith(finishActiveDuel({ duelId: 42, userId: 7 }));
+        expect(syncMocks.getActiveDuelId).toHaveBeenCalledWith(7, {
+            forceRefetch: true,
+            subscribe: false,
+        });
+    });
+
+    it("keeps a user without an active duel idle and does not fetch detail", async () => {
+        const activeAction = { type: "duel/active-id" };
+        const activeRequest = {
+            unwrap: vi.fn().mockResolvedValue({ duel_id: null }),
+            unsubscribe: vi.fn(),
+            abort: vi.fn(),
+        };
+        syncMocks.getActiveDuelId.mockReturnValue(activeAction);
+        const dispatch = vi.fn((action) => (action === activeAction ? activeRequest : action));
+        const state = createState(null, null);
+
+        const synchronization = startInitialSync({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => state,
+            userId: 7,
+        });
+        await synchronization.promise;
+
+        expect(syncMocks.getDuel).not.toHaveBeenCalled();
+        expect(dispatch).not.toHaveBeenCalledWith(resetDuelSession());
+    });
+
+    it("ignores a late active ID response after switching users", async () => {
+        const activeAction = { type: "duel/active-id" };
+        let resolveRequest: (value: unknown) => void = () => undefined;
+        const activeRequest = {
+            unwrap: vi.fn(
+                () =>
+                    new Promise((resolve) => {
+                        resolveRequest = resolve;
+                    }),
+            ),
+            unsubscribe: vi.fn(),
+            abort: vi.fn(),
+        };
+        syncMocks.getActiveDuelId.mockReturnValue(activeAction);
+        const dispatch = vi.fn((action) => (action === activeAction ? activeRequest : action));
+        let state = createState(null, null);
+
+        const synchronization = startInitialSync({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => state,
+            userId: 7,
+        });
+        state = {
+            ...state,
+            auth: { user: { id: 8 }, token: "other-token", refreshToken: "other-refresh" },
+        } as RootState;
+        resolveRequest({ duel_id: 42 });
+        await synchronization.promise;
+
+        expect(syncMocks.getDuel).not.toHaveBeenCalled();
+        expect(dispatch).not.toHaveBeenCalledWith(resetDuelSession());
     });
 
     it("does not reset a newer duel after stale candidate verification fails", async () => {
@@ -88,7 +146,7 @@ describe("initial duel synchronization", () => {
         const detailAction = { type: "duel/detail" };
         let rejectDetail: (error: unknown) => void = () => undefined;
         const activeRequest = {
-            unwrap: vi.fn().mockRejectedValue({ status: 404 }),
+            unwrap: vi.fn().mockResolvedValue({ duel_id: null }),
             unsubscribe: vi.fn(),
             abort: vi.fn(),
         };
@@ -102,7 +160,7 @@ describe("initial duel synchronization", () => {
             unsubscribe: vi.fn(),
             abort: vi.fn(),
         };
-        syncMocks.getActiveDuel.mockReturnValue(activeAction);
+        syncMocks.getActiveDuelId.mockReturnValue(activeAction);
         syncMocks.getDuel.mockReturnValue(detailAction);
         const dispatch = vi.fn((action) => {
             if (action === activeAction) return activeRequest;

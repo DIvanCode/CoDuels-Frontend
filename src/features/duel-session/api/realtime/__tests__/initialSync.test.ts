@@ -22,11 +22,11 @@ describe("initial sync state", () => {
         expect(hasStaleActiveSession(createState("searching", null, true))).toBe(false);
     });
 
-    it("identifies a rehydrated pending search as stale after an active-duel 404", () => {
+    it("identifies a rehydrated pending search as stale after a null active ID", () => {
         expect(hasStaleActiveSession(createState("searching", null))).toBe(true);
     });
 
-    it("identifies stale active state after an active-duel 404", () => {
+    it("identifies stale active state after a null active ID", () => {
         expect(hasStaleActiveSession(createState("active", 42))).toBe(true);
     });
 

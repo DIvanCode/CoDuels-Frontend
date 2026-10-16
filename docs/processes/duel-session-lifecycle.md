@@ -13,7 +13,7 @@ redux-persist, WebSocket handlers, router, and Duely pending/active duel state.
 ## Entry points
 
 Start/accept/cancel click, `DuelStarted`/finished/canceled/invitation events,
-`getActiveDuel` response, reload/browser reopen, direct duel URL, socket close,
+`getActiveDuelId` response, reload/browser reopen, direct duel URL, socket close,
 logout, or persisted rehydration.
 
 ## Preconditions
@@ -37,18 +37,19 @@ cleanup, then automatic reconnect begins. Finish resets only when its duel ID is
 the current active ID, so a duplicate or delayed finish cannot clear another
 active duel.
 
-The globally mounted realtime session runs `/duels/active` after every initial
-connect and reconnect. An in-progress result promotes the session to active. If
-that endpoint returns 404 for a user-owned active or pending-result candidate,
-the client verifies the exact duel detail before keeping a finished result;
-otherwise it resets provisional persisted active/searching state. The manager also owns
-the active-duel query and polls it every two seconds while locally searching,
-so a missed start event still promotes the session without waiting for a socket
-reconnect. Its ordinary 404 also verifies a persisted active ID through duel
-detail even when the socket never opens. Ownerless IDs from the previous
-persisted schema are provisional candidates and survive only after participant
-validation. Every asynchronous reset is fenced by the candidate that started
-it, so an older verification cannot clear a newer duel. While the user is
+The globally mounted realtime session runs `/duels/active/id` after every initial
+connect and reconnect. The response is always HTTP 200 with
+`{ "duel_id": number | null }`. A non-null ID is checked through `GET /duels/{id}`
+before the client accepts an `InProgress` duel for the current participant. A
+null ID leaves an idle user idle and verifies only a persisted active or result
+candidate through duel detail to retain a finished result. A deleted or
+inaccessible detail clears a matching stale candidate. The manager polls the
+same compact query every two seconds while locally searching, so a missed start
+event can restore the session without waiting for a socket reconnect. The
+query cache is keyed by user ID, and late detail or active-ID responses are
+fenced by the current authenticated user and the candidate that started the
+request. Ownerless IDs from the previous persisted schema remain provisional.
+While the user is
 viewing their active duel, DuelInfo also polls that exact detail every two
 seconds. A finished HTTP snapshot consumes the same user-owned active transition
 as `DuelFinished`, so a silently missed socket event does not require F5.
@@ -75,9 +76,10 @@ sequenceDiagram
     M->>D: ticket + WebSocket
     D-->>M: socket open
     M->>R: reconcile current user
-    R->>D: GET /duels/active
-    D-->>R: active or 404
-    R->>S: active or reset provisional state
+    R->>D: GET /duels/active/id
+    D-->>R: duel_id or null
+    R->>D: GET /duels/{id} when needed
+    R->>S: verified active, finished result, or idle
 ```
 
 ## Client state transitions
@@ -88,11 +90,12 @@ sequenceDiagram
 - finish: matching user-owned `active -> idle`, ID null, pending result recorded.
 - acknowledgement/logout/reset: pending result cleared; logout/reset also returns
   `active|searching|idle -> idle`.
-- `getActiveDuel` creates the consistent `active + activeDuelId` transition.
+- `getActiveDuelId` followed by verified duel detail creates the consistent
+  `active + activeDuelId` transition.
 
 ## Backend state assumptions
 
-Backend pending types and active Duel are authoritative. `GET /duels/active` and
+Backend pending types and active Duel are authoritative. `GET /duels/active/id` and
 `GET /duels/:id` are partial reconciliation. Disconnect cancels pending states.
 No endpoint verifies "searching" directly, and persisted matching fields are
 not compared with backend pending rows.
@@ -117,7 +120,7 @@ close can show idle Home plus blocking interruption modal.
 ## Network effects
 
 Start/cancel/accept mutations precede most local phase changes. Manager performs
-active/detail GETs and polls the active endpoint while searching. Socket events
+active-ID/detail GETs and polls the compact active endpoint while searching. Socket events
 invalidate duel data. Post-close reconnect is automatic with backoff, and every
 open performs active-session and broad cache reconciliation. There is still no
 pending-status endpoint or event replay.
@@ -142,7 +145,7 @@ navigation assumes phase transition occurs after the watcher mounts.
 ## Failure handling
 
 Mutation errors generally leave prior phase. Lost success responses and missed
-start events are repaired by the searching-time `/duels/active` poll or the next
+start events are repaired by the searching-time `/duels/active/id` poll or the next
 connect/reconnect sync. Pending invitation/search state still has no complete
 backend status query.
 
@@ -177,8 +180,8 @@ finish/logout does not update another except through backend events/storage race
 ## Current guarantees
 
 Only three phase strings compile; whitelisted session fields survive reload;
-non-null active ID promotes idle/searching to active; reset clears all session
-fields; every socket open globally reconciles `/duels/active`; searching polls
+non-null active ID with verified detail promotes idle/searching to active; reset clears all session
+fields; every socket open globally reconciles `/duels/active/id`; searching polls
 the same authoritative endpoint every two seconds.
 
 ## Open questions
