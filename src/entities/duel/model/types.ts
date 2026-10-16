@@ -1,11 +1,6 @@
 import type { UserData } from "entities/user";
 
-export interface DuelParticipant {
-    id: number;
-    nickname: string;
-    rating: number;
-    created_at: string;
-}
+export type DuelParticipant = UserData;
 
 export interface DuelTaskRef {
     id: string | null;

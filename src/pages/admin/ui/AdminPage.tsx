@@ -21,7 +21,6 @@ import {
     useGetAdminFinishedTournamentsQuery,
 } from "entities/tournament";
 import {
-    type AdminUserData,
     type UserData,
     useGetAdminActiveUsersQuery,
     useGetAdminUsersQuery,
@@ -100,7 +99,7 @@ const Acceptance = ({ accepted }: { accepted: boolean }) => (
     </span>
 );
 
-const UsersTable = ({ users, isActive }: { users: AdminUserData[]; isActive: boolean }) => (
+const UsersTable = ({ users, isActive }: { users: UserData[]; isActive: boolean }) => (
     <div className={styles.tableWrapper}>
         <Table className={styles.table}>
             <thead>

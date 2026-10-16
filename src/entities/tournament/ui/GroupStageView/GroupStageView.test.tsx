@@ -26,6 +26,7 @@ const renderInTimeZone = (timeZone: string) => {
         nickname,
         rating: 1500,
         created_at: "2026-03-29T00:30:00Z",
+        last_seen_at: null,
     });
     const duel = {
         id: 1,

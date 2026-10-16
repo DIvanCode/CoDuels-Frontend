@@ -14,6 +14,7 @@ const user: UserData = {
     nickname: "player",
     rating: 1500,
     created_at: "2026-10-15T10:00:00Z",
+    last_seen_at: null,
 };
 
 const duel = (isRated: boolean, winnerId: number | null): Duel =>
