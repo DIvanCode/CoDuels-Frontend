@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { formatAdminDateTime } from "../lib/adminPageHelpers";
 import { AdminPage } from "./AdminPage";
 
 const mocks = vi.hoisted(() => ({
@@ -34,14 +36,14 @@ vi.mock("features/auth", () => ({
 }));
 
 vi.mock("shared/config", () => ({
-    AppRoutes: { INDEX: "/" },
+    AppRoutes: { INDEX: "/", PROFILE: "/profile/:userNickname" },
     fromApiLanguage: vi.fn(),
     LANGUAGE_LABELS: {},
 }));
 
 vi.mock("shared/ui", () => ({
     Loader: () => null,
-    Table: () => null,
+    Table: ({ children }: { children: ReactNode }) => <table>{children}</table>,
 }));
 
 vi.mock("entities/user", () => ({
@@ -112,5 +114,41 @@ describe("AdminPage access handling", () => {
         expect(markup).toContain("Страница не найдена");
         expect(markup).not.toContain("Административная панель");
         expect(mocks.adminQuery.mock.calls.every((call) => !call[1].skip)).toBe(true);
+    });
+
+    it("shows saved presence and online status in both user tables", () => {
+        mocks.token = "admin-token";
+        const lastSeenAt = "2026-10-16T10:30:00Z";
+        const onlineUser = {
+            id: 1,
+            nickname: "online-user",
+            rating: 1500,
+            created_at: "2026-10-01T10:00:00Z",
+            last_seen_at: lastSeenAt,
+        };
+        const offlineUser = {
+            id: 2,
+            nickname: "offline-user",
+            rating: 1500,
+            created_at: "2026-10-01T10:00:00Z",
+            last_seen_at: null,
+        };
+        const emptyResult = { data: [], error: undefined, isError: false, isLoading: false };
+        mocks.adminQuery.mockImplementationOnce(() => ({
+            ...emptyResult,
+            data: [onlineUser, offlineUser] as never[],
+        }));
+        mocks.adminQuery.mockImplementationOnce(() => ({
+            ...emptyResult,
+            data: [onlineUser] as never[],
+        }));
+
+        const markup = renderAdminPage();
+
+        expect(markup.match(/Последнее появление/g)).toHaveLength(2);
+        expect(markup).toContain(formatAdminDateTime(lastSeenAt));
+        expect(markup).toContain("<td>—</td>");
+        expect(markup).toContain("Онлайн");
+        expect(markup).toContain("Не в сети");
     });
 });

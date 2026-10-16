@@ -18,6 +18,7 @@ const user = (id: number): UserData => ({
     nickname: `user-${id}`,
     rating: 1500,
     created_at: "2026-08-09T10:00:00Z",
+    last_seen_at: null,
 });
 
 describe("admin page helpers", () => {

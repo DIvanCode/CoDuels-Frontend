@@ -3,4 +3,5 @@ export interface UserData {
     nickname: string;
     rating: number;
     created_at: string;
+    last_seen_at: string | null;
 }
