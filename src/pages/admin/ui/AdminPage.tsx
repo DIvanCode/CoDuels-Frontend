@@ -20,7 +20,12 @@ import {
     useGetAdminActiveTournamentsQuery,
     useGetAdminFinishedTournamentsQuery,
 } from "entities/tournament";
-import { type UserData, useGetAdminActiveUsersQuery, useGetAdminUsersQuery } from "entities/user";
+import {
+    type AdminUserData,
+    type UserData,
+    useGetAdminActiveUsersQuery,
+    useGetAdminUsersQuery,
+} from "entities/user";
 import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { AppRoutes, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
@@ -95,7 +100,7 @@ const Acceptance = ({ accepted }: { accepted: boolean }) => (
     </span>
 );
 
-const UsersTable = ({ users, isActive }: { users: UserData[]; isActive: boolean }) => (
+const UsersTable = ({ users, isActive }: { users: AdminUserData[]; isActive: boolean }) => (
     <div className={styles.tableWrapper}>
         <Table className={styles.table}>
             <thead>
@@ -103,6 +108,7 @@ const UsersTable = ({ users, isActive }: { users: UserData[]; isActive: boolean 
                     <th>Пользователь</th>
                     <th>Рейтинг</th>
                     <th>Регистрация</th>
+                    <th>Последнее появление</th>
                     <th>Статус</th>
                 </tr>
             </thead>
@@ -114,6 +120,7 @@ const UsersTable = ({ users, isActive }: { users: UserData[]; isActive: boolean 
                         </td>
                         <td>{user.rating}</td>
                         <td>{formatAdminDateTime(user.created_at)}</td>
+                        <td>{formatAdminDateTime(user.last_seen_at)}</td>
                         <td>
                             <span className={isActive ? styles.active : styles.inactive}>
                                 <span className={styles.statusDot} aria-hidden="true" />

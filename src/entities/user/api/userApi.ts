@@ -1,6 +1,6 @@
 import { apiSlice } from "shared/api";
 
-import { UserData } from "../model/types";
+import { AdminUserData, UserData } from "../model/types";
 
 export const userApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -14,10 +14,10 @@ export const userApiSlice = apiSlice.injectEndpoints({
             query: () => `/users/iam`,
             providesTags: [{ type: "User", id: "ME" }],
         }),
-        getAdminUsers: builder.query<UserData[], void>({
+        getAdminUsers: builder.query<AdminUserData[], void>({
             query: () => "/users/admin/all",
         }),
-        getAdminActiveUsers: builder.query<UserData[], void>({
+        getAdminActiveUsers: builder.query<AdminUserData[], void>({
             query: () => "/users/admin/active",
         }),
         createTicket: builder.mutation<{ ticket: string }, void>({

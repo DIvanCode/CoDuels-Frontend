@@ -35,6 +35,11 @@ waiting duration. Testing submissions are followed by the `Done` subset of the
 all-submissions response. Testing rows use a yellow status, `Accepted` uses
 green, and every other terminal verdict uses red. Each submission number links
 to its detail inside the owning duel and selects the row's task through the URL.
+Both user tables show the saved `last_seen_at` beside the separate online status.
+The timestamp is formatted in the browser's local timezone like other admin
+dates; a missing or invalid value renders an em dash. Online users still show
+their saved timestamp, which reflects connection registration rather than a
+continuously updating activity clock.
 Groups are sorted by the backend, and group names are used to enrich tournament
 rows when that query is available.
 

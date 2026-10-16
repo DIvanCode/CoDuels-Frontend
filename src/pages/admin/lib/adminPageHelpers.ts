@@ -14,7 +14,7 @@ export const formatAdminWaitTime = (startedAt: string, now: number) => {
     return formatDuration(now - startedAtMs);
 };
 
-export const getInactiveUsers = (users: UserData[], activeUsers: UserData[]) => {
+export const getInactiveUsers = <T extends UserData>(users: T[], activeUsers: Pick<UserData, "id">[]) => {
     const activeUserIds = new Set(activeUsers.map((user) => user.id));
     return users.filter((user) => !activeUserIds.has(user.id));
 };
