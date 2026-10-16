@@ -2,16 +2,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { duelApiSlice, type DuelTaskRef } from "entities/duel";
 import type { PendingDuelType } from "entities/duel-invitation";
-import { shouldClearSessionAfterActiveDuelNotFound } from "./sessionFreshness";
 import { DuelSessionState, DuelSessionPhase } from "./types";
 
 export const DUEL_START_FENCE_DURATION_MS = 5_000;
-
-const isNotFoundError = (error: unknown) =>
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status?: number }).status === 404;
 
 const initialState: DuelSessionState = {
     activeDuelId: null,
@@ -226,7 +219,10 @@ const duelSessionSlice = createSlice({
         clearDuelStartFence: (state) => {
             state.duelStartFenceExpiresAt = null;
         },
-        resetDuelSession: (state, action: PayloadAction<{ fenceDuelStart?: boolean } | undefined>) => {
+        resetDuelSession: (
+            state,
+            action: PayloadAction<{ fenceDuelStart?: boolean } | undefined>,
+        ) => {
             clearDuelSession(state);
             if (action.payload?.fenceDuelStart) {
                 fenceDuelStart(state);
@@ -234,19 +230,6 @@ const duelSessionSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addMatcher(
-            duelApiSlice.endpoints.getActiveDuel.matchRejected,
-            (state, { payload }) => {
-                if (!isNotFoundError(payload)) return;
-
-                if (
-                    state.activeDuelId === null &&
-                    shouldClearSessionAfterActiveDuelNotFound(state)
-                ) {
-                    clearDuelSession(state);
-                }
-            },
-        );
         builder.addMatcher(duelApiSlice.endpoints.getDuel.matchFulfilled, (state, { payload }) => {
             const duelId = payload.id;
             const resultUserId = state.activeDuelUserId;

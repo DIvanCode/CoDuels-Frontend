@@ -1,4 +1,4 @@
-import { shouldClearSessionAfterActiveDuelNotFound } from "../../model/sessionFreshness";
+import { shouldClearSessionAfterNullActiveDuel } from "../../model/sessionFreshness";
 
 export {
     doesDuelResultCandidateOwnSession,
@@ -7,5 +7,5 @@ export {
 } from "../../model/sessionResult";
 
 export const hasStaleActiveSession = (state: RootState) => {
-    return shouldClearSessionAfterActiveDuelNotFound(state.duelSession);
+    return shouldClearSessionAfterNullActiveDuel(state.duelSession);
 };

@@ -1,7 +1,8 @@
 import { duelApiSlice } from "entities/duel";
 import { apiSlice } from "shared/api";
 
-import { finishActiveDuel, resetDuelSession, setActiveDuel } from "../../model/duelSessionSlice";
+import { finishActiveDuel, resetDuelSession } from "../../model/duelSessionSlice";
+import { restoreActiveDuel } from "../../model/thunks";
 import {
     doesDuelResultCandidateOwnSession,
     getDuelResultCandidateId,
@@ -14,12 +15,6 @@ interface InitialSyncOptions {
     getState: () => RootState;
     userId: number;
 }
-
-const isNotFound = (error: unknown) =>
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status?: number }).status === 404;
 
 const isUnavailableResult = (error: unknown) =>
     typeof error === "object" &&
@@ -47,14 +42,16 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
     const initialSession = initialState.duelSession;
     let stopped = false;
     let abortResultVerification: (() => void) | null = null;
+    let abortActiveVerification: (() => void) | null = null;
     const request = dispatch(
-        duelApiSlice.endpoints.getActiveDuel.initiate(undefined, {
+        duelApiSlice.endpoints.getActiveDuelId.initiate(userId, {
             forceRefetch: true,
             subscribe: false,
         }),
     );
 
-    const isCurrentUser = () => getState().auth.user?.id === userId;
+    const isCurrentUser = () =>
+        getState().auth.user?.id === userId && getState().auth.token !== null;
     const isInitialSessionStillCurrent = () => {
         const current = getState().duelSession;
         return (
@@ -109,25 +106,22 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
     };
     const promise = request
         .unwrap()
-        .then((duel) => {
-            if (!isCurrentUser()) return;
-            if (duel.status === "InProgress") {
-                const currentActiveDuelId = getState().duelSession.activeDuelId;
-                if (currentActiveDuelId !== null && currentActiveDuelId !== duel.id) return;
-                dispatch(setActiveDuel({ duelId: duel.id, userId }));
-            } else if (isInitialSessionStillCurrent()) {
+        .then(async (response) => {
+            if (stopped || !isCurrentUser()) return;
+            if (response.duel_id !== null) {
+                const verification = dispatch(
+                    restoreActiveDuel({ duelId: response.duel_id, userId }),
+                );
+                abortActiveVerification = () => verification.abort();
+                await verification;
+                abortActiveVerification = null;
+            } else if (resultCandidateId !== null) {
+                await reconcileFinishedResult(resultCandidateId);
+            } else if (isInitialSessionStillCurrent() && hasStaleActiveSession(getState())) {
                 dispatch(resetDuelSession());
             }
         })
-        .catch(async (error: unknown) => {
-            if (!stopped && isCurrentUser() && isNotFound(error)) {
-                if (resultCandidateId !== null) {
-                    await reconcileFinishedResult(resultCandidateId);
-                } else if (isInitialSessionStillCurrent() && hasStaleActiveSession(getState())) {
-                    dispatch(resetDuelSession());
-                }
-            }
-        })
+        .catch(() => undefined)
         .finally(() => request.unsubscribe());
 
     return {
@@ -137,6 +131,7 @@ export const startInitialSync = ({ dispatch, getState, userId }: InitialSyncOpti
             request.abort();
             request.unsubscribe();
             abortResultVerification?.();
+            abortActiveVerification?.();
         },
     };
 };
