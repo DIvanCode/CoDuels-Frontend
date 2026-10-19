@@ -28,8 +28,11 @@ Client language values `cpp`, `go`, `python` map to API values `Cpp`, `Golang`,
 Own code/language is stored under `${duelId}:${taskId}` and persisted. Monaco
 keeps local state and debounces Redux updates for 500 ms. `getDuel.fulfilled`
 hydrates each solution only when that task has no local draft; later duel
-polls/refetches never replace local code or language. Opponent values are
-unpersisted and continue to refresh from the backend.
+polls/refetches never replace a participant's local code or language. Opponent
+values are unpersisted and continue to refresh from the backend. An observer's
+read-only tabs use `solutions` and `opponent_solutions` from the latest successful
+duel response directly, including code and language. Persisted participant
+drafts do not supply observer code.
 The selected `my/opponent` tab is sessionStorage key `duel.{duelId}.codeTab` and
 privacy forces `my` when opponent view is unavailable. Read-only mode also
 blocks copy/cut/context menu.
@@ -77,7 +80,8 @@ sequenceDiagram
 Typing changes Monaco immediately and Redux later. Task switch changes the key
 and causes the interval to resend that task because `lastSent` is a single
 payload. Logout empties own/opponent maps. Duel finish does not prune code. A
-Duel refetch updates opponent data but preserves existing own code/language.
+Duel refetch updates opponent data and both observer tabs but preserves a
+participant's existing own code/language.
 
 ## Backend state assumptions
 
@@ -88,10 +92,11 @@ authoritative save acknowledgement.
 
 ## State ownership
 
-The active local draft is client-owned. The first duel response seeds a missing
-task draft; after that, persisted Redux keeps own code/language until logout.
-Unpersisted Redux stores opponent drafts, RTK stores received duel solutions,
-Monaco mirrors the selected draft, and Duely owns accepted shared data.
+The active participant draft is client-owned. The first duel response seeds a
+missing task draft; after that, persisted Redux keeps own code/language until
+logout. Observers display the current RTK duel response without using persisted
+drafts. Unpersisted Redux stores opponent drafts, RTK stores received duel
+solutions, Monaco mirrors the selected code, and Duely owns accepted shared data.
 
 ## UI effects
 
@@ -162,7 +167,8 @@ backend solution. Logout in one tab is not an atomic purge in the others.
 
 ## Current guarantees
 
-Own keyed drafts normally survive reload and clear on local logout; normal
+Own keyed drafts normally survive reload and clear on local logout; observers
+see code from the latest successful duel response; normal
 private participant sessions send changed full solutions at most once per
 interval; backend remains the security boundary; opponent data is not persisted.
 

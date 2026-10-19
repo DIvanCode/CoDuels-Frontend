@@ -20,10 +20,10 @@ import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { MonacoEditor } from "shared/ui";
 import clsx from "clsx";
 import { buildDuelTaskKey } from "widgets/code-panel/lib/duelTaskKey";
+import { resolveCodeEditorContent } from "widgets/code-panel/lib/observerSolution";
 import {
     buildEditorPath,
     editorDraftsReducer,
-    resolveEditorContent,
     type EditorMode,
 } from "widgets/code-panel/lib/editorDrafts";
 import { DEBOUNCE_DELAY } from "widgets/code-panel/lib/consts";
@@ -79,14 +79,17 @@ function CodeEditor({ mode = "my" }: CodeEditorProps) {
 
     const editorPath = buildEditorPath(currentUser?.id, duelId, selectedTaskId, mode);
     const [localDrafts, updateLocalDrafts] = useReducer(editorDraftsReducer, {});
-    const { code: localCode, language: localLanguage } = resolveEditorContent(
-        localDrafts,
-        editorPath,
+    const { code: localCode, language: localLanguage } = resolveCodeEditorContent({
+        duel,
+        taskKey: selectedTaskKey,
         mode,
-        initialCode,
-        initialLanguage,
+        isParticipant: canEdit,
+        drafts: localDrafts,
+        editorPath,
+        code: initialCode,
+        language: initialLanguage,
         appliedRevision,
-    );
+    });
     const [mountedEditor, setMountedEditor] =
         useState<MonacoEditorType.IStandaloneCodeEditor | null>(null);
     const editorRef = useRef<MonacoEditorType.IStandaloneCodeEditor | null>(null);
