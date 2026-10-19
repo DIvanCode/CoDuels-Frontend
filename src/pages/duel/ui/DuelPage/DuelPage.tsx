@@ -12,6 +12,15 @@ import { CodePanel } from "widgets/code-panel";
 import { TaskPanel } from "widgets/task-panel";
 import styles from "./DuelPage.module.scss";
 
+const ObserverDuelPolling = ({ duelId }: { duelId: number }) => {
+    useGetDuelQuery(duelId, {
+        pollingInterval: 2_000,
+        skipPollingIfUnfocused: true,
+    });
+
+    return null;
+};
+
 const DuelPage = () => {
     const { duelId } = useParams();
     const user = useAppSelector(selectCurrentUser);
@@ -19,7 +28,11 @@ const DuelPage = () => {
     const { phase } = useAppSelector(selectDuelSession);
     const duelIdNumber = duelId ? Number(duelId) : NaN;
     const isValidDuelId = Number.isFinite(duelIdNumber);
-    const { data: duel, error, isLoading } = useGetDuelQuery(duelIdNumber, {
+    const {
+        data: duel,
+        error,
+        isLoading,
+    } = useGetDuelQuery(duelIdNumber, {
         skip: !isValidDuelId,
     });
     const hasNoAccess = (error as { status?: unknown } | undefined)?.status === 403;
@@ -46,10 +59,21 @@ const DuelPage = () => {
     }
 
     return (
-        <Split direction="horizontal" sizes={[50, 50]} minSize={300} className={styles.duelPage}>
-            <CodePanel />
-            <TaskPanel />
-        </Split>
+        <>
+            {duel?.id === duelIdNumber &&
+                duel.status === "InProgress" &&
+                !isParticipant &&
+                user && <ObserverDuelPolling duelId={duelIdNumber} />}
+            <Split
+                direction="horizontal"
+                sizes={[50, 50]}
+                minSize={300}
+                className={styles.duelPage}
+            >
+                <CodePanel />
+                <TaskPanel />
+            </Split>
+        </>
     );
 };
 

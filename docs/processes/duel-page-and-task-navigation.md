@@ -71,6 +71,13 @@ The split view renders code and task panes. Spectators cannot edit/run/submit.
 Ordinary spectators cannot open submission detail, though they can view
 submission lists/authors where permitted; administrators can open any detail
 without gaining participant mutation controls.
+While an authorized observer has an in-progress duel open, the page polls its
+duel endpoint every two seconds when the tab is focused. The observer's two
+code tabs show the corresponding participants' code and language from the latest
+successful response. Polling stops when the duel finishes or the page closes;
+a failed poll leaves the last successful response visible.
+The app registers RTK Query focus listeners so `skipPollingIfUnfocused` pauses
+polls in inactive tabs.
 The statement, limits, and examples suppress browser selection, copy/cut,
 dragging, and context menus. The opponent Monaco view likewise suppresses
 ordinary copy/cut actions. These UI controls do not hide text from browser
@@ -97,8 +104,8 @@ the active transition has already been consumed and acknowledgement is shared.
 ## Ordering assumptions
 
 URL normalization assumes task list is loaded. Duel responses can arrive around
-navigation and editor debounce. A refetched duel can overwrite locally persisted
-solution/language before later editor state writes. Task-opening detection
+navigation and editor debounce. An observer displays the latest successful
+response, while a participant's local draft retains precedence. Task-opening detection
 depends on observing both old and new snapshots in one tab runtime.
 
 ## Failure handling
