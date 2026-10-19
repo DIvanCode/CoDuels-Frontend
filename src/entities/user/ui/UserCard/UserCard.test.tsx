@@ -11,6 +11,7 @@ const user = {
     nickname: "tourist",
     rating: 1500,
     created_at: "2026-07-24T00:00:00Z",
+    last_seen_at: null,
 };
 
 describe("UserCard", () => {
