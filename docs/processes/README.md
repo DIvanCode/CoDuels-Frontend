@@ -26,6 +26,7 @@ contracts. An implementation fact is not automatically a product requirement.
 | Capture/batch behavior actions                         | [Anti-cheat actions](anti-cheat-actions.md)                                      | anti-cheat feature              |
 | Endpoint cache keys/tags/manual changes                | [RTK Query cache](rtk-query-cache.md)                                            | shared API slice                |
 | Browser persistence and tab conflicts                  | [Reload recovery and multiple tabs](reload-recovery-and-multiple-tabs.md)        | redux-persist/storage           |
+| Dialog presentation and dismissal                      | [Modal dialogs](modal-dialogs.md)                                                | `shared/ui` and owning screens  |
 | Cross-process degraded paths                           | [Failure handling](failure-handling.md)                                          | all layers                      |
 | HTTP and WebSocket field compatibility                 | [Backend contracts](backend-contracts.md)                                        | Frontend plus backend producers |
 | Windows/WSL toolchain and production-bundle checks     | [Local Windows/WSL development and verification](local-windows-wsl-toolchain.md) | local development environment   |

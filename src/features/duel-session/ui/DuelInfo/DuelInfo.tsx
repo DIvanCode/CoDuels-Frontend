@@ -2,7 +2,7 @@
 import { selectCurrentUser, UserCard } from "entities/user";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { parseIsoTimestamp } from "shared/lib/isoTimestamp";
-import { Button, Modal } from "shared/ui";
+import { Button, Modal, ModalActions, ModalText } from "shared/ui";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "shared/config";
 import {
@@ -117,30 +117,34 @@ export const DuelInfo = ({ duelId }: Props) => {
             {showResultModal && duelResult !== null && (
                 <Modal title={resultTitleMap[duelResult]} onClose={handleResultModalClose}>
                     {duelResult && (
-                        <div className={styles.resultContent}>
-                            <p className={styles.description}>
+                        <>
+                            <ModalText>
                                 Изменение рейтинга: {changeText}
                                 <span className={styles.ratingChange}>
                                     ({user1.rating} {"->"} {user1.rating + delta})
                                 </span>
-                            </p>
-                            <Button onClick={handleResultModalClose}>Назад к дуэли</Button>
-                        </div>
+                            </ModalText>
+                            <ModalActions align="center">
+                                <Button onClick={handleResultModalClose}>Назад к дуэли</Button>
+                            </ModalActions>
+                        </>
                     )}
                 </Modal>
             )}
             {showUpdateModal && (
                 <Modal title="Дуэль обновлена" onClose={handleUpdateModalClose}>
-                    <div className={styles.resultContent}>
-                        <p className={styles.description}>
+                    <>
+                        <ModalText>
                             {openedTaskKeys.length > 0
                                 ? openedTaskKeys.length === 1
                                     ? `Открылась задача ${openedTaskKeys[0]}`
                                     : `Открылись задачи ${openedTaskKeys.join(", ")}`
                                 : "Проверьте, возможно, некоторые задачи стали доступны"}
-                        </p>
-                        <Button onClick={handleUpdateModalClose}>Понятно</Button>
-                    </div>
+                        </ModalText>
+                        <ModalActions align="center">
+                            <Button onClick={handleUpdateModalClose}>Понятно</Button>
+                        </ModalActions>
+                    </>
                 </Modal>
             )}
         </>

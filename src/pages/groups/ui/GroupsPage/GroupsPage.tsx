@@ -13,7 +13,7 @@ import {
 } from "entities/group";
 import { AppRoutes } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
-import { Button, InputField, Modal, Select, Table } from "shared/ui";
+import { Button, InputField, Modal, ModalActions, ModalText, Select, Table } from "shared/ui";
 
 import styles from "./GroupsPage.module.scss";
 
@@ -288,14 +288,14 @@ const GroupsPage = () => {
 
                         {formError && <div className={styles.errorText}>{formError}</div>}
 
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             <Button type="button" variant="outlined" onClick={handleCreateClose}>
                                 Отмена
                             </Button>
                             <Button type="submit" disabled={isSubmitDisabled}>
                                 Создать
                             </Button>
-                        </div>
+                        </ModalActions>
                     </form>
                 </Modal>
             )}
@@ -306,10 +306,10 @@ const GroupsPage = () => {
                     onClose={() => setLeaveTarget(null)}
                     closeOnOverlay={false}
                 >
-                    <div className={styles.confirmText}>
+                    <ModalText>
                         Вы действительно хотите покинуть группу {leaveTarget.name}?
-                    </div>
-                    <div className={styles.formActions}>
+                    </ModalText>
+                    <ModalActions>
                         <Button
                             type="button"
                             variant="outlined"
@@ -327,7 +327,7 @@ const GroupsPage = () => {
                         >
                             Покинуть
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
         </div>

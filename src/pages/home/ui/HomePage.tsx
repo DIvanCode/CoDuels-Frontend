@@ -32,10 +32,9 @@ import {
     openFriendlyDuel,
     selectFriendlyDuel,
 } from "widgets/friendly-duel";
-import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { useSessionStorage } from "shared/lib/useSessionStorage";
-import { Button, IconButton, MainCard, Modal, SearchLoader } from "shared/ui";
+import { Button, MainCard, Modal, ModalActions, ModalText, SearchLoader } from "shared/ui";
 
 import styles from "./HomePage.module.scss";
 
@@ -284,34 +283,23 @@ const HomePage = () => {
                     )}
 
                     {showStartPanel && (
-                        <div className={styles.startOverlay}>
-                            <div
-                                className={`${styles.startPanel} ${styles.modePanel}`}
-                                onClick={(event) => event.stopPropagation()}
-                            >
-                                <IconButton
-                                    className={styles.closeIconButton}
-                                    onClick={handleStartPanelClose}
-                                    aria-label="Закрыть"
-                                    size="small"
-                                >
-                                    <CrossIcon />
-                                </IconButton>
-                                <div className={styles.startPanelHeading}>
-                                    <h2>Режим дуэли</h2>
-                                    <p>
-                                        Запустите поиск оппонента для рейтинговой дуэли или вызовите
-                                        на сражение определенного соперника.
-                                    </p>
-                                </div>
-                                <div className={styles.startButtons}>
-                                    <Button onClick={handleQuickSearch}>Рейтинговая дуэль</Button>
-                                    <Button variant="outlined" onClick={handleFriendlyOpen}>
-                                        Дружеская дуэль
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                        <Modal
+                            title="Режим дуэли"
+                            onClose={handleStartPanelClose}
+                            closeOnOverlay={false}
+                            closeOnEscape={false}
+                        >
+                            <ModalText>
+                                Запустите поиск оппонента для рейтинговой дуэли или вызовите на
+                                сражение определенного соперника.
+                            </ModalText>
+                            <ModalActions grow>
+                                <Button onClick={handleQuickSearch}>Рейтинговая дуэль</Button>
+                                <Button variant="outlined" onClick={handleFriendlyOpen}>
+                                    Дружеская дуэль
+                                </Button>
+                            </ModalActions>
+                        </Modal>
                     )}
 
                     <FriendlyDuelFlow />
@@ -447,14 +435,14 @@ const HomePage = () => {
             </div>
             {duelCanceled && (
                 <Modal title="Вызов не принят" onClose={handleDuelCanceledClose}>
-                    <p className={styles.duelCanceledText}>
+                    <ModalText>
                         {duelCanceledOpponentNickname
                             ? `${duelCanceledOpponentNickname} не принял вызов на дуэль.`
                             : "Пользователь не принял вызов на дуэль."}
-                    </p>
-                    <Button className={styles.duelCanceledButton} onClick={handleDuelCanceledClose}>
-                        Понятно
-                    </Button>
+                    </ModalText>
+                    <ModalActions align="center">
+                        <Button onClick={handleDuelCanceledClose}>Понятно</Button>
+                    </ModalActions>
                 </Modal>
             )}
         </div>

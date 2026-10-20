@@ -34,7 +34,16 @@ import { AppRoutes } from "shared/config";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
 import { formatIsoDateTime, timestampMs } from "shared/lib/isoTimestamp";
 import EditIcon from "shared/assets/icons/edit.svg?react";
-import { Button, IconButton, InputField, Modal, Select, Table } from "shared/ui";
+import {
+    Button,
+    IconButton,
+    InputField,
+    Modal,
+    ModalActions,
+    ModalText,
+    Select,
+    Table,
+} from "shared/ui";
 import inputStyles from "shared/ui/InputField/InputField.module.scss";
 import { useCancelGroupInvitationMutation } from "entities/group-invitation";
 import {
@@ -736,14 +745,12 @@ const GroupPage = () => {
                         title="Не получилось отобразить группу"
                         onClose={() => setIsLoadErrorOpen(false)}
                     >
-                        <p className={styles.excludeText}>
-                            Возможно, у вас нет доступа или группа не найдена.
-                        </p>
-                        <div className={styles.formActions}>
+                        <ModalText>Возможно, у вас нет доступа или группа не найдена.</ModalText>
+                        <ModalActions>
                             <Button type="button" onClick={() => navigate(AppRoutes.INDEX)}>
                                 Понятно
                             </Button>
-                        </div>
+                        </ModalActions>
                     </Modal>
                 )}
             </div>
@@ -1252,14 +1259,14 @@ const GroupPage = () => {
                             autoComplete="off"
                         />
                         {formError && <div className={styles.errorText}>{formError}</div>}
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             <Button type="button" variant="outlined" onClick={handleEditClose}>
                                 Отмена
                             </Button>
                             <Button type="submit" disabled={isUpdating}>
                                 Сохранить
                             </Button>
-                        </div>
+                        </ModalActions>
                     </form>
                 </Modal>
             )}
@@ -1322,7 +1329,7 @@ const GroupPage = () => {
                                 ))}
                             </div>
                         )}
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             <Button type="button" variant="outlined" onClick={handleAddClose}>
                                 Отмена
                             </Button>
@@ -1333,7 +1340,7 @@ const GroupPage = () => {
                             >
                                 Добавить
                             </Button>
-                        </div>
+                        </ModalActions>
                     </div>
                 </Modal>
             )}
@@ -1353,7 +1360,7 @@ const GroupPage = () => {
                             />
                         </div>
                         {roleEditError && <div className={styles.errorText}>{roleEditError}</div>}
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             <Button
                                 type="button"
                                 variant="outlined"
@@ -1369,7 +1376,7 @@ const GroupPage = () => {
                             >
                                 Сохранить
                             </Button>
-                        </div>
+                        </ModalActions>
                     </div>
                 </Modal>
             )}
@@ -1383,13 +1390,13 @@ const GroupPage = () => {
                     }
                     onClose={handleExcludeClose}
                 >
-                    <p className={styles.excludeText}>
+                    <ModalText>
                         {excludeTarget.status === "Pending"
                             ? `Отменить приглашение для ${excludeTarget.user.nickname}?`
                             : `Исключить ${excludeTarget.user.nickname} из группы?`}
-                    </p>
+                    </ModalText>
                     {excludeError && <div className={styles.errorText}>{excludeError}</div>}
-                    <div className={styles.formActions}>
+                    <ModalActions>
                         <Button
                             type="button"
                             variant="outlined"
@@ -1408,7 +1415,7 @@ const GroupPage = () => {
                                 ? "Отменить приглашение"
                                 : "Исключить"}
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
 
@@ -1418,10 +1425,10 @@ const GroupPage = () => {
                     onClose={() => setLeaveTarget(null)}
                     closeOnOverlay={false}
                 >
-                    <div className={styles.confirmText}>
+                    <ModalText>
                         Вы действительно хотите покинуть группу {leaveTarget.name}?
-                    </div>
-                    <div className={styles.formActions}>
+                    </ModalText>
+                    <ModalActions>
                         <Button
                             type="button"
                             variant="outlined"
@@ -1439,7 +1446,7 @@ const GroupPage = () => {
                         >
                             Покинуть
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
 
@@ -1609,7 +1616,7 @@ const GroupPage = () => {
 
                         {duelFormError && <div className={styles.errorText}>{duelFormError}</div>}
 
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             <Button
                                 type="button"
                                 variant="outlined"
@@ -1620,7 +1627,7 @@ const GroupPage = () => {
                             <Button type="submit" disabled={isCreatingGroupDuel}>
                                 Создать
                             </Button>
-                        </div>
+                        </ModalActions>
                     </form>
                 </Modal>
             )}
@@ -1814,7 +1821,7 @@ const GroupPage = () => {
                             <div className={styles.errorText}>{tournamentFormError}</div>
                         )}
 
-                        <div className={styles.formActions}>
+                        <ModalActions>
                             {tournamentStep > 1 && (
                                 <Button
                                     type="button"
@@ -1837,7 +1844,7 @@ const GroupPage = () => {
                                     Создать
                                 </Button>
                             )}
-                        </div>
+                        </ModalActions>
                     </form>
                 </Modal>
             )}

@@ -1,4 +1,5 @@
-import { PropsWithChildren, useId, useRef } from "react";
+import clsx from "clsx";
+import { PropsWithChildren, useId, useRef, type ReactNode } from "react";
 
 import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useDismissibleLayer } from "shared/lib/useDismissibleLayer";
@@ -11,6 +12,9 @@ interface Props {
     onClose: () => void;
     showCloseButton?: boolean;
     closeOnOverlay?: boolean;
+    closeOnEscape?: boolean;
+    size?: "default" | "wide";
+    contentAlign?: "center" | "start";
 }
 
 export const Modal = ({
@@ -18,6 +22,9 @@ export const Modal = ({
     onClose,
     showCloseButton = true,
     closeOnOverlay = true,
+    closeOnEscape = true,
+    size = "default",
+    contentAlign = "center",
     children,
 }: PropsWithChildren<Props>) => {
     const modalRef = useRef<HTMLDivElement>(null);
@@ -26,7 +33,9 @@ export const Modal = ({
     useDismissibleLayer({
         isOpen: true,
         layerRef: modalRef,
-        onDismiss: onClose,
+        onDismiss: () => {
+            if (closeOnEscape) onClose();
+        },
         focusOnOpen: true,
         trapFocus: true,
     });
@@ -42,7 +51,11 @@ export const Modal = ({
         >
             <div
                 ref={modalRef}
-                className={styles.modal}
+                className={clsx(
+                    styles.modal,
+                    size === "wide" && styles.wide,
+                    contentAlign === "start" && styles.start,
+                )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
@@ -66,3 +79,46 @@ export const Modal = ({
         </div>
     );
 };
+
+interface ModalTextProps {
+    children: ReactNode;
+    className?: string;
+    align?: "center" | "start";
+}
+
+export const ModalText = ({ children, className, align = "center" }: ModalTextProps) => (
+    <p
+        className={clsx(
+            styles.text,
+            align === "start" ? styles.textStart : styles.textCenter,
+            className,
+        )}
+    >
+        {children}
+    </p>
+);
+
+interface ModalActionsProps {
+    children: ReactNode;
+    className?: string;
+    align?: "center" | "end";
+    grow?: boolean;
+}
+
+export const ModalActions = ({
+    children,
+    className,
+    align = "end",
+    grow = false,
+}: ModalActionsProps) => (
+    <div
+        className={clsx(
+            styles.actions,
+            align === "center" ? styles.actionsCenter : styles.actionsEnd,
+            grow && styles.grow,
+            className,
+        )}
+    >
+        {children}
+    </div>
+);
