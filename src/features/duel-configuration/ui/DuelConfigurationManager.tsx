@@ -12,7 +12,7 @@ import {
 } from "entities/duel-configuration";
 import { useGetTaskTopicsQuery } from "entities/task";
 import { useLocalStorage } from "shared/lib/useLocalStorage";
-import { Button, Select } from "shared/ui";
+import { Button, Modal, ModalActions, ModalText, Select } from "shared/ui";
 import inputStyles from "shared/ui/InputField/InputField.module.scss";
 
 import styles from "./DuelConfigurationManager.module.scss";
@@ -446,256 +446,238 @@ export const DuelConfigurationManager = ({
             {isFormVisible &&
                 portalTarget &&
                 createPortal(
-                    <div className={styles.modalBackdrop} onClick={closeForm}>
-                        <div
-                            className={styles.modalCard}
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <div className={styles.modalHeader}>
-                                <h2>{headerLabel}</h2>
-                                <Button
-                                    variant="outlined"
-                                    className={styles.inlineButton}
-                                    onClick={closeForm}
-                                    type="button"
-                                >
-                                    Закрыть
-                                </Button>
+                    <Modal
+                        title={headerLabel}
+                        onClose={closeForm}
+                        size="wide"
+                        contentAlign="start"
+                        className={styles.formModal}
+                        overlayClassName={styles.formOverlay}
+                    >
+                        <ModalText className={styles.notice} align="start">
+                            Созданные правила подходят только для нерейтинговых дуэлей.
+                        </ModalText>
+
+                        <form className={styles.form} onSubmit={handleSubmit}>
+                            <div className={styles.formRow}>
+                                <div className={inputStyles.inputField}>
+                                    <input
+                                        id="duel-duration"
+                                        className={inputStyles.input}
+                                        type="number"
+                                        min={MIN_DURATION_MINUTES}
+                                        max={MAX_DURATION_MINUTES}
+                                        step={1}
+                                        value={maxDurationMinutes}
+                                        onChange={(event) =>
+                                            setMaxDurationMinutes(event.target.value)
+                                        }
+                                        required
+                                    />
+                                    <span
+                                        className={`${inputStyles.inputLabel} ${styles.mutedLabel}`}
+                                    >
+                                        Длительность (5–300 минут)
+                                    </span>
+                                </div>
                             </div>
 
-                            <p className={styles.notice}>
-                                Созданные правила подходят только для нерейтинговых дуэлей.
-                            </p>
+                            <label className={styles.toggle}>
+                                <input
+                                    type="checkbox"
+                                    checked={shouldShowOpponentSolution}
+                                    onChange={(event) =>
+                                        setShouldShowOpponentSolution(event.target.checked)
+                                    }
+                                />
+                                Показывать код соперника во время дуэли
+                            </label>
 
-                            <form className={styles.form} onSubmit={handleSubmit}>
-                                <div className={styles.formRow}>
-                                    <div className={inputStyles.inputField}>
-                                        <input
-                                            id="duel-duration"
-                                            className={inputStyles.input}
-                                            type="number"
-                                            min={MIN_DURATION_MINUTES}
-                                            max={MAX_DURATION_MINUTES}
-                                            step={1}
-                                            value={maxDurationMinutes}
-                                            onChange={(event) =>
-                                                setMaxDurationMinutes(event.target.value)
-                                            }
-                                            required
-                                        />
-                                        <span
-                                            className={`${inputStyles.inputLabel} ${styles.mutedLabel}`}
-                                        >
-                                            Длительность (5–300 минут)
-                                        </span>
-                                    </div>
+                            <div className={styles.orderGroup}>
+                                <span className={styles.sectionLabel}>Порядок задач</span>
+                                <div className={styles.orderOptions}>
+                                    {TASK_ORDER_OPTIONS.map((option) => (
+                                        <label key={option.value} className={styles.orderOption}>
+                                            <input
+                                                type="radio"
+                                                name="task-order"
+                                                value={option.value}
+                                                checked={tasksOrder === option.value}
+                                                onChange={() => setTasksOrder(option.value)}
+                                            />
+                                            <div className={styles.orderText}>
+                                                <span className={styles.orderHintOnly}>
+                                                    {option.description}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className={styles.taskList}>
+                                <div className={styles.taskHeader}>
+                                    <h3>Задачи ({taskCount}/10)</h3>
+                                    <Button
+                                        variant="outlined"
+                                        className={styles.inlineButton}
+                                        onClick={() => setTasks((prev) => [...prev, createTask()])}
+                                        type="button"
+                                        disabled={taskCount >= MAX_TASKS_COUNT}
+                                    >
+                                        Добавить задачу
+                                    </Button>
                                 </div>
 
-                                <label className={styles.toggle}>
-                                    <input
-                                        type="checkbox"
-                                        checked={shouldShowOpponentSolution}
-                                        onChange={(event) =>
-                                            setShouldShowOpponentSolution(event.target.checked)
-                                        }
-                                    />
-                                    Показывать код соперника во время дуэли
-                                </label>
+                                {tasks.map((task) => {
+                                    const topics =
+                                        topicsData?.status === "OK"
+                                            ? (topicsData.topics ?? [])
+                                            : [];
+                                    const availableTopics = topics.filter(
+                                        (topic) => !task.topics.includes(topic),
+                                    );
+                                    const topicOptions = availableTopics.map((topic) => ({
+                                        value: topic,
+                                        label: topic,
+                                    }));
 
-                                <div className={styles.orderGroup}>
-                                    <span className={styles.sectionLabel}>Порядок задач</span>
-                                    <div className={styles.orderOptions}>
-                                        {TASK_ORDER_OPTIONS.map((option) => (
-                                            <label
-                                                key={option.value}
-                                                className={styles.orderOption}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="task-order"
-                                                    value={option.value}
-                                                    checked={tasksOrder === option.value}
-                                                    onChange={() => setTasksOrder(option.value)}
-                                                />
-                                                <div className={styles.orderText}>
-                                                    <span className={styles.orderHintOnly}>
-                                                        {option.description}
+                                    return (
+                                        <div key={task.id} className={styles.taskRow}>
+                                            <div className={styles.selectField}>
+                                                <span className={styles.selectLabel}>
+                                                    Рейтинг задачи
+                                                </span>
+                                                {isTaskLevelRatingRangesLoading ? (
+                                                    <span className={styles.helperText}>
+                                                        Загрузка диапазонов рейтинга…
                                                     </span>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className={styles.taskList}>
-                                    <div className={styles.taskHeader}>
-                                        <h3>Задачи ({taskCount}/10)</h3>
-                                        <Button
-                                            variant="outlined"
-                                            className={styles.inlineButton}
-                                            onClick={() =>
-                                                setTasks((prev) => [...prev, createTask()])
-                                            }
-                                            type="button"
-                                            disabled={taskCount >= MAX_TASKS_COUNT}
-                                        >
-                                            Добавить задачу
-                                        </Button>
-                                    </div>
-
-                                    {tasks.map((task) => {
-                                        const topics =
-                                            topicsData?.status === "OK"
-                                                ? (topicsData.topics ?? [])
-                                                : [];
-                                        const availableTopics = topics.filter(
-                                            (topic) => !task.topics.includes(topic),
-                                        );
-                                        const topicOptions = availableTopics.map((topic) => ({
-                                            value: topic,
-                                            label: topic,
-                                        }));
-
-                                        return (
-                                            <div key={task.id} className={styles.taskRow}>
-                                                <div className={styles.selectField}>
-                                                    <span className={styles.selectLabel}>
-                                                        Рейтинг задачи
+                                                ) : isTaskLevelRatingRangesError ? (
+                                                    <span className={styles.errorText}>
+                                                        Не удалось загрузить диапазоны рейтинга.
                                                     </span>
-                                                    {isTaskLevelRatingRangesLoading ? (
-                                                        <span className={styles.helperText}>
-                                                            Загрузка диапазонов рейтинга…
-                                                        </span>
-                                                    ) : isTaskLevelRatingRangesError ? (
-                                                        <span className={styles.errorText}>
-                                                            Не удалось загрузить диапазоны рейтинга.
-                                                        </span>
-                                                    ) : (
-                                                        <Select
-                                                            value={task.level}
-                                                            onChange={(value) => {
-                                                                setTasks((prev) =>
-                                                                    prev.map((item) =>
-                                                                        item.id === task.id
-                                                                            ? {
-                                                                                  ...item,
-                                                                                  level: value,
-                                                                              }
-                                                                            : item,
-                                                                    ),
-                                                                );
-                                                            }}
-                                                            options={taskLevelOptions}
-                                                            className={styles.select}
-                                                        />
-                                                    )}
-                                                </div>
-
-                                                <div className={styles.topics}>
-                                                    <span className={styles.selectLabel}>
-                                                        Темы задач
-                                                    </span>
-                                                    {task.topics.length > 0 && (
-                                                        <div className={styles.topicList}>
-                                                            {task.topics.map((topic) => (
-                                                                <div
-                                                                    key={topic}
-                                                                    className={styles.topicChip}
-                                                                >
-                                                                    <span>{topic}</span>
-                                                                    <button
-                                                                        type="button"
-                                                                        className={
-                                                                            styles.topicRemove
-                                                                        }
-                                                                        onClick={() => {
-                                                                            setTasks((prev) =>
-                                                                                prev.map((item) =>
-                                                                                    item.id ===
-                                                                                    task.id
-                                                                                        ? {
-                                                                                              ...item,
-                                                                                              topics: item.topics.filter(
-                                                                                                  (
-                                                                                                      itemTopic,
-                                                                                                  ) =>
-                                                                                                      itemTopic !==
-                                                                                                      topic,
-                                                                                              ),
-                                                                                          }
-                                                                                        : item,
-                                                                                ),
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        Удалить
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-
+                                                ) : (
                                                     <Select
-                                                        value={""}
+                                                        value={task.level}
                                                         onChange={(value) => {
                                                             setTasks((prev) =>
                                                                 prev.map((item) =>
                                                                     item.id === task.id
                                                                         ? {
                                                                               ...item,
-                                                                              topics: item.topics.includes(
-                                                                                  value,
-                                                                              )
-                                                                                  ? item.topics
-                                                                                  : [
-                                                                                        ...item.topics,
-                                                                                        value,
-                                                                                    ],
+                                                                              level: value,
                                                                           }
                                                                         : item,
                                                                 ),
                                                             );
                                                         }}
-                                                        options={topicOptions}
+                                                        options={taskLevelOptions}
                                                         className={styles.select}
-                                                        placeholder={
-                                                            task.topics.length > 0
-                                                                ? "выбрать тему"
-                                                                : "любая тема"
-                                                        }
                                                     />
-                                                </div>
-
-                                                <Button
-                                                    variant="outlined"
-                                                    className={styles.inlineButton}
-                                                    onClick={() =>
-                                                        setTasks((prev) =>
-                                                            prev.filter(
-                                                                (item) => item.id !== task.id,
-                                                            ),
-                                                        )
-                                                    }
-                                                    type="button"
-                                                    disabled={tasks.length === 1}
-                                                >
-                                                    Удалить задачу
-                                                </Button>
+                                                )}
                                             </div>
-                                        );
-                                    })}
+
+                                            <div className={styles.topics}>
+                                                <span className={styles.selectLabel}>
+                                                    Темы задач
+                                                </span>
+                                                {task.topics.length > 0 && (
+                                                    <div className={styles.topicList}>
+                                                        {task.topics.map((topic) => (
+                                                            <div
+                                                                key={topic}
+                                                                className={styles.topicChip}
+                                                            >
+                                                                <span>{topic}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className={styles.topicRemove}
+                                                                    onClick={() => {
+                                                                        setTasks((prev) =>
+                                                                            prev.map((item) =>
+                                                                                item.id === task.id
+                                                                                    ? {
+                                                                                          ...item,
+                                                                                          topics: item.topics.filter(
+                                                                                              (
+                                                                                                  itemTopic,
+                                                                                              ) =>
+                                                                                                  itemTopic !==
+                                                                                                  topic,
+                                                                                          ),
+                                                                                      }
+                                                                                    : item,
+                                                                            ),
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    Удалить
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <Select
+                                                    value={""}
+                                                    onChange={(value) => {
+                                                        setTasks((prev) =>
+                                                            prev.map((item) =>
+                                                                item.id === task.id
+                                                                    ? {
+                                                                          ...item,
+                                                                          topics: item.topics.includes(
+                                                                              value,
+                                                                          )
+                                                                              ? item.topics
+                                                                              : [
+                                                                                    ...item.topics,
+                                                                                    value,
+                                                                                ],
+                                                                      }
+                                                                    : item,
+                                                            ),
+                                                        );
+                                                    }}
+                                                    options={topicOptions}
+                                                    className={styles.select}
+                                                    placeholder={
+                                                        task.topics.length > 0
+                                                            ? "выбрать тему"
+                                                            : "любая тема"
+                                                    }
+                                                />
+                                            </div>
+
+                                            <Button
+                                                variant="outlined"
+                                                className={styles.inlineButton}
+                                                onClick={() =>
+                                                    setTasks((prev) =>
+                                                        prev.filter((item) => item.id !== task.id),
+                                                    )
+                                                }
+                                                type="button"
+                                                disabled={tasks.length === 1}
+                                            >
+                                                Удалить задачу
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {formTaskSummary.length > 0 && (
+                                <div className={styles.helperText}>
+                                    {formTaskSummary.map((item) => (
+                                        <div key={item}>{item}</div>
+                                    ))}
                                 </div>
+                            )}
 
-                                {formTaskSummary.length > 0 && (
-                                    <div className={styles.helperText}>
-                                        {formTaskSummary.map((item) => (
-                                            <div key={item}>{item}</div>
-                                        ))}
-                                    </div>
-                                )}
+                            {formError && <p className={styles.errorText}>{formError}</p>}
 
-                                {formError && <p className={styles.errorText}>{formError}</p>}
-
+                            <ModalActions grow className={styles.submitActions}>
                                 <Button
                                     type="submit"
                                     disabled={
@@ -706,9 +688,9 @@ export const DuelConfigurationManager = ({
                                 >
                                     {editingId ? "Сохранить изменения" : "Создать правила"}
                                 </Button>
-                            </form>
-                        </div>
-                    </div>,
+                            </ModalActions>
+                        </form>
+                    </Modal>,
                     portalTarget,
                 )}
         </>

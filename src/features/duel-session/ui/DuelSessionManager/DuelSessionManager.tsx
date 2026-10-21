@@ -16,7 +16,7 @@ import { restoreActiveDuel, restoreDuelSession } from "features/duel-session/mod
 import { shouldClearSessionAfterNullActiveDuel } from "features/duel-session/model/sessionFreshness";
 import { useDuelResultAcknowledgement } from "features/duel-session/model/useDuelResultAcknowledgement";
 import { useAppDispatch, useAppSelector, useAppStore } from "shared/lib/storeHooks";
-import { Button, Modal } from "shared/ui";
+import { Button, Modal, ModalActions, ModalText } from "shared/ui";
 
 import styles from "./DuelSessionManager.module.scss";
 
@@ -138,19 +138,19 @@ export const DuelSessionManager = () => {
                 <Modal
                     title="Соединение прервано"
                     showCloseButton={false}
-                    closeOnOverlay={false}
+                    closeOnEscape={false}
                     onClose={() => undefined}
                 >
                     <div className={styles.resultContent}>
-                        <p className={styles.description}>
+                        <ModalText>
                             Соединение восстанавливается автоматически. Можно повторить попытку
                             немедленно.
-                        </p>
-                        <div className={styles.actions}>
+                        </ModalText>
+                        <ModalActions align="center" className={styles.actions}>
                             <Button onClick={handleReconnect} disabled={isReconnecting}>
                                 {isReconnecting ? "Переподключение..." : "Переподключиться"}
                             </Button>
-                        </div>
+                        </ModalActions>
                     </div>
                 </Modal>
             )}

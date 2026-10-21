@@ -115,16 +115,6 @@
     --btn-text-color: #ffffff;
 }
 
-.duelCanceledText {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    text-align: center;
-}
-
-.duelCanceledButton {
-    margin-top: 1em;
-}
-
 .cardHeading {
     font-size: 1.75rem;
 }
@@ -137,91 +127,32 @@
     color: var(--accent-primary);
 }
 
-.startOverlay {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background: var(--background);
-    z-index: 20;
-}
-
-.startPanel {
-    position: relative;
-    width: min(100%, 520px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
-    padding: 1.75em;
-    background: var(--card-primary);
-    border-radius: 0.75em;
-    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
-}
-
 .modePanel {
     margin-top: -3em;
 }
 
-.startPanelHeading {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5em;
-    text-align: center;
-    padding: 0 2.25em 0 2.25em;
+.modePanel.modePanel > h3 {
+    padding-inline: 2.25em;
+    margin-bottom: 0.5rem;
 }
 
-.startPanelHeading h2 {
-    font-size: 1.4rem;
-}
-
-.startPanelHeading p {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 300;
+.modeDescription {
+    padding-inline: 2.25em;
     margin-bottom: 1.2em;
+    font-size: 0.9rem;
+    font-weight: 300;
 }
 
-.closeIconButton {
-    position: absolute;
-    top: 0.75em;
-    right: 0.75em;
-    width: 1.75em;
-    height: 1.75em;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--card-secondary) 60%, transparent);
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 1rem;
-    line-height: 1;
-    cursor: pointer;
-    transition:
-        color 0.2s ease,
-        background-color 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.closeIconButton:hover {
-    color: var(--text-primary);
-    background-color: var(--card-secondary);
-    border-color: color-mix(in srgb, var(--card-secondary) 80%, transparent);
-}
-
-.startButtons {
-    display: flex;
-    flex-wrap: wrap;
+.modeActions {
     justify-content: space-between;
-    gap: 1em;
-    width: 100%;
 }
 
-.startButtons > * {
-    flex: 1;
+.duelCanceledText {
+    font-size: 0.95rem;
+}
+
+.duelCanceledActions {
+    margin-top: 1em;
 }
 
 .configPickerPanel {

@@ -370,6 +370,19 @@
     --btn-text-color: var(--text-primary);
 }
 
+.formActions {
+    gap: 0.75em;
+    margin-top: 0.5em;
+}
+
+.excludeText {
+    margin-bottom: 1em;
+}
+
+.confirmText {
+    color: var(--text-primary);
+}
+
 .modalForm {
     display: flex;
     flex-direction: column;
@@ -720,18 +733,6 @@
 
 .foundUserRole {
     font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.formActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75em;
-    margin-top: 0.5em;
-}
-
-.excludeText {
-    margin: 0 0 1em;
     color: var(--text-secondary);
 }
 

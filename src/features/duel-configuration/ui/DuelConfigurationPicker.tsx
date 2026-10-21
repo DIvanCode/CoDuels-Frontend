@@ -9,7 +9,7 @@ import {
     useGetDuelConfigurationsQuery,
     useGetTaskLevelRatingRangesQuery,
 } from "entities/duel-configuration";
-import { Button, Modal } from "shared/ui";
+import { Button, Modal, ModalActions, ModalText } from "shared/ui";
 
 import styles from "./DuelConfigurationManager.module.scss";
 
@@ -31,6 +31,7 @@ interface Props {
     onCreate?: () => void;
     onEdit?: (config: DuelConfiguration) => void;
     className?: string;
+    showHeading?: boolean;
 }
 
 const orderLabels: Record<DuelTasksOrder, string> = {
@@ -47,6 +48,7 @@ export const DuelConfigurationPicker = ({
     onCreate,
     onEdit,
     className,
+    showHeading = true,
 }: Props) => {
     const { data: configs, isLoading, isError } = useGetDuelConfigurationsQuery();
     const {
@@ -79,7 +81,7 @@ export const DuelConfigurationPicker = ({
         <div className={clsx(styles.card, className)}>
             <div className={clsx(styles.listHeader, styles.listHeaderStack)}>
                 <div className={clsx(styles.listHeaderText, styles.listHeaderCentered)}>
-                    <h2>Правила дуэли</h2>
+                    {showHeading && <h2>Правила дуэли</h2>}
                     <p className={styles.listHint}>
                         Выберите правила для дуэли или используйте стандартные.
                     </p>
@@ -216,8 +218,10 @@ export const DuelConfigurationPicker = ({
 
             {pendingDelete && (
                 <Modal title="Удалить правила?" onClose={() => setPendingDelete(null)}>
-                    <p className={styles.deleteHint}>Действие необратимо. Правила будут удалены.</p>
-                    <div className={styles.deleteActions}>
+                    <ModalText className={styles.deleteHint}>
+                        Действие необратимо. Правила будут удалены.
+                    </ModalText>
+                    <ModalActions className={styles.deleteActions}>
                         <Button
                             variant="outlined"
                             onClick={() => setPendingDelete(null)}
@@ -239,7 +243,7 @@ export const DuelConfigurationPicker = ({
                         >
                             Удалить
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
         </div>

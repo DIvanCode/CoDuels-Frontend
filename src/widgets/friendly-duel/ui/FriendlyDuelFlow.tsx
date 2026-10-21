@@ -16,9 +16,8 @@ import {
     setSearchNickname,
     setSearchTournamentId,
 } from "features/duel-session";
-import CrossIcon from "shared/assets/icons/cross.svg?react";
 import { useAppDispatch, useAppSelector } from "shared/lib/storeHooks";
-import { Button, IconButton, InputField, Modal } from "shared/ui";
+import { Button, InputField, Modal, ModalActions, ModalText } from "shared/ui";
 
 import configStyles from "features/duel-configuration/ui/DuelConfigurationManager.module.scss";
 import {
@@ -227,113 +226,97 @@ export const FriendlyDuelFlow = () => {
     const isConfigurationScenarioActive = isFriendlyDuelConfigurationScenarioActive(friendlyDuel);
     const cancellationDescription =
         friendlyDuel.cancellationReason === "user"
-              ? "Поиск отменён. Выбранные правила и никнейм сохранены для повторного вызова."
-              : friendlyDuel.cancellationReason === "disconnect"
-                ? "Соединение было прервано, поэтому поиск остановлен."
-                : "Соперник отклонил дружескую дуэль";
+            ? "Поиск отменён. Выбранные правила и никнейм сохранены для повторного вызова."
+            : friendlyDuel.cancellationReason === "disconnect"
+              ? "Соединение было прервано, поэтому поиск остановлен."
+              : "Соперник отклонил дружескую дуэль";
 
     return (
         <>
             {isConfigurationScenarioActive && friendlyDuel.step === "configuration" && (
-                <div className={styles.overlay}>
-                    <div className={styles.configurationPanel}>
-                        <IconButton
-                            className={styles.closeIconButton}
-                            onClick={() => dispatch(closeFriendlyDuel())}
-                            aria-label="Закрыть"
-                            size="small"
+                <Modal
+                    title="Правила дружеской дуэли"
+                    onClose={() => dispatch(closeFriendlyDuel())}
+                    presentation="page"
+                    className={styles.configurationModal}
+                    closeOnEscape={false}
+                >
+                    <DuelConfigurationPicker
+                        className={configStyles.cardFlat}
+                        showHeading={false}
+                        selectedId={friendlyDuel.configurationId}
+                        selectedIsDefault={friendlyDuel.usesDefaultConfiguration}
+                        onSelect={(id) => dispatch(selectFriendlyDuelConfiguration(id))}
+                        onSelectDefault={() => dispatch(selectFriendlyDuelDefaultConfiguration())}
+                        onClearSelection={() => dispatch(selectFriendlyDuelDefaultConfiguration())}
+                        onCreate={() => setShowConfigurationManager(true)}
+                        onEdit={(configuration) => {
+                            setEditConfiguration(configuration);
+                            setShowConfigurationManager(true);
+                        }}
+                    />
+                    <ModalActions grow>
+                        <Button variant="outlined" onClick={() => dispatch(closeFriendlyDuel())}>
+                            Назад
+                        </Button>
+                        <Button
+                            onClick={() => dispatch(showFriendlyDuelOpponentStep())}
+                            disabled={
+                                !friendlyDuel.usesDefaultConfiguration &&
+                                friendlyDuel.configurationId === null
+                            }
                         >
-                            <CrossIcon />
-                        </IconButton>
-                        <DuelConfigurationPicker
-                            className={configStyles.cardFlat}
-                            selectedId={friendlyDuel.configurationId}
-                            selectedIsDefault={friendlyDuel.usesDefaultConfiguration}
-                            onSelect={(id) => dispatch(selectFriendlyDuelConfiguration(id))}
-                            onSelectDefault={() =>
-                                dispatch(selectFriendlyDuelDefaultConfiguration())
-                            }
-                            onClearSelection={() =>
-                                dispatch(selectFriendlyDuelDefaultConfiguration())
-                            }
-                            onCreate={() => setShowConfigurationManager(true)}
-                            onEdit={(configuration) => {
-                                setEditConfiguration(configuration);
-                                setShowConfigurationManager(true);
-                            }}
+                            Далее
+                        </Button>
+                    </ModalActions>
+                </Modal>
+            )}
+
+            {isConfigurationScenarioActive && friendlyDuel.step === "opponent" && (
+                <Modal
+                    title="Дружеская дуэль"
+                    onClose={() => dispatch(closeFriendlyDuel())}
+                    presentation="page"
+                    closeOnEscape={false}
+                >
+                    <div className={styles.selectedConfiguration}>
+                        <SelectedConfiguration
+                            configurationId={friendlyDuel.configurationId}
+                            usesDefaultConfiguration={friendlyDuel.usesDefaultConfiguration}
                         />
-                        <div className={styles.configurationActions}>
+                    </div>
+                    <ModalText>Укажите ник соперника.</ModalText>
+                    <form className={styles.form} onSubmit={handleSubmit}>
+                        <InputField
+                            id="friendly-duel-nickname"
+                            labelValue="Никнейм оппонента"
+                            wrapperClassName={styles.inputField}
+                            labelClassName={styles.inputLabelHidden}
+                            inputClassName={styles.input}
+                            placeholder="Никнейм"
+                            value={friendlyDuel.nickname}
+                            onChange={(event) =>
+                                dispatch(setFriendlyDuelNickname(event.target.value))
+                            }
+                            autoComplete="off"
+                        />
+                        <ModalActions grow className={styles.formActions}>
                             <Button
                                 variant="outlined"
-                                onClick={() => dispatch(closeFriendlyDuel())}
+                                onClick={() => dispatch(showFriendlyDuelConfigurationStep())}
+                                type="button"
                             >
                                 Назад
                             </Button>
                             <Button
-                                onClick={() => dispatch(showFriendlyDuelOpponentStep())}
-                                disabled={
-                                    !friendlyDuel.usesDefaultConfiguration &&
-                                    friendlyDuel.configurationId === null
-                                }
+                                type="submit"
+                                disabled={!friendlyDuel.nickname.trim() || isCreatingInvitation}
                             >
-                                Далее
+                                {isCreatingInvitation ? "Отправка..." : "Вызов"}
                             </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {isConfigurationScenarioActive && friendlyDuel.step === "opponent" && (
-                <div className={styles.overlay}>
-                    <div className={styles.panel}>
-                        <IconButton
-                            className={styles.closeIconButton}
-                            onClick={() => dispatch(closeFriendlyDuel())}
-                            aria-label="Закрыть"
-                            size="small"
-                        >
-                            <CrossIcon />
-                        </IconButton>
-                        <h2 className={styles.heading}>Дружеская дуэль</h2>
-                        <div className={styles.selectedConfiguration}>
-                            <SelectedConfiguration
-                                configurationId={friendlyDuel.configurationId}
-                                usesDefaultConfiguration={friendlyDuel.usesDefaultConfiguration}
-                            />
-                        </div>
-                        <p className={styles.description}>Укажите ник соперника.</p>
-                        <form className={styles.form} onSubmit={handleSubmit}>
-                            <InputField
-                                id="friendly-duel-nickname"
-                                labelValue="Никнейм оппонента"
-                                wrapperClassName={styles.inputField}
-                                labelClassName={styles.inputLabelHidden}
-                                inputClassName={styles.input}
-                                placeholder="Никнейм"
-                                value={friendlyDuel.nickname}
-                                onChange={(event) =>
-                                    dispatch(setFriendlyDuelNickname(event.target.value))
-                                }
-                                autoComplete="off"
-                            />
-                            <div className={styles.formActions}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => dispatch(showFriendlyDuelConfigurationStep())}
-                                    type="button"
-                                >
-                                    Назад
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={!friendlyDuel.nickname.trim() || isCreatingInvitation}
-                                >
-                                    {isCreatingInvitation ? "Отправка..." : "Вызов"}
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                        </ModalActions>
+                    </form>
+                </Modal>
             )}
 
             {showConfigurationManager && (
@@ -358,15 +341,15 @@ export const FriendlyDuelFlow = () => {
                     title="Дружеская дуэль отменена"
                     onClose={() => dispatch(closeFriendlyDuel())}
                 >
-                    <p className={styles.resultDescription}>{cancellationDescription}</p>
-                    <div className={styles.resultActions}>
+                    <ModalText>{cancellationDescription}</ModalText>
+                    <ModalActions grow className={styles.resultActions}>
                         <Button variant="outlined" onClick={() => dispatch(closeFriendlyDuel())}>
                             Закрыть
                         </Button>
                         <Button onClick={() => dispatch(returnToFriendlyDuelConfiguration())}>
                             Настроить снова
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
 
@@ -376,16 +359,16 @@ export const FriendlyDuelFlow = () => {
                     onClose={() => dispatch(closeFriendlyDuel())}
                 >
                     {friendlyDuel.error.description && (
-                        <p className={styles.resultDescription}>{friendlyDuel.error.description}</p>
+                        <ModalText>{friendlyDuel.error.description}</ModalText>
                     )}
-                    <div className={styles.resultActions}>
+                    <ModalActions grow className={styles.resultActions}>
                         <Button variant="outlined" onClick={() => dispatch(closeFriendlyDuel())}>
                             Закрыть
                         </Button>
                         <Button onClick={() => dispatch(returnToFriendlyDuelConfiguration())}>
                             Исправить и повторить
                         </Button>
-                    </div>
+                    </ModalActions>
                 </Modal>
             )}
         </>
