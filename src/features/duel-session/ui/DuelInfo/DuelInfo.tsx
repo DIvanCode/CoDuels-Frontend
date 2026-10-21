@@ -117,34 +117,34 @@ export const DuelInfo = ({ duelId }: Props) => {
             {showResultModal && duelResult !== null && (
                 <Modal title={resultTitleMap[duelResult]} onClose={handleResultModalClose}>
                     {duelResult && (
-                        <>
-                            <ModalText>
+                        <div className={styles.resultContent}>
+                            <ModalText className={styles.description}>
                                 Изменение рейтинга: {changeText}
                                 <span className={styles.ratingChange}>
                                     ({user1.rating} {"->"} {user1.rating + delta})
                                 </span>
                             </ModalText>
-                            <ModalActions align="center">
+                            <ModalActions align="center" className={styles.resultActions}>
                                 <Button onClick={handleResultModalClose}>Назад к дуэли</Button>
                             </ModalActions>
-                        </>
+                        </div>
                     )}
                 </Modal>
             )}
             {showUpdateModal && (
                 <Modal title="Дуэль обновлена" onClose={handleUpdateModalClose}>
-                    <>
-                        <ModalText>
+                    <div className={styles.resultContent}>
+                        <ModalText className={styles.description}>
                             {openedTaskKeys.length > 0
                                 ? openedTaskKeys.length === 1
                                     ? `Открылась задача ${openedTaskKeys[0]}`
                                     : `Открылись задачи ${openedTaskKeys.join(", ")}`
                                 : "Проверьте, возможно, некоторые задачи стали доступны"}
                         </ModalText>
-                        <ModalActions align="center">
+                        <ModalActions align="center" className={styles.resultActions}>
                             <Button onClick={handleUpdateModalClose}>Понятно</Button>
                         </ModalActions>
-                    </>
+                    </div>
                 </Modal>
             )}
         </>

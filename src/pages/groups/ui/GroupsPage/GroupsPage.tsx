@@ -288,7 +288,7 @@ const GroupsPage = () => {
 
                         {formError && <div className={styles.errorText}>{formError}</div>}
 
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             <Button type="button" variant="outlined" onClick={handleCreateClose}>
                                 Отмена
                             </Button>
@@ -306,10 +306,10 @@ const GroupsPage = () => {
                     onClose={() => setLeaveTarget(null)}
                     closeOnOverlay={false}
                 >
-                    <ModalText>
+                    <ModalText className={styles.confirmText}>
                         Вы действительно хотите покинуть группу {leaveTarget.name}?
                     </ModalText>
-                    <ModalActions>
+                    <ModalActions className={styles.formActions}>
                         <Button
                             type="button"
                             variant="outlined"

@@ -370,6 +370,19 @@
     --btn-text-color: var(--text-primary);
 }
 
+.formActions {
+    gap: 0.75em;
+    margin-top: 0.5em;
+}
+
+.excludeText {
+    margin-bottom: 1em;
+}
+
+.confirmText {
+    color: var(--text-primary);
+}
+
 .modalForm {
     display: flex;
     flex-direction: column;

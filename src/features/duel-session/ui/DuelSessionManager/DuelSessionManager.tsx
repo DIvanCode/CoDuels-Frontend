@@ -18,6 +18,8 @@ import { useDuelResultAcknowledgement } from "features/duel-session/model/useDue
 import { useAppDispatch, useAppSelector, useAppStore } from "shared/lib/storeHooks";
 import { Button, Modal, ModalActions, ModalText } from "shared/ui";
 
+import styles from "./DuelSessionManager.module.scss";
+
 export const DuelSessionManager = () => {
     const dispatch = useAppDispatch();
     const store = useAppStore();
@@ -140,15 +142,17 @@ export const DuelSessionManager = () => {
                     closeOnEscape={false}
                     onClose={() => undefined}
                 >
-                    <ModalText>
-                        Соединение восстанавливается автоматически. Можно повторить попытку
-                        немедленно.
-                    </ModalText>
-                    <ModalActions align="center">
-                        <Button onClick={handleReconnect} disabled={isReconnecting}>
-                            {isReconnecting ? "Переподключение..." : "Переподключиться"}
-                        </Button>
-                    </ModalActions>
+                    <div className={styles.resultContent}>
+                        <ModalText>
+                            Соединение восстанавливается автоматически. Можно повторить попытку
+                            немедленно.
+                        </ModalText>
+                        <ModalActions align="center" className={styles.actions}>
+                            <Button onClick={handleReconnect} disabled={isReconnecting}>
+                                {isReconnecting ? "Переподключение..." : "Переподключиться"}
+                            </Button>
+                        </ModalActions>
+                    </div>
                 </Modal>
             )}
         </>

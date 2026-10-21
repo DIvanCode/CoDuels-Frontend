@@ -24,8 +24,19 @@ Use the same composition for confirmations, results, notices, and forms:
 
 `ModalActions` may also be placed inside a `<form>` so its submit button keeps
 native form behavior. `align="center"` centers a single action; `grow` lets
-actions share the available width. `ModalText align="start"` supports longer
-copy. `Modal size="wide" contentAlign="start"` supports configuration forms.
+actions share the available width, and `wrap` explicitly permits wrapping.
+`ModalText align="start"` supports longer copy. `Modal size="wide"
+contentAlign="start"` supports configuration forms.
+
+For the full-page duel selection flows, use `presentation="page"`. This keeps
+the original 520px panel, opaque backdrop below the site header, and spacing
+between its children. `className` and `overlayClassName` allow a feature to
+preserve its own geometry. Use `className` on `ModalText` or `ModalActions` for
+feature-specific spacing instead of changing every dialog through shared CSS.
+`headerAction` places an owner-provided control beside the title and replaces
+the default close icon; the rules editor uses it for its existing text button.
+Page presentation styles are scoped to the page panel's direct children so a
+nested confirmation keeps ordinary dialog spacing.
 
 Closing uses `onClose` through the icon, Escape, and (by default) overlay click.
 `closeOnOverlay={false}` preserves confirmation flows that should not close on

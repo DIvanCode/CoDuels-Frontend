@@ -745,8 +745,10 @@ const GroupPage = () => {
                         title="Не получилось отобразить группу"
                         onClose={() => setIsLoadErrorOpen(false)}
                     >
-                        <ModalText>Возможно, у вас нет доступа или группа не найдена.</ModalText>
-                        <ModalActions>
+                        <ModalText className={styles.excludeText}>
+                            Возможно, у вас нет доступа или группа не найдена.
+                        </ModalText>
+                        <ModalActions className={styles.formActions}>
                             <Button type="button" onClick={() => navigate(AppRoutes.INDEX)}>
                                 Понятно
                             </Button>
@@ -1259,7 +1261,7 @@ const GroupPage = () => {
                             autoComplete="off"
                         />
                         {formError && <div className={styles.errorText}>{formError}</div>}
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             <Button type="button" variant="outlined" onClick={handleEditClose}>
                                 Отмена
                             </Button>
@@ -1329,7 +1331,7 @@ const GroupPage = () => {
                                 ))}
                             </div>
                         )}
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             <Button type="button" variant="outlined" onClick={handleAddClose}>
                                 Отмена
                             </Button>
@@ -1360,7 +1362,7 @@ const GroupPage = () => {
                             />
                         </div>
                         {roleEditError && <div className={styles.errorText}>{roleEditError}</div>}
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             <Button
                                 type="button"
                                 variant="outlined"
@@ -1390,13 +1392,13 @@ const GroupPage = () => {
                     }
                     onClose={handleExcludeClose}
                 >
-                    <ModalText>
+                    <ModalText className={styles.excludeText}>
                         {excludeTarget.status === "Pending"
                             ? `Отменить приглашение для ${excludeTarget.user.nickname}?`
                             : `Исключить ${excludeTarget.user.nickname} из группы?`}
                     </ModalText>
                     {excludeError && <div className={styles.errorText}>{excludeError}</div>}
-                    <ModalActions>
+                    <ModalActions className={styles.formActions}>
                         <Button
                             type="button"
                             variant="outlined"
@@ -1425,10 +1427,10 @@ const GroupPage = () => {
                     onClose={() => setLeaveTarget(null)}
                     closeOnOverlay={false}
                 >
-                    <ModalText>
+                    <ModalText className={styles.confirmText}>
                         Вы действительно хотите покинуть группу {leaveTarget.name}?
                     </ModalText>
-                    <ModalActions>
+                    <ModalActions className={styles.formActions}>
                         <Button
                             type="button"
                             variant="outlined"
@@ -1616,7 +1618,7 @@ const GroupPage = () => {
 
                         {duelFormError && <div className={styles.errorText}>{duelFormError}</div>}
 
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             <Button
                                 type="button"
                                 variant="outlined"
@@ -1821,7 +1823,7 @@ const GroupPage = () => {
                             <div className={styles.errorText}>{tournamentFormError}</div>
                         )}
 
-                        <ModalActions>
+                        <ModalActions className={styles.formActions}>
                             {tournamentStep > 1 && (
                                 <Button
                                     type="button"

@@ -446,7 +446,24 @@ export const DuelConfigurationManager = ({
             {isFormVisible &&
                 portalTarget &&
                 createPortal(
-                    <Modal title={headerLabel} onClose={closeForm} size="wide" contentAlign="start">
+                    <Modal
+                        title={headerLabel}
+                        onClose={closeForm}
+                        size="wide"
+                        contentAlign="start"
+                        className={styles.formModal}
+                        overlayClassName={styles.formOverlay}
+                        headerAction={
+                            <Button
+                                variant="outlined"
+                                className={styles.inlineButton}
+                                onClick={closeForm}
+                                type="button"
+                            >
+                                Закрыть
+                            </Button>
+                        }
+                    >
                         <ModalText className={styles.notice} align="start">
                             Созданные правила подходят только для нерейтинговых дуэлей.
                         </ModalText>
@@ -670,7 +687,7 @@ export const DuelConfigurationManager = ({
 
                             {formError && <p className={styles.errorText}>{formError}</p>}
 
-                            <ModalActions grow>
+                            <ModalActions grow className={styles.submitActions}>
                                 <Button
                                     type="submit"
                                     disabled={

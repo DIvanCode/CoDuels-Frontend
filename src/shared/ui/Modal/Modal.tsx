@@ -10,21 +10,29 @@ import styles from "./Modal.module.scss";
 interface Props {
     title: string;
     onClose: () => void;
+    className?: string;
+    overlayClassName?: string;
+    headerAction?: ReactNode;
     showCloseButton?: boolean;
     closeOnOverlay?: boolean;
     closeOnEscape?: boolean;
     size?: "default" | "wide";
     contentAlign?: "center" | "start";
+    presentation?: "dialog" | "page";
 }
 
 export const Modal = ({
     title,
     onClose,
+    className,
+    overlayClassName,
+    headerAction,
     showCloseButton = true,
     closeOnOverlay = true,
     closeOnEscape = true,
     size = "default",
     contentAlign = "center",
+    presentation = "dialog",
     children,
 }: PropsWithChildren<Props>) => {
     const modalRef = useRef<HTMLDivElement>(null);
@@ -42,7 +50,11 @@ export const Modal = ({
 
     return (
         <div
-            className={styles.overlay}
+            className={clsx(
+                styles.overlay,
+                presentation === "page" && styles.pageOverlay,
+                overlayClassName,
+            )}
             onClick={(event) => {
                 if (closeOnOverlay && event.currentTarget === event.target) {
                     onClose();
@@ -55,13 +67,15 @@ export const Modal = ({
                     styles.modal,
                     size === "wide" && styles.wide,
                     contentAlign === "start" && styles.start,
+                    presentation === "page" && styles.pageModal,
+                    className,
                 )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
                 tabIndex={-1}
             >
-                {showCloseButton && (
+                {showCloseButton && !headerAction && (
                     <IconButton
                         className={styles.closeButton}
                         aria-label="Закрыть"
@@ -71,9 +85,18 @@ export const Modal = ({
                         <CrossIcon />
                     </IconButton>
                 )}
-                <h3 id={titleId} className={styles.title}>
-                    {title}
-                </h3>
+                {headerAction ? (
+                    <div className={styles.header}>
+                        <h3 id={titleId} className={styles.title}>
+                            {title}
+                        </h3>
+                        {headerAction}
+                    </div>
+                ) : (
+                    <h3 id={titleId} className={styles.title}>
+                        {title}
+                    </h3>
+                )}
                 {children}
             </div>
         </div>
@@ -103,6 +126,7 @@ interface ModalActionsProps {
     className?: string;
     align?: "center" | "end";
     grow?: boolean;
+    wrap?: boolean;
 }
 
 export const ModalActions = ({
@@ -110,12 +134,14 @@ export const ModalActions = ({
     className,
     align = "end",
     grow = false,
+    wrap = false,
 }: ModalActionsProps) => (
     <div
         className={clsx(
             styles.actions,
             align === "center" ? styles.actionsCenter : styles.actionsEnd,
             grow && styles.grow,
+            wrap && styles.wrap,
             className,
         )}
     >

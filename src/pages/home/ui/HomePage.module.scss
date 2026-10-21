@@ -127,6 +127,34 @@
     color: var(--accent-primary);
 }
 
+.modePanel {
+    margin-top: -3em;
+}
+
+.modePanel.modePanel > h3 {
+    padding-inline: 2.25em;
+    margin-bottom: 0.5rem;
+}
+
+.modeDescription {
+    padding-inline: 2.25em;
+    margin-bottom: 1.2em;
+    font-size: 0.9rem;
+    font-weight: 300;
+}
+
+.modeActions {
+    justify-content: space-between;
+}
+
+.duelCanceledText {
+    font-size: 0.95rem;
+}
+
+.duelCanceledActions {
+    margin-top: 1em;
+}
+
 .configPickerPanel {
     position: relative;
     width: min(100%, 520px);

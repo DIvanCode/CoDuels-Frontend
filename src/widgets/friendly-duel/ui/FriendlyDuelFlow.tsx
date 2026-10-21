@@ -237,7 +237,8 @@ export const FriendlyDuelFlow = () => {
                 <Modal
                     title="Правила дружеской дуэли"
                     onClose={() => dispatch(closeFriendlyDuel())}
-                    size="wide"
+                    presentation="page"
+                    className={styles.configurationModal}
                     closeOnOverlay={false}
                     closeOnEscape={false}
                 >
@@ -276,6 +277,7 @@ export const FriendlyDuelFlow = () => {
                 <Modal
                     title="Дружеская дуэль"
                     onClose={() => dispatch(closeFriendlyDuel())}
+                    presentation="page"
                     closeOnOverlay={false}
                     closeOnEscape={false}
                 >
@@ -300,7 +302,7 @@ export const FriendlyDuelFlow = () => {
                             }
                             autoComplete="off"
                         />
-                        <ModalActions grow>
+                        <ModalActions grow className={styles.formActions}>
                             <Button
                                 variant="outlined"
                                 onClick={() => dispatch(showFriendlyDuelConfigurationStep())}
@@ -342,7 +344,7 @@ export const FriendlyDuelFlow = () => {
                     onClose={() => dispatch(closeFriendlyDuel())}
                 >
                     <ModalText>{cancellationDescription}</ModalText>
-                    <ModalActions grow>
+                    <ModalActions grow className={styles.resultActions}>
                         <Button variant="outlined" onClick={() => dispatch(closeFriendlyDuel())}>
                             Закрыть
                         </Button>
@@ -361,7 +363,7 @@ export const FriendlyDuelFlow = () => {
                     {friendlyDuel.error.description && (
                         <ModalText>{friendlyDuel.error.description}</ModalText>
                     )}
-                    <ModalActions grow>
+                    <ModalActions grow className={styles.resultActions}>
                         <Button variant="outlined" onClick={() => dispatch(closeFriendlyDuel())}>
                             Закрыть
                         </Button>

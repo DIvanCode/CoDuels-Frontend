@@ -229,7 +229,34 @@
 .notice {
     font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-bottom: 1.25em;
+}
+
+.formOverlay.formOverlay {
+    padding: 1.5em;
+    background: color-mix(in srgb, var(--background) 0%, var(--text-primary) 10%);
+    backdrop-filter: none;
+}
+
+.formModal.formModal {
+    max-height: calc(100vh - 3em);
+    padding: 1.75em;
+    border-radius: 0.75em;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+}
+
+.submitActions {
+    margin-top: 0;
+}
+
+.deleteHint {
+    font-size: 0.9rem;
+}
+
+.deleteActions {
+    margin-top: 1em;
 }
 
 .list {

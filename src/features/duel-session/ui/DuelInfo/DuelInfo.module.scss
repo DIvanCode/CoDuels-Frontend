@@ -26,3 +26,20 @@
     font-family: monospace;
     color: var(--text-secondary);
 }
+
+.resultContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+}
+
+.description {
+    display: flex;
+    align-items: center;
+    color: var(--text-primary);
+}
+
+.resultActions {
+    margin-top: 0;
+}

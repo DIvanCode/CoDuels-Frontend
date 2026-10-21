@@ -286,14 +286,16 @@ const HomePage = () => {
                         <Modal
                             title="Режим дуэли"
                             onClose={handleStartPanelClose}
+                            presentation="page"
+                            className={styles.modePanel}
                             closeOnOverlay={false}
                             closeOnEscape={false}
                         >
-                            <ModalText>
+                            <ModalText className={styles.modeDescription}>
                                 Запустите поиск оппонента для рейтинговой дуэли или вызовите на
                                 сражение определенного соперника.
                             </ModalText>
-                            <ModalActions grow>
+                            <ModalActions grow wrap className={styles.modeActions}>
                                 <Button onClick={handleQuickSearch}>Рейтинговая дуэль</Button>
                                 <Button variant="outlined" onClick={handleFriendlyOpen}>
                                     Дружеская дуэль
@@ -435,12 +437,12 @@ const HomePage = () => {
             </div>
             {duelCanceled && (
                 <Modal title="Вызов не принят" onClose={handleDuelCanceledClose}>
-                    <ModalText>
+                    <ModalText className={styles.duelCanceledText}>
                         {duelCanceledOpponentNickname
                             ? `${duelCanceledOpponentNickname} не принял вызов на дуэль.`
                             : "Пользователь не принял вызов на дуэль."}
                     </ModalText>
-                    <ModalActions align="center">
+                    <ModalActions align="center" className={styles.duelCanceledActions}>
                         <Button onClick={handleDuelCanceledClose}>Понятно</Button>
                     </ModalActions>
                 </Modal>

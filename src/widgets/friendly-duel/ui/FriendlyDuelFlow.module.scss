@@ -32,3 +32,24 @@
     gap: 1em;
     width: 100%;
 }
+
+.configurationModal {
+    max-height: calc(100vh - 3em);
+}
+
+.configurationModal.configurationModal > h3 {
+    font-size: 1.5em;
+    margin-bottom: -0.65rem;
+}
+
+.resultActions {
+    width: 100%;
+    gap: 1em;
+    margin-top: 1.5em;
+}
+
+.formActions {
+    width: 100%;
+    gap: 1em;
+    margin-top: 0;
+}

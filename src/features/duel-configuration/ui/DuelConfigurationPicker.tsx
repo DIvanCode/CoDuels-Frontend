@@ -218,8 +218,10 @@ export const DuelConfigurationPicker = ({
 
             {pendingDelete && (
                 <Modal title="Удалить правила?" onClose={() => setPendingDelete(null)}>
-                    <ModalText>Действие необратимо. Правила будут удалены.</ModalText>
-                    <ModalActions>
+                    <ModalText className={styles.deleteHint}>
+                        Действие необратимо. Правила будут удалены.
+                    </ModalText>
+                    <ModalActions className={styles.deleteActions}>
                         <Button
                             variant="outlined"
                             onClick={() => setPendingDelete(null)}
