@@ -10,34 +10,44 @@ import type { DomainEventContext } from "./context";
 import { isCurrentDomainSession } from "./context";
 import { matchesPendingInvitation, type PendingInvitationFamily } from "./invitationMatching";
 
-const invalidateInvitations = (context: DomainEventContext) => {
+const refreshInvitations = (
+    context: DomainEventContext,
+    type: "Ranked" | "Group" | "Tournament",
+) => {
     if (!isCurrentDomainSession(context)) return;
-    context.dispatch(
-        duelInvitationApiSlice.util.invalidateTags([{ type: "DuelInvitation", id: "LIST" }]),
+    void context.dispatch(
+        duelInvitationApiSlice.endpoints.getDuelInvitations.initiate(type, {
+            subscribe: false,
+            forceRefetch: true,
+        }),
     );
 };
 
 const createCanceledHandler =
-    (context: DomainEventContext, expectedFamily: PendingInvitationFamily) =>
+    (
+        context: DomainEventContext,
+        expectedFamily: PendingInvitationFamily,
+        type: "Ranked" | "Group" | "Tournament",
+    ) =>
     (event: { payload: InvitationPayload }) => {
         if (!isCurrentDomainSession(context)) return;
-        invalidateInvitations(context);
+        refreshInvitations(context, type);
         if (matchesPendingInvitation(event.payload, context.getState(), expectedFamily)) {
             context.dispatch(setPhase("idle"));
         }
     };
 
 export const createInvitationHandlers = (context: DomainEventContext): RealtimeEventHandlers => ({
-    DuelInvitation: [() => invalidateInvitations(context)],
-    DuelInvitationCanceled: [createCanceledHandler(context, "direct")],
-    GroupDuelInvitation: [() => invalidateInvitations(context)],
-    GroupDuelInvitationCanceled: [createCanceledHandler(context, "group")],
-    TournamentDuelInvitation: [() => invalidateInvitations(context)],
-    TournamentDuelInvitationCanceled: [createCanceledHandler(context, "tournament")],
+    DuelInvitation: [() => refreshInvitations(context, "Ranked")],
+    DuelInvitationCanceled: [createCanceledHandler(context, "direct", "Ranked")],
+    GroupDuelInvitation: [() => refreshInvitations(context, "Group")],
+    GroupDuelInvitationCanceled: [createCanceledHandler(context, "group", "Group")],
+    TournamentDuelInvitation: [() => refreshInvitations(context, "Tournament")],
+    TournamentDuelInvitationCanceled: [createCanceledHandler(context, "tournament", "Tournament")],
     DuelInvitationDenied: [
         ({ payload }) => {
             if (!isCurrentDomainSession(context)) return;
-            invalidateInvitations(context);
+            refreshInvitations(context, "Ranked");
             if (!matchesPendingInvitation(payload, context.getState(), "direct")) return;
 
             const isFriendlyDuel =
