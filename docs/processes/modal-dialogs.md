@@ -4,7 +4,7 @@
 
 `shared/ui` exports `Modal`, `ModalText`, and `ModalActions`. `Modal` owns the
 overlay, title, close icon, dialog semantics, focus trap, focus restoration,
-Escape handling, and overlay dismissal. The shared text and actions components
+and Escape handling. The shared text and actions components
 provide consistent typography and button spacing. Form fields, errors, and
 business actions remain in their owning feature or page.
 
@@ -33,14 +33,12 @@ the original 520px panel, opaque backdrop below the site header, and spacing
 between its children. `className` and `overlayClassName` allow a feature to
 preserve its own geometry. Use `className` on `ModalText` or `ModalActions` for
 feature-specific spacing instead of changing every dialog through shared CSS.
-`headerAction` places an owner-provided control beside the title and replaces
-the default close icon; the rules editor uses it for its existing text button.
+All closable dialogs, including the rules editor, use the same close icon.
 Page presentation styles are scoped to the page panel's direct children so a
 nested confirmation keeps ordinary dialog spacing.
 
-Closing uses `onClose` through the icon, Escape, and (by default) overlay click.
-`closeOnOverlay={false}` preserves confirmation flows that should not close on
-background click. `showCloseButton={false}` and `closeOnEscape={false}` are used
+Closing uses `onClose` through the icon and Escape. Clicking the dimmed overlay
+never closes a dialog. `showCloseButton={false}` and `closeOnEscape={false}` are used
 for the reconnecting notice. The owner decides whether closing resets a form or
 only hides the dialog. `DuelConfigurationManager` uses the shared shell inside
 its existing portal, so nested configuration forms retain their stacking order.
@@ -49,5 +47,5 @@ its existing portal, so nested configuration forms retain their stacking order.
 
 Check a confirmation, a form with submit and cancel, the connection interruption
 notice, and the configuration editor at desktop and mobile widths. Verify the
-close icon, Escape, overlay click, keyboard focus, and that form state resets or
+close icon, Escape, that overlay clicks leave the dialog open, keyboard focus, and that form state resets or
 survives exactly as each owner expects.

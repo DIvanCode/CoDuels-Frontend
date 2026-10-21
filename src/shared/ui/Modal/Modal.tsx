@@ -12,9 +12,7 @@ interface Props {
     onClose: () => void;
     className?: string;
     overlayClassName?: string;
-    headerAction?: ReactNode;
     showCloseButton?: boolean;
-    closeOnOverlay?: boolean;
     closeOnEscape?: boolean;
     size?: "default" | "wide";
     contentAlign?: "center" | "start";
@@ -26,9 +24,7 @@ export const Modal = ({
     onClose,
     className,
     overlayClassName,
-    headerAction,
     showCloseButton = true,
-    closeOnOverlay = true,
     closeOnEscape = true,
     size = "default",
     contentAlign = "center",
@@ -55,11 +51,6 @@ export const Modal = ({
                 presentation === "page" && styles.pageOverlay,
                 overlayClassName,
             )}
-            onClick={(event) => {
-                if (closeOnOverlay && event.currentTarget === event.target) {
-                    onClose();
-                }
-            }}
         >
             <div
                 ref={modalRef}
@@ -75,7 +66,7 @@ export const Modal = ({
                 aria-labelledby={titleId}
                 tabIndex={-1}
             >
-                {showCloseButton && !headerAction && (
+                {showCloseButton && (
                     <IconButton
                         className={styles.closeButton}
                         aria-label="Закрыть"
@@ -85,18 +76,9 @@ export const Modal = ({
                         <CrossIcon />
                     </IconButton>
                 )}
-                {headerAction ? (
-                    <div className={styles.header}>
-                        <h3 id={titleId} className={styles.title}>
-                            {title}
-                        </h3>
-                        {headerAction}
-                    </div>
-                ) : (
-                    <h3 id={titleId} className={styles.title}>
-                        {title}
-                    </h3>
-                )}
+                <h3 id={titleId} className={styles.title}>
+                    {title}
+                </h3>
                 {children}
             </div>
         </div>

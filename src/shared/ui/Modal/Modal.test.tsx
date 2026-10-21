@@ -60,20 +60,16 @@ describe("Modal", () => {
         expect(markup).toMatch(/<div class="[^"]*mode-actions[^"]*">/);
     });
 
-    it("uses a custom header action without duplicating the close control", () => {
+    it("uses the same close icon for configuration forms", () => {
         const markup = renderToStaticMarkup(
-            <Modal
-                title="Создать новые правила"
-                onClose={() => undefined}
-                headerAction={<button type="button">Закрыть</button>}
-            >
+            <Modal title="Создать новые правила" onClose={() => undefined} size="wide">
                 <ModalText>Настройте правила</ModalText>
             </Modal>,
         );
 
         expect(markup).toContain("Создать новые правила");
         expect(markup).toContain("Настройте правила");
-        expect(markup).toContain("Закрыть</button>");
-        expect(markup).not.toContain('aria-label="Закрыть"');
+        expect(markup).toContain('aria-label="Закрыть"');
+        expect(markup).not.toContain("Закрыть</button>");
     });
 });

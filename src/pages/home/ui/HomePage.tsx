@@ -288,7 +288,6 @@ const HomePage = () => {
                             onClose={handleStartPanelClose}
                             presentation="page"
                             className={styles.modePanel}
-                            closeOnOverlay={false}
                             closeOnEscape={false}
                         >
                             <ModalText className={styles.modeDescription}>

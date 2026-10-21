@@ -138,7 +138,6 @@ export const DuelSessionManager = () => {
                 <Modal
                     title="Соединение прервано"
                     showCloseButton={false}
-                    closeOnOverlay={false}
                     closeOnEscape={false}
                     onClose={() => undefined}
                 >

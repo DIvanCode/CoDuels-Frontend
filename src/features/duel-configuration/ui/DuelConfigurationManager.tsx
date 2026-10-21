@@ -453,16 +453,6 @@ export const DuelConfigurationManager = ({
                         contentAlign="start"
                         className={styles.formModal}
                         overlayClassName={styles.formOverlay}
-                        headerAction={
-                            <Button
-                                variant="outlined"
-                                className={styles.inlineButton}
-                                onClick={closeForm}
-                                type="button"
-                            >
-                                Закрыть
-                            </Button>
-                        }
                     >
                         <ModalText className={styles.notice} align="start">
                             Созданные правила подходят только для нерейтинговых дуэлей.

@@ -1425,7 +1425,6 @@ const GroupPage = () => {
                 <Modal
                     title="Покинуть группу"
                     onClose={() => setLeaveTarget(null)}
-                    closeOnOverlay={false}
                 >
                     <ModalText className={styles.confirmText}>
                         Вы действительно хотите покинуть группу {leaveTarget.name}?

@@ -239,7 +239,6 @@ export const FriendlyDuelFlow = () => {
                     onClose={() => dispatch(closeFriendlyDuel())}
                     presentation="page"
                     className={styles.configurationModal}
-                    closeOnOverlay={false}
                     closeOnEscape={false}
                 >
                     <DuelConfigurationPicker
@@ -278,7 +277,6 @@ export const FriendlyDuelFlow = () => {
                     title="Дружеская дуэль"
                     onClose={() => dispatch(closeFriendlyDuel())}
                     presentation="page"
-                    closeOnOverlay={false}
                     closeOnEscape={false}
                 >
                     <div className={styles.selectedConfiguration}>
