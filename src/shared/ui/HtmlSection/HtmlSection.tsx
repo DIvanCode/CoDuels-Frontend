@@ -27,6 +27,9 @@ const decodeMathEntities = (source: string) => {
 const renderMath = (source: string, displayMode: boolean) => {
     return katex.renderToString(decodeMathEntities(source), {
         displayMode,
+        macros: {
+            "\\and": "\\mathbin{\\&}",
+        },
         throwOnError: false,
         strict: false,
     });
