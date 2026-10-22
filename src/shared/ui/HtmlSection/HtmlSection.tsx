@@ -29,6 +29,8 @@ const renderMath = (source: string, displayMode: boolean) => {
         displayMode,
         macros: {
             "\\and": "\\mathbin{\\&}",
+            "\\or": "\\mathbin{\\text{|}}",
+            "\\xor": "\\mathbin{\\text{\\textasciicircum}}",
         },
         throwOnError: false,
         strict: false,
