@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { Link } from "react-router-dom";
+import {
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type PropsWithChildren,
+} from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import {
     type Duel,
@@ -20,11 +27,7 @@ import {
     useGetAdminActiveTournamentsQuery,
     useGetAdminFinishedTournamentsQuery,
 } from "entities/tournament";
-import {
-    type UserData,
-    useGetAdminActiveUsersQuery,
-    useGetAdminUsersQuery,
-} from "entities/user";
+import { type UserData, useGetAdminActiveUsersQuery, useGetAdminUsersQuery } from "entities/user";
 import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { AppRoutes, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
@@ -53,6 +56,8 @@ const tournamentStatusLabels = {
     InProgress: "Идёт",
     Finished: "Завершён",
 } as const;
+
+const scrollPositions = new Map<string, number>();
 
 interface QueryContentProps {
     isLoading: boolean;
@@ -384,6 +389,10 @@ const NotFound = () => (
 
 export const AdminPage = () => {
     const [now, setNow] = useState(() => Date.now());
+    const location = useLocation();
+    const pageRef = useRef<HTMLDivElement>(null);
+    const savedScrollTop = useRef(scrollPositions.get(location.key));
+    const hasRestoredScroll = useRef(false);
     const token = useAppSelector(selectAuthToken);
     const isAdmin = isAdminAccessToken(token);
 
@@ -438,8 +447,50 @@ export const AdminPage = () => {
         activeTournamentsQuery.error,
         finishedTournamentsQuery.error,
     ];
+    const isForbidden = queryErrors.some(isForbiddenError);
+    const isContentLoading = [
+        usersQuery,
+        activeUsersQuery,
+        pendingDuelsQuery,
+        rankedSearchersQuery,
+        activeDuelsQuery,
+        finishedDuelsQuery,
+        testingSubmissionsQuery,
+        submissionsQuery,
+        groupsQuery,
+        activeTournamentsQuery,
+        finishedTournamentsQuery,
+    ].some((query) => query.isLoading);
 
-    if (!isAdmin || queryErrors.some(isForbiddenError)) {
+    useLayoutEffect(() => {
+        if (!isAdmin || isForbidden) return;
+
+        const scrollContainer = pageRef.current?.closest("main");
+        return () => {
+            if (scrollContainer) {
+                scrollPositions.set(location.key, scrollContainer.scrollTop);
+            }
+        };
+    }, [isAdmin, isForbidden, location.key]);
+
+    useLayoutEffect(() => {
+        if (
+            !isAdmin ||
+            isForbidden ||
+            isContentLoading ||
+            hasRestoredScroll.current
+        ) {
+            return;
+        }
+
+        const scrollContainer = pageRef.current?.closest("main");
+        if (scrollContainer) {
+            scrollContainer.scrollTop = savedScrollTop.current ?? 0;
+            hasRestoredScroll.current = true;
+        }
+    }, [isAdmin, isForbidden, isContentLoading]);
+
+    if (!isAdmin || isForbidden) {
         return <NotFound />;
     }
 
@@ -455,7 +506,7 @@ export const AdminPage = () => {
         (activeTournamentsQuery.data?.length ?? 0) + (finishedTournamentsQuery.data?.length ?? 0);
 
     return (
-        <div className={styles.adminPage}>
+        <div className={styles.adminPage} ref={pageRef}>
             <div className={styles.pageContent}>
                 <header className={styles.pageHeader}>
                     <span className={styles.eyebrow}>CoDuels observe</span>
