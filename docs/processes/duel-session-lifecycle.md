@@ -33,9 +33,10 @@ itself set phase.
 `resetDuelSession` clears every field including unpersisted interrupted/task
 state. Logout and same-runtime user changes invoke it. A disconnected socket
 resets searching to idle because Duely cancels pending state on connection
-cleanup, then automatic reconnect begins. Finish resets only when its duel ID is
-the current active ID, so a duplicate or delayed finish cannot clear another
-active duel.
+cleanup, then automatic reconnect begins. Finish resets an active session only
+when its duel ID matches. A participant's `DuelFinished` event also records a
+pending result after the local active ID was cleared; it cannot replace a
+different active duel or pending result.
 
 The globally mounted realtime session runs `/duels/active/id` after every initial
 connect and reconnect. The response is always HTTP 200 with
@@ -87,7 +88,9 @@ sequenceDiagram
 - Ranked/friendly/accept success: `idle -> searching`.
 - `DuelStarted`: `searching|unfenced idle -> active`, non-null active ID.
 - cancel success/socket close while searching: `searching -> idle`.
-- finish: matching user-owned `active -> idle`, ID null, pending result recorded.
+- finish: matching user-owned `active -> idle`, ID null, pending result recorded;
+  a participant finish event can also record a result from `idle` without
+  changing the phase.
 - acknowledgement/logout/reset: pending result cleared; logout/reset also returns
   `active|searching|idle -> idle`.
 - `getActiveDuelId` followed by verified duel detail creates the consistent
@@ -129,8 +132,9 @@ pending-status endpoint or event replay.
 
 Supplied event IDs are deduplicated and numeric cursors are monotonic. Current
 Duely sends no cursor, so relevance checks protect active transitions and result
-creation is locally idempotent. A duplicate finish cannot recreate an
-acknowledged result after the active transition is consumed. Multiple HTTP
+creation is locally idempotent. A duplicate socket finish can briefly restore
+an acknowledged pending result in Redux, but the acknowledgement
+key keeps its modal hidden and the manager clears it. Multiple HTTP
 requests can still create/cancel competing backend state. Persisted active and
 pending-result state carries a user ID, and the runtime socket lifecycle is keyed
 and fenced by the current authenticated user ID.
@@ -139,8 +143,9 @@ and fenced by the current authenticated user ID.
 
 HTTP mutation success is usually observed before the related socket event. An
 early start cannot be overwritten by a later `setPhase(searching)` once the
-active ID is present. Finish is assumed to concern the current active duel. Home
-navigation assumes phase transition occurs after the watcher mounts.
+active ID is present. Duely sends finish events to both participants; the event
+can arrive after the local active ID was cleared. Home navigation assumes phase
+transition occurs after the watcher mounts.
 
 ## Failure handling
 

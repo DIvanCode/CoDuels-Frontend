@@ -45,8 +45,9 @@ The URL owns task/child-page choice. On each duel response, duelSession compares
 current tasks with unpersisted `lastTasksByDuelId`. The first snapshot creates no
 alert; a later `null -> id` marks newly opened task keys and raises
 `duelStatusChanged`. Removing/changing tasks has no equivalent alert. A terminal
-event or a polled finished snapshot for the user-owned active duel creates a
-persisted `pendingResult`; an ordinary historical finished-duel query does not.
+event for the current participant or a polled finished snapshot for the
+user-owned active duel creates a persisted `pendingResult`; an ordinary
+historical finished-duel query does not.
 Result and opened-task modals have separate dismissal state.
 
 ## Backend state assumptions
@@ -98,8 +99,8 @@ malformed requests before an error boundary/response resolves.
 Repeated navigation/query is RTK-deduplicated per cache key. Task snapshot
 reducers use key sets to avoid repeating opened alerts in one runtime. Reload
 loses those sets, and first fetched snapshot intentionally suppresses alerts.
-Duplicate terminal events cannot recreate an acknowledged pending result because
-the active transition has already been consumed and acknowledgement is shared.
+Duplicate terminal events may recreate an acknowledged pending result in Redux,
+but the shared acknowledgement keeps the modal hidden and the manager clears it.
 
 ## Ordering assumptions
 

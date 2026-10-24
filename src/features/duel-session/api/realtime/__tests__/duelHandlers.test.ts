@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { finishActiveDuel } from "../../../model/duelSessionSlice";
+import { finishDuelFromEvent } from "../../../model/duelSessionSlice";
 import { createDuelHandlers } from "../domain/duelHandlers";
 
 vi.mock("entities/duel", () => ({
@@ -25,7 +25,7 @@ vi.mock("shared/config", () => ({ fromApiLanguage: (language: string) => languag
 vi.mock("../../../model/duelSessionSlice", () => {
     const action = (type: string) => (payload?: unknown) => ({ type, payload });
     return {
-        finishActiveDuel: action("duelSession/finishActiveDuel"),
+        finishDuelFromEvent: action("duelSession/finishDuelFromEvent"),
         clearDuelStartFence: action("duelSession/clearDuelStartFence"),
         resetDuelSession: action("duelSession/resetDuelSession"),
         setActiveDuel: action("duelSession/setActiveDuel"),
@@ -152,7 +152,7 @@ describe("duel realtime handlers", () => {
             eventId: "9",
         });
 
-        expect(dispatch).toHaveBeenCalledWith(finishActiveDuel({ duelId: 42, userId: 7 }));
+        expect(dispatch).toHaveBeenCalledWith(finishDuelFromEvent({ duelId: 42, userId: 7 }));
         expect(dispatch).toHaveBeenCalledWith({
             type: "submission/invalidate",
             payload: ["Submission"],
@@ -180,7 +180,25 @@ describe("duel realtime handlers", () => {
         });
     });
 
-    it("does not queue a result when a historical duel finishes", () => {
+    it("passes a finish event through when the local active ID was already cleared", () => {
+        const dispatch = vi.fn();
+        const handlers = createDuelHandlers({
+            dispatch: dispatch as unknown as AppDispatch,
+            getState: () => createState(null, "idle"),
+            userId: 7,
+            reconcile: vi.fn(),
+        });
+
+        handlers.DuelFinished?.[0]({
+            type: "DuelFinished",
+            payload: { duel_id: 42 },
+            eventId: "9",
+        });
+
+        expect(dispatch).toHaveBeenCalledWith(finishDuelFromEvent({ duelId: 42, userId: 7 }));
+    });
+
+    it("leaves historical event filtering to the session reducer", () => {
         const dispatch = vi.fn();
         const handlers = createDuelHandlers({
             dispatch: dispatch as unknown as AppDispatch,
@@ -195,6 +213,6 @@ describe("duel realtime handlers", () => {
             eventId: "9",
         });
 
-        expect(dispatch).not.toHaveBeenCalledWith(finishActiveDuel({ duelId: 42, userId: 7 }));
+        expect(dispatch).toHaveBeenCalledWith(finishDuelFromEvent({ duelId: 42, userId: 7 }));
     });
 });

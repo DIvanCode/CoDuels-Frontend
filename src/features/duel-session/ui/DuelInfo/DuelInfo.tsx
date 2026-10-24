@@ -12,6 +12,7 @@ import {
     setOpenedTaskKeys,
 } from "features/duel-session";
 import { notifyDuelResultAcknowledged } from "features/duel-session/model/duelResultAcknowledgement";
+import { useDuelResultAcknowledgement } from "features/duel-session/model/useDuelResultAcknowledgement";
 import { ActiveDuelTimer } from "../ActiveDuelTimer/ActiveDuelTimer";
 import styles from "./DuelInfo.module.scss";
 
@@ -26,6 +27,7 @@ export const DuelInfo = ({ duelId }: Props) => {
     const currentUser = useAppSelector(selectCurrentUser);
     const { activeDuelId, activeDuelUserId, duelStatusChanged, openedTaskKeys, pendingResult } =
         useAppSelector(selectDuelSession);
+    const resultIsAcknowledged = useDuelResultAcknowledgement(currentUser?.id ?? null, duelId);
 
     const isCurrentActiveDuel = activeDuelId === duelId && activeDuelUserId === currentUser?.id;
     const { data: duel, isLoading: isDuelLoading } = useGetDuelQuery(duelId, {
@@ -37,7 +39,8 @@ export const DuelInfo = ({ duelId }: Props) => {
     const showResultModal =
         duel?.status === "Finished" &&
         pendingResult?.duelId === duelId &&
-        pendingResult.userId === currentUser?.id;
+        pendingResult.userId === currentUser?.id &&
+        !resultIsAcknowledged;
     const showUpdateModal = duelStatusChanged && duel?.status !== "Finished";
     const handleResultModalClose = () => {
         if (currentUser) {

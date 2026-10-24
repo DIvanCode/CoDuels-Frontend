@@ -74,7 +74,7 @@ without changing transport code.
 | Event                                            | Domain behavior                                                                                              |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | `DuelStarted`                                    | Invalidate that duel; activate it only when it does not conflict with another active ID, otherwise reconcile |
-| `DuelFinished`                                   | Invalidate duel/user/submission/tournament projections; finish only the matching current active duel         |
+| `DuelFinished`                                   | Invalidate duel/user/submission/tournament projections; record the participant result unless another active duel or pending result owns the session |
 | `DuelCanceled` compatibility event               | Reset a currently searching flow and show cancellation UI                                                    |
 | `DuelChanged` or nameless `duel_id`              | Invalidate duel/submission projections; HTTP fulfillment hydrates duel/editor state                          |
 | Direct invitation create/cancel/deny             | Refresh invitation projections; change local pending state only when the payload matches                     |
