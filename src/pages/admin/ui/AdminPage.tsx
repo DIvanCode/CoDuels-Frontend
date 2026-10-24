@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { Link } from "react-router-dom";
+import {
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type PropsWithChildren,
+} from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import {
     type Duel,
@@ -22,6 +29,7 @@ import {
 } from "entities/tournament";
 import {
     type UserData,
+    selectCurrentUser,
     useGetAdminActiveUsersQuery,
     useGetAdminUsersQuery,
 } from "entities/user";
@@ -29,6 +37,7 @@ import { isAdminAccessToken, selectAuthToken } from "features/auth";
 import { AppRoutes, fromApiLanguage, LANGUAGE_LABELS } from "shared/config";
 import { useAppSelector } from "shared/lib/storeHooks";
 import { Loader, Table } from "shared/ui";
+import { type AdminSectionId, readAdminViewState, saveAdminViewState } from "../lib/adminViewState";
 import {
     formatAdminDateTime,
     formatAdminWaitTime,
@@ -384,8 +393,19 @@ const NotFound = () => (
 
 export const AdminPage = () => {
     const [now, setNow] = useState(() => Date.now());
+    const location = useLocation();
+    const pageRef = useRef<HTMLDivElement>(null);
+    const hasRestoredScroll = useRef(false);
     const token = useAppSelector(selectAuthToken);
+    const userId = useAppSelector(selectCurrentUser)?.id ?? null;
+    const [initialViewState] = useState(() => readAdminViewState(userId, location.key));
+    const viewStateRef = useRef(initialViewState);
     const isAdmin = isAdminAccessToken(token);
+
+    const onSectionOpenChange = (sectionId: AdminSectionId, isOpen: boolean) => {
+        viewStateRef.current.openSections[sectionId] = isOpen;
+        saveAdminViewState(userId, location.key, viewStateRef.current);
+    };
 
     useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -438,8 +458,60 @@ export const AdminPage = () => {
         activeTournamentsQuery.error,
         finishedTournamentsQuery.error,
     ];
+    const isForbidden = queryErrors.some(isForbiddenError);
+    const isContentLoading = [
+        usersQuery,
+        activeUsersQuery,
+        pendingDuelsQuery,
+        rankedSearchersQuery,
+        activeDuelsQuery,
+        finishedDuelsQuery,
+        testingSubmissionsQuery,
+        submissionsQuery,
+        groupsQuery,
+        activeTournamentsQuery,
+        finishedTournamentsQuery,
+    ].some((query) => query.isLoading);
 
-    if (!isAdmin || queryErrors.some(isForbiddenError)) {
+    useLayoutEffect(() => {
+        if (isAdmin && !isForbidden) {
+            saveAdminViewState(userId, location.key, viewStateRef.current);
+        }
+    }, [isAdmin, isForbidden, location.key, userId]);
+
+    useLayoutEffect(() => {
+        if (!isAdmin || isForbidden || isContentLoading || hasRestoredScroll.current) {
+            return;
+        }
+
+        const scrollContainer = pageRef.current?.closest("main");
+        if (scrollContainer) {
+            scrollContainer.scrollTop = viewStateRef.current.scrollTop;
+            hasRestoredScroll.current = true;
+        }
+    }, [isAdmin, isForbidden, isContentLoading]);
+
+    useLayoutEffect(() => {
+        if (!isAdmin || isForbidden || isContentLoading || !hasRestoredScroll.current) return;
+
+        const scrollContainer = pageRef.current?.closest("main");
+        if (!scrollContainer) return;
+
+        const rememberScroll = () => {
+            viewStateRef.current.scrollTop = scrollContainer.scrollTop;
+            saveAdminViewState(userId, location.key, viewStateRef.current);
+        };
+
+        scrollContainer.addEventListener("scroll", rememberScroll, { passive: true });
+        window.addEventListener("pagehide", rememberScroll);
+        return () => {
+            scrollContainer.removeEventListener("scroll", rememberScroll);
+            window.removeEventListener("pagehide", rememberScroll);
+            rememberScroll();
+        };
+    }, [isAdmin, isForbidden, isContentLoading, location.key, userId]);
+
+    if (!isAdmin || isForbidden) {
         return <NotFound />;
     }
 
@@ -455,7 +527,7 @@ export const AdminPage = () => {
         (activeTournamentsQuery.data?.length ?? 0) + (finishedTournamentsQuery.data?.length ?? 0);
 
     return (
-        <div className={styles.adminPage}>
+        <div className={styles.adminPage} ref={pageRef}>
             <div className={styles.pageContent}>
                 <header className={styles.pageHeader}>
                     <span className={styles.eyebrow}>CoDuels observe</span>
@@ -463,7 +535,12 @@ export const AdminPage = () => {
                     <p>Текущее состояние пользователей, дуэлей и соревнований.</p>
                 </header>
 
-                <AdminSection title="Пользователи" count={usersQuery.data?.length}>
+                <AdminSection
+                    title="Пользователи"
+                    count={usersQuery.data?.length}
+                    defaultOpen={viewStateRef.current.openSections.users ?? true}
+                    onOpenChange={(isOpen) => onSectionOpenChange("users", isOpen)}
+                >
                     <div className={styles.subsection}>
                         <h2>Активные пользователи</h2>
                         <QueryContent
@@ -488,7 +565,12 @@ export const AdminPage = () => {
                     </div>
                 </AdminSection>
 
-                <AdminSection title="Дуэли" count={duelCount}>
+                <AdminSection
+                    title="Дуэли"
+                    count={duelCount}
+                    defaultOpen={viewStateRef.current.openSections.duels ?? true}
+                    onOpenChange={(isOpen) => onSectionOpenChange("duels", isOpen)}
+                >
                     <div className={styles.subsection}>
                         <h2>Поиск рейтинговой дуэли</h2>
                         <QueryContent
@@ -572,7 +654,12 @@ export const AdminPage = () => {
                     </div>
                 </AdminSection>
 
-                <AdminSection title="Посылки" count={submissionsQuery.data?.length}>
+                <AdminSection
+                    title="Посылки"
+                    count={submissionsQuery.data?.length}
+                    defaultOpen={viewStateRef.current.openSections.submissions ?? true}
+                    onOpenChange={(isOpen) => onSectionOpenChange("submissions", isOpen)}
+                >
                     <div className={styles.subsection}>
                         <h2>Тестируются</h2>
                         <QueryContent
@@ -597,7 +684,12 @@ export const AdminPage = () => {
                     </div>
                 </AdminSection>
 
-                <AdminSection title="Группы" count={groupsQuery.data?.length}>
+                <AdminSection
+                    title="Группы"
+                    count={groupsQuery.data?.length}
+                    defaultOpen={viewStateRef.current.openSections.groups ?? true}
+                    onOpenChange={(isOpen) => onSectionOpenChange("groups", isOpen)}
+                >
                     <QueryContent
                         isLoading={groupsQuery.isLoading}
                         isError={groupsQuery.isError}
@@ -633,7 +725,12 @@ export const AdminPage = () => {
                     </QueryContent>
                 </AdminSection>
 
-                <AdminSection title="Турниры" count={tournamentCount}>
+                <AdminSection
+                    title="Турниры"
+                    count={tournamentCount}
+                    defaultOpen={viewStateRef.current.openSections.tournaments ?? true}
+                    onOpenChange={(isOpen) => onSectionOpenChange("tournaments", isOpen)}
+                >
                     <div className={styles.subsection}>
                         <h2>Активные турниры</h2>
                         <QueryContent

@@ -50,6 +50,11 @@ with the same neutral screen. This remains the fallback when a token claims
 admin access but Duely rejects it. User, group, tournament, and duel links use
 the existing application routes.
 
+Following a dashboard link and returning through browser history, or reloading
+`/admin`, restores the scroll position after the admin queries finish loading.
+The five sections also keep their expanded state so the same content remains at
+that position. A new visit to `/admin` starts at the top.
+
 The current backend `DuelDto` does not identify whether an active or finished
 duel originated as Friendly, Group, or Tournament and does not include related
 group/tournament references. Those two lists therefore expose rated versus
@@ -62,7 +67,11 @@ labels and shows creation time.
 Each query independently moves from uninitialized/loading to data, empty, or
 error. The page derives inactive users, completed submissions, pending-duel type
 groups, group-name lookup, and aggregate counts without persisting them.
-Collapsible state resets to open when the page remounts.
+The view state is keyed by the signed-in user and browser-history entry. Scroll
+changes and section toggles update an in-memory copy and versioned
+`sessionStorage` record; navigation away also saves the current position. On
+return or reload, the page restores the section state and then the scroll
+position when all admin queries have settled.
 
 ## Backend state assumptions
 
@@ -77,8 +86,9 @@ to read that duel and submission.
 ## State ownership
 
 All displayed domain records belong to Duely. RTK Query owns their in-tab cache;
-the page owns only collapsible state and a one-second clock used to render ranked
-search wait time. No dashboard state is persisted.
+the page owns collapsible state, a one-second clock used to render ranked search
+wait time, and history-entry view state. Only the view state is stored in
+`sessionStorage` (`admin-view:v1`); no domain records are persisted there.
 
 ## Failure handling
 
@@ -91,8 +101,11 @@ back to `Группа #id`. Missing or invalid dates render an em dash.
 ## Reload and multiple tabs
 
 Reload and each additional tab issue fresh admin queries because RTK cache is
-not persisted. Tabs keep independent list snapshots and clocks; backend data is
-not streamed into the dashboard.
+not persisted. Reload restores the same user's view state from this tab's
+`sessionStorage`. New history entries start with all sections open and scroll at
+the top. Other users cannot reuse the saved state because the key includes the
+user ID. Tabs keep independent snapshots and clocks, and closing a tab clears
+its view state. Backend data is not streamed into the dashboard.
 
 ## Implementation references
 
@@ -108,6 +121,8 @@ terminal-submission selection and status tones, submission deep-link building,
 pending-duel grouping, waiting duration, and invalid dates. The publication
 smoke test covers admin and non-admin authenticated cold startup at `/admin` and
 the admin transition from a submission row to its detail inside the duel page.
+It also checks that returning from a dashboard link or reloading restores the
+scroll position and expanded sections.
 
 ## Current guarantees
 
