@@ -6,12 +6,14 @@ interface AdminSectionProps {
     title: string;
     count?: number;
     defaultOpen?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
 }
 
 export const AdminSection = ({
     title,
     count,
     defaultOpen = true,
+    onOpenChange,
     children,
 }: PropsWithChildren<AdminSectionProps>) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -20,7 +22,11 @@ export const AdminSection = ({
         <details
             className={styles.sectionCard}
             open={isOpen}
-            onToggle={(event) => setIsOpen(event.currentTarget.open)}
+            onToggle={(event) => {
+                const nextOpen = event.currentTarget.open;
+                setIsOpen(nextOpen);
+                onOpenChange?.(nextOpen);
+            }}
         >
             <summary className={styles.sectionSummary}>
                 <span className={styles.sectionTitle}>{title}</span>

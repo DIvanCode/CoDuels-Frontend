@@ -47,6 +47,7 @@ vi.mock("shared/ui", () => ({
 }));
 
 vi.mock("entities/user", () => ({
+    selectCurrentUser: vi.fn(),
     useGetAdminUsersQuery: mocks.adminQuery,
     useGetAdminActiveUsersQuery: mocks.adminQuery,
 }));
