@@ -4,7 +4,7 @@ import { userApiSlice } from "entities/user";
 import { fromApiLanguage } from "shared/config";
 
 import {
-    finishActiveDuel,
+    finishDuelFromEvent,
     clearDuelStartFence,
     setActiveDuel,
     setDuelCanceled,
@@ -51,19 +51,15 @@ export const createDuelHandlers = (context: DomainEventContext): RealtimeEventHa
     DuelFinished: [
         ({ payload }) => {
             if (!isCurrentDomainSession(context)) return;
-            const activeDuelId = context.getState().duelSession.activeDuelId;
-
             context.dispatch(
                 duelApiSlice.util.invalidateTags([{ type: "Duel", id: payload.duel_id }]),
             );
             context.dispatch(submitCodeApiSlice.util.invalidateTags(["Submission"]));
             context.dispatch(userApiSlice.util.invalidateTags([{ type: "User", id: "ME" }]));
 
-            if (activeDuelId === payload.duel_id) {
-                context.dispatch(
-                    finishActiveDuel({ duelId: payload.duel_id, userId: context.userId }),
-                );
-            }
+            context.dispatch(
+                finishDuelFromEvent({ duelId: payload.duel_id, userId: context.userId }),
+            );
         },
     ],
     DuelCanceled: [

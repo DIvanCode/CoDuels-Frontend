@@ -4,6 +4,7 @@ import reducer, {
     DUEL_START_FENCE_DURATION_MS,
     acknowledgeDuelResult,
     finishActiveDuel,
+    finishDuelFromEvent,
     resetDuelSession,
     setActiveDuel,
     setPhase,
@@ -74,6 +75,39 @@ describe("duel result notification state", () => {
             phase: "idle",
             pendingResult: { duelId: 42, userId: 7 },
         });
+    });
+
+    it("queues a participant finish event after the local active ID was cleared", () => {
+        let state = reducer(undefined, { type: "test/init" });
+        state = reducer(state, setActiveDuel({ duelId: 42, userId: 7 }));
+        state = reducer(state, setPhase("idle"));
+        state = reducer(state, finishDuelFromEvent({ duelId: 42, userId: 7 }));
+
+        expect(state.pendingResult).toEqual({ duelId: 42, userId: 7 });
+        expect(state.phase).toBe("idle");
+    });
+
+    it("clears an active phase left without an active ID before recording the finish", () => {
+        const state = {
+            ...reducer(undefined, { type: "test/init" }),
+            phase: "active" as const,
+        };
+
+        expect(reducer(state, finishDuelFromEvent({ duelId: 42, userId: 7 }))).toMatchObject({
+            phase: "idle",
+            activeDuelId: null,
+            pendingResult: { duelId: 42, userId: 7 },
+        });
+    });
+
+    it("does not replace a newer active duel or pending result with an older finish event", () => {
+        let state = reducer(undefined, { type: "test/init" });
+        state = reducer(state, setActiveDuel({ duelId: 43, userId: 7 }));
+        expect(reducer(state, finishDuelFromEvent({ duelId: 42, userId: 7 }))).toEqual(state);
+
+        state = reducer(state, finishDuelFromEvent({ duelId: 43, userId: 7 }));
+        expect(reducer(state, finishDuelFromEvent({ duelId: 42, userId: 7 }))).toEqual(state);
+        expect(reducer(state, finishDuelFromEvent({ duelId: 43, userId: 8 }))).toEqual(state);
     });
 
     it("does not queue a result for an ordinary historical finished-duel query", () => {

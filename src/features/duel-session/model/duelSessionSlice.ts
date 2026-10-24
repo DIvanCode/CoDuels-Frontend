@@ -190,6 +190,24 @@ const duelSessionSlice = createSlice({
             clearActiveDuel(state);
             state.pendingResult = action.payload;
         },
+        finishDuelFromEvent: (state, action: PayloadAction<{ duelId: number; userId: number }>) => {
+            const { duelId, userId } = action.payload;
+            if (
+                (state.activeDuelId !== null &&
+                    (state.activeDuelId !== duelId ||
+                        (state.activeDuelUserId !== null && state.activeDuelUserId !== userId))) ||
+                (state.pendingResult !== null &&
+                    (state.pendingResult.duelId !== duelId ||
+                        state.pendingResult.userId !== userId))
+            ) {
+                return;
+            }
+
+            if (state.activeDuelId === duelId || state.phase === "active") {
+                clearActiveDuel(state);
+            }
+            state.pendingResult = action.payload;
+        },
         acknowledgeDuelResult: (
             state,
             action: PayloadAction<{ duelId: number; userId: number }>,
@@ -271,6 +289,7 @@ export const {
     setOpenedTaskKeys,
     setActiveDuel,
     finishActiveDuel,
+    finishDuelFromEvent,
     acknowledgeDuelResult,
     setLastEventId,
     setSearchNickname,
